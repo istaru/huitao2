@@ -79,7 +79,6 @@ class TaoBaoAuthController extends AppController
                     M('friend_log')->where(['phone' => ['=', $name['phone']]])->save(['status' => 2]);
                 }
             }
-            //如果该用户是分享链接过来的 则去查看是否绑定师傅 如果没有就去绑定
             info('授权成功',1);
         }
         info('缺少参数',-1);

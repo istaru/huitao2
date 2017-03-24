@@ -36,6 +36,7 @@ class ShopincomeController extends getRewardController
 
 		// D($this->sql);
 		$this->execSql();
+		info('红包领取,请查收!',1);
 	}
 
 

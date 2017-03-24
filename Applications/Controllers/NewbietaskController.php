@@ -130,26 +130,25 @@ class NewbietaskController extends AppController
 						'score_info'   => $data['name'],
 						'report_date'  => date('Y-m-d')
 					]);
-					$data['status'] = 1;
-					info('ok', 1, [$data]);
+					info('立即领取', 1, [$data]);
 				}
 			}
 		} else { //进行中
-			$data['status'] = 2;
-			info('ok', 1, [$data]);
+			info('正在进行中', 1, [$data]);
 		}
 	}
 	//查询新手任务进度
-	public function queryTask($uid = '') {
+	public function queryTask($uid = '123') {
 		$uid = !empty($this->dparam['user_id']) ? $this->dparam['user_id'] : info('请您赶快去注册登录吧!', -1);
 		//判断用户注册时间 是否可以做新手任务
 		if($user = M('uid')->where("objectId = '{$uid}'")->field('createdAt')->select('single')) {
 			!strtotime($user['createdAt']) < 1487944802 or info('2017-02-24之后注册的用户才可以参加此次活动', -1);
+			$field = 'id task_id,name,introduce,price,createdAt';
 			//检测当前用户已完成的任务中是否还有未领取的奖励 如果有则不显示下个任务
-			if($task = M()->query("SELECT *,1 status FROM gw_task WHERE id IN( SELECT order_id FROM gw_uid_bill_log WHERE status = 1 AND type = 2 AND uid = '{$uid}')", 'single'))
-				info('ok', 1, [$task]);
+			if($task = M()->query("SELECT {$field} FROM gw_task WHERE id IN( SELECT order_id FROM gw_uid_bill_log WHERE status = 1 AND type = 2 AND uid = '{$uid}')", 'single'))
+				info('立即领取', 1, [$task]);
 			//取出用户正在进行的任务
-			$data = M()->query("SELECT id task_id,name,price,createdAt FROM gw_task WHERE id NOT IN( SELECT task_id FROM gw_task_log WHERE uid = '{$uid}') AND type = 1 LIMIT 1", 'single');
+			$data = M()->query("SELECT {$field} FROM gw_task WHERE id NOT IN( SELECT task_id FROM gw_task_log WHERE uid = '{$uid}') AND type = 1 LIMIT 1", 'single');
 			//如果没有查到任务则表示该用户任务已经全部做完
 			!empty($data) or info('您已经做完了全部新手任务!', 1);
 			//检测该任务用户是否已经完成了

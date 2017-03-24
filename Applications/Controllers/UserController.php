@@ -201,29 +201,39 @@ class UserController extends AppController
 	 */
 	public function message()
 	{
+		empty($this->dparam['user_id']) && info('数据不完整',-1);
 		$msg_where = " uid = '{$this->dparam['user_id']}' and type = 1 ";
 		$msg_field = " createdAt as date_time , content as msg";
 		$msg_info = A('Message:getMsg',[$msg_where,$msg_field]);
 		info('请求成功',1,$msg_info);
 	}
 
-	public function redmessage()
+
+	/**
+	 * [redMessage description]
+	 */
+	public function redMessage()
 	{
-		// $sql = " select * from gw_message where uid = {$this->dparam['user_id']} order by createdAt DESC limit 100 ";
-		$sql = " select createdAt as date_time , content as msg , bid ,status from gw_message where type = 2 order by createdAt DESC limit 100 ";
-
+		empty($this->dparam['user_id']) && info('数据不完整',-1);
+		$sql = " select createdAt as date_time , content as msg , bid ,status from gw_message where  uid = '{$this->dparam['user_id']}' and type = 2 order by createdAt DESC limit 100 ";
 		$info = M()->query($sql,'all');
-		foreach ($info as $k => $v) {
-			if($v['status'] == 1){
-				$temp['untake'][] = $v;
-			}else if($v['status'] == 2){
-				$temp['token'][] = $v;
-			}
-		}
-		$temp['all'] = $info;
-		// D($temp);die;
 
-		info('请求成功',1,$temp);
+		$msg_info = ['untake'=>[],'token'=>[],'all'=>$info];
+
+		foreach ($info as $k => $v) {
+
+			if($v['status'] == 1){
+				unset($v['status']);
+				$msg_info['untake'][] = $v;
+			}
+			else if($v['status'] == 2){
+				unset($v['status']);
+				$msg_info['token'][] = $v;
+			}
+
+		}
+
+		info('请求成功',1,$msg_info);
 
 	}
 
@@ -314,6 +324,45 @@ class UserController extends AppController
 
 		/**返回用户信息**/
 		info(['msg'=>'操作成功','status'=>1]);
+	}
+
+
+	//{"user_id":"123","bid":["123","321","222"]}
+	/**
+	 * [getReward 拆红包(购买)]
+	 */
+	public function getReward()
+	{
+		if(empty($this->dparam['bid']) || empty($this->dparam['user_id']))
+			info(-1,'数据不完整');
+		$bill_ids = implode(',',$this->dparam['bid']);
+		//取出用户拆红包对应的所有账单
+		$sql = "select * from gw_uid_bill_log where type = 1 and uid = '{$this->dparam['user_id']}' and id in ($bill_ids)";
+		$data = M()->query($sql,'all');
+
+		foreach ($data as $v){
+			$shop = ShopincomeController::getObj();
+			$shop -> getReward($v);
+		}
+	}
+
+
+	//{"user_id":"123","task_id":["123"]}
+	/**
+	 * [getReward 拆红包(任务)]
+	 */
+	public function getRewardTask()
+	{
+		if(empty($this->dparam['task_id']) || empty($this->dparam['user_id']))
+			info(-1,'数据不完整');
+		$task_ids = implode(',',$this->dparam['task_id']);
+		$sql = "select * from gw_uid_bill_log where type = 2 and uid = '{$this->dparam['user_id']}' and task_id in ($task_ids)";
+		$data = M()->query($sql,'all');
+
+		foreach ($data as $v){
+			$shop = TaskincomeController::getObj();
+			$shop -> getReward($v);
+		}
 	}
 
 }

@@ -100,7 +100,7 @@ class LoginController extends AppController
 
 			//修改密码 重置token
 			if(!empty($this->dparam['id_code'])){
-				$data['token']	= md5($this->dparam['phone'].time());
+				$data['token']		= md5($this->dparam['phone'].time());
 				$data['password']	= $this->dparam['password'];
 			}
 			M('uid')->where(" objectId = '{$this->uid_info['objectId']}' ")->save($data);
