@@ -4,10 +4,6 @@
  */
 class TaoBaoAuthController extends AppController
 {
-    public function __construct() {
-        $this ->status = 2;
-        parent::__construct();
-    }
     public function authInfo()
     {
         /**
@@ -23,10 +19,10 @@ class TaoBaoAuthController extends AppController
             ];
             M('uid')->where(['objectId' => ['=',$data['user_id']]])->save($arr) ? info('已成功取消授权',1) : info('取消授权失败',-1);
 
-        } else if(isset($data['imei'], $data['deviceVer'], $data['bdid'], $data['idfa'], $data['uuid'])) {
-            if(empty($data['user_id']) || empty($data['taobao_id']) || empty($data['user_name']) || empty($data['user_head_img']))
-                info('缺少参数',-1);
-
+        } else if(!empty($data['user_id']) && !empty($data['taobao_id']) && !empty($data['user_name']) && !empty($data['user_head_img']) && !empty($data['imei']) || !empty($data['bdid']) || !empty($data['idfa'])) {
+            //设置某些参数默认值 然后合并覆盖
+            $arr = ['bdid' => '', 'uuid' => '', 'idfa' => '', 'imei' => ''];
+            $data = array_merge($arr, $data);
             try {
                 M()->startTrans();
                 $add = [
@@ -47,7 +43,7 @@ class TaoBaoAuthController extends AppController
                 if(isset($did_id['id']))
                     $did_id = $did_id['id'];
                 else
-                    E('没能获取到设备id');
+                    E('授权失败呀');
                 /**
                  * 绑定淘宝账号与用户之间的关系 如果之前绑定过一样的则不需要再添加
                  */
@@ -59,12 +55,12 @@ class TaoBaoAuthController extends AppController
                 $add['did_id'] = $did_id;
 
                 if(!M('taobao_log')->where($where)->select('single')) {
-                    M('taobao_log')->add($add) or E('第二步授权失败');
+                    M('taobao_log')->add($add) or E('授权失败');
                 }
                 /**
                  * 修改用户授权状态 用户头像 用户昵称
                  */
-                M('uid')->where(['objectId' => ['=',$data['user_id']]])->save($add) or E('第三步授权失败');
+                M('uid')->where(['objectId' => ['=',$data['user_id']]])->save($add) or E('授权失败');
 
             } catch(Exception $e) {
                 M()->rollback();
