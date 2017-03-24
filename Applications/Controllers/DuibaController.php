@@ -80,12 +80,10 @@ class DuibaController extends AppController
 			'appKey'=>parent::DUIBA_KEY,
 			'timestamp'=>round(microtime(true),3)*1000,
 			'appSecret'=>parent::DUIBA_SECRET,
-			// 'redirect'=>$_GET['dbredirect'],
 
 		];
 		$arr['sign'] = $this->sign($arr);
 		unset($arr['appSecret']);
-		// $url = parent::DUIBA_AUTO_URL.http_build_query($temp_arr);
 		$url = parent::DUIBA_AUTO_URL;
 		$url.="uid=".$arr['uid']."&credits=".$arr['credits']."&appKey=".$arr['appKey']."&sign=".$arr['sign']."&timestamp=".$arr['timestamp'].'&alipay='.$arr['alipay'].'&realname='.$arr['realname'];
 		info(['msg'=>'ok','status'=>1,'url'=>$url]);
