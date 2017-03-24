@@ -65,19 +65,8 @@ class TaoBaoKeController extends AppController {
         foreach($data as $v) {
             //key进行替换
             $v = $this->replaceField($v);
-            //如果此字段为空则表示收到的这笔订单是正在退款中或者退款成功的
+            //如果此字段为空则表示收到的这笔订单是正在退款中或者退款成功的 也组合在一起循环处理
             !empty($v['auction_infos']) or $v['auction_infos'][] = $v;
-            //给即将入库的参数 默认设置为空
-            $v['open_id']           = ' ';   //明文id
-            $v['post_fee']          = ' ';   //邮费
-            $v['detail_order_id']   = ' ';   //auction_infos 字段 list类型里的订单号
-            $v['auction_amount']    = ' ';   //购买件数
-            $v['auction_pict_url']  = ' ';   //商品主图
-            $v['auction_title']     = ' ';   //商品标题
-            $v['shop_title']        = ' ';   //店铺名称
-            !empty($v['order_id'])          or $v['order_id']  = ' ';   //订单号
-            !empty($v['refund_id'])         or $v['refund_id'] = ' ';   //订单号
-            !empty($v['create_order_time']) or $v['create_order_time'] = ' ';   //下单时间
 
             if(!empty($v['auction_infos'])) {
                 //auction_infos字段是数组形式[以防万一 循环处理]
@@ -95,34 +84,24 @@ class TaoBaoKeController extends AppController {
                         }
                     }
                     //把所有订单数据拼接成一条sql语句入库
-                    $this->sql .= "('{$v['buyer_id']}', '{$v['order_id']}','{$v['open_id']}', {$v['post_fee']}, {$v['paid_fee']}, {$v['status']}, '{$v['msg']}', {$v['auction_amount']}, '{$v['auction_id']}', '{$v['seller_nick']}', '{$v['shop_title']}', '{$v['auction_title']}', '{$v['order_id']}', '{$v['refund_id']}', '{$v['detail_order_id']}', '{$v['create_order_time']}', '{$v['auction_pict_url']}'),";
+                    $this->sql .= '('.implode($this->setFileds($v), ',').'),';
                 }
             }
         }
         $this->sql = rtrim($this->sql, ',');
         // M()->query($this->sql);
-        // D($this->sql);
+        D($this->sql);
         // //确认消息
+        // TaoBaoApiController::tmcMessagesConfirmRequest($this->id);
         // $this->confirmationMessage($this->id);
         $purchaseRecord = isset($this->aggregate[2]) ? array_column($this->aggregate[2], 'orderId') : [];
         $backOrder      = isset($this->aggregate[5]) ? $this->aggregate[5] : [];
-        $order_id = array_diff($purchaseRecord, $backOrder); //付款成功 订单id
-        D($backOrder);
-        exit;
-        $res      = array_diff($backOrder, $purchaseRecord); //退款成功 订单id
-        // //先处理 付款成功 再处理退款成功的订单
-        // empty($order_id) or $this ->notice(2, $order_id);
-        // empty($res)      or $this ->notice(5, $res);
+        //处理付款成功的订单id
+        // empty($purchaseRecord) or $this ->notice(2, array_diff($purchaseRecord, $backOrder));
+        //处理退款成功的订单id
+        // empty($backOrder)      or $this ->notice(5, array_diff($backOrder, $purchaseRecord));
     }
-    /**
-     * [confirmationMessage 确认消息]
-     */
-    public function confirmationMessage($goodsId) {
-        $id = array_chunk($goodsId, 200);
-        foreach($id as $v) {
-            TaoBaoApiController::tmcMessagesConfirmRequest(implode($v, ','));
-        }
-    }
+
     /**
      * [notice 分发处理消息队列]
      */
@@ -141,11 +120,40 @@ class TaoBaoKeController extends AppController {
         }
 
     }
-    //情况变量
+    //恢复变量默认值
     public function unsetVariable() {
         $this->id        = [];
         $this->aggregate = [];
-        $this->sql       = 'INSERT IGNORE INTO gw_order_status( `buyer_id` , `order_id` , `open_id` , `post_fee` , `paid_fee` , `status` , `msg` , `auction_amount` , `auction_id` , `seller_nick` , `shop_title` , `auction_title` , `oid`, `refund_id`, `detail_order_id` , `create_order_time` , `auction_pict_url`) VALUES ';
+        echo implode('`,`', array_keys($this->setFileds()));
+        exit;
+        $this->sql       = 'INSERT IGNORE INTO gw_order_status('.(implode('`,`', array_keys($this->setFileds()))).') VALUES ';
+    }
+    //设置表字段以及默认值
+    public function setFileds($value = []) {
+        $filed = [
+            'buyer_id'          => empty($value['buyer_id'])            ? ' '    : $value['buyer_id'],
+            'order_id'          => empty($value['order_id'])            ? ' '    : $value['order_id'],
+            'open_id'           => empty($value['open_id'])             ? ' '    : $value['open_id'],
+            'post_fee'          => empty($value['post_fee'])            ?  0     : $value['post_fee'],
+            'paid_fee'          => empty($value['paid_fee'])            ?  0     : $value['paid_fee'],
+            'status'            => empty($value['status'])              ? 'NULL' : $value['status'],
+            'msg'               => empty($value['msg'])                 ? ' '    : $value['msg'],
+            'auction_amount'    => empty($value['auction_amount'])      ? 'NULL' : $value['auction_amount'],
+            'auction_id'        => empty($value['auction_id'])          ? ' '    : $value['auction_id'],
+            'seller_nick'       => empty($value['seller_nick'])         ? ' '    : $value['seller_nick'],
+            'shop_title'        => empty($value['shop_title'])          ? ' '    : $value['shop_title'],
+            'auction_title'     => empty($value['auction_title'])       ? ' '    : $value['auction_title'],
+            'oid'               => empty($value['oid'])                 ? ' '    : $value['oid'],
+            'refund_id'         => empty($value['refund_id'])           ? ' '    : $value['refund_id'],
+            'detail_order_id'   => empty($value['detail_order_id'])     ? ' '    : $value['detail_order_id'],
+            'create_order_time' => empty($value['create_order_time'])   ? ' '    : $value['create_order_time'],
+            'auction_pict_url'  => empty($value['auction_pict_url'])    ? ' '    : $value['auction_pict_url'],
+        ];
+        foreach($filed as &$v) {
+            if(is_string($v) && !empty($v))
+                $v = "'{$v}'";
+        }
+        return $filed;
     }
    /**
     * 依据消息名称 映射 对应的名称 与状态号

@@ -1,68 +1,41 @@
 <?php
 class UserController extends AppController
 {
-
-
+	//{"user_id":"NPfk0woYpJ"}
 	/**
-	 * [person_info 个人中心数据]
-	 * {"user_id":"kQb9frCvDR"}
+	 * [Info 个人中心数据]
 	 */
-	//SELECT * FROM gw_uid_log WHERE createdAt < date_sub(curdate(),interval 1 day)
-	public function personInfo()
+	public function Info()
 	{
-		if(empty($this->dparam['user_id'])) info('user_id不存在',-1);
-		//取出用户最近7天的预结收入总和
-		$predict_total = M()->query("SELECT sum(price) as predict FROM gw_uid_log WHERE createdAt > date_sub(curdate(),interval 7 day) AND status = 1 AND uid = '{$this->dparam['user_id']}'");
-		//取出用户信息
-		$uid_info =  A('Uid:getInfo',["objectId = '{$this->dparam['user_id']}'",'*','single']);
-		if(empty($uid_info)) info('用户不存在',-1);
-		$data = [
-			'msg' => '请求成功',
-			'status' => 1,
-			'sfuid' => $uid_info['sfuid'],
-			'nickname' => $uid_info['nickname'],
-			'head_img' => $uid_info['head_img'],
-			'balance' => (string)$uid_info['price'],	//可用余额
-			'predict' => empty($predict_total['predict']) ? '0': (string)$predict_total['predict'],	//预估收入
-			'total' => (string)($uid_info['price']+$uid_info['pnow']+$uid_info['pend']),	//总收入
-			'withdrawn' => (string)$uid_info['pend'],	//已提现
-			'processing' => (string)$uid_info['pnow'],	//提现处理中
-		];
-		info($data);
+		empty($this->dparam['user_id']) && info('数据不完整',-1);
+
+		//预估收入
+		$sql = " SELECT  sum(price) predict FROM gw_uid_log where status = 1 AND uid = '{$this->dparam['user_id']}' ";
+		$predict = M()->query($sql);
+
+		//用户信息
+		$sql = " SELECT objectId uid,sfuid,nickname,head_img,price,pend,pnow,(price+pend+pnow) total FROM gw_uid WHERE objectId = '{$this->dparam['user_id']}' ";
+		$info = M()->query($sql);
+		empty($info) && info('用户不存在',-1);
+
+		info(['msg'=>'请求成功!','status'=>1,'predict'=>(int)$predict['predict']]+$info);
 	}
+
 
 	//{"user_id":"NPfk0woYpJ"}
 	/**
-	 * [withdrawals 提现明细]
+	 * [pnowLog 提现明细]
 	 */
-	public function withdrawals()
+	public function pnowLog()
 	{
-		$pnow_list = A('Pnow:getPnowInfo',["uid = '{$this->dparam['user_id']}'"]);
-		// D($pnow_list);
-		if(!empty($pnow_list))
-		{
-			foreach ($pnow_list as $k => $v) {
-				$temp = [];
-				if($v['status'] < 4){
-					$temp['msg'] = $v['errmsg'];
-				}elseif($v['status'] == 5){
-					$temp['msg'] = $v['duiba_success'];
-				}elseif($v['status'] == 6){
-					$temp['msg'] = $v['duiba_end_errmsg'];
-				}
-				if(empty($temp['msg'])) $temp['msg'] = '请耐心等待';
-				$temp['date_time'] = $v['updatedAt'];
-				$temp['price'] = $v['price'];
-				$temp['status'] = $v['status'];
-				$arr[] = $temp;
-			}
-		}else{
-			$arr = [];
-		}
+		empty($this->dparam['user_id']) && info('数据不完整',-1);
 
-		// D($arr);die;
-		info('请求成功',1,$arr);
+		$sql = " SELECT price,status,updatedAt date_time,if(status<4,errmsg,(CASE status WHEN 5 THEN duiba_success WHEN 6 THEN duiba_end_errmsg ELSE '请耐心等待' END)) msg FROM gw_pnow WHERE uid = '{$this->dparam['user_id']}'";
+
+		info('请求成功',1,M()->query($sql,'all'));
 	}
+
+
 	//验证改用户是否可以绑定好友
 	public function checkbindMasters($uid, $sfuid) {
 		if($uid == $sfuid)

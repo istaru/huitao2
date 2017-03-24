@@ -5,7 +5,7 @@
 return [
     /*-------------------数据库配置-------------------*/
     'database' => [
-        'DB_DSN'    => 'mysql:host=127.0.0.1;dbname=test',
+        'DB_DSN'    => 'mysql:host=127.0.0.1;dbname=huitao',
         'DB_USER'   => 'root',
         'DB_PWD'    => '',
         'DB_PREFIX' => 'gw_',

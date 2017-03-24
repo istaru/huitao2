@@ -22,11 +22,14 @@ class TaoBaoApiController {
         return !empty($resp['tmc_messages_consume_response']) ? $resp['tmc_messages_consume_response'] : '';
     }
     //确认消息 http://open.taobao.com/docs/api.htm?spm=a219a.7395905.0.0.V2dlzx&apiId=21985
-    public static function tmcMessagesConfirmRequest($setSMessageIds) {
-        TaoBaoController::send([
-            'method'        => 'taobao.tmc.messages.confirm ',
-            's_message_ids' => $setSMessageIds
-        ]);
+    public static function tmcMessagesConfirmRequest($id) {
+        $id = array_chunk($id, 200);
+        foreach($id as $v) {
+            TaoBaoController::send([
+                'method'        => 'taobao.tmc.messages.confirm ',
+                's_message_ids' => implode($v, ',')
+            ]);
+        }
     }
     //淘宝客商品查询搜索 http://open.taobao.com/docs/api.htm?spm=a219a.7629065.0.0.1m81nR&apiId=24515
     public static function tbkItemGetRequest($paramster) {
