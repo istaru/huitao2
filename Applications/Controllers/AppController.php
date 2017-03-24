@@ -20,29 +20,26 @@ class AppController extends Controller
     public function __construct()
     {
         if($_SERVER['REQUEST_METHOD'] == 'POST')
-        {
             $this->dparam = json_decode(rawurldecode(file_get_contents('php://input')),true);
-        }else{
+        else
             $this->dparam = $_GET;
-        }
+
         //判断接收的数据是否AES加密
         if(!empty($this->dparam['secret'])){
             $this->dparam = aes_decode($this->dparam['content'],$this->dparam['secret']);
             self::$aes = true;
         }
+
         //status 等1 的情况下 才会去过滤
-        if($this ->status == 1 && !empty($this->dparam) ) {
+        if($this ->status == 1 && !empty($this->dparam) )
             $this ->dparam = $this->filter_arr($this ->dparam);
-        }
     }
 
     //过滤非表字段的数据
     public function filter_field($arr=array(),$farr=array()){
-        foreach ($arr as $k => $v) {
-            if(in_array($k,$farr)){
-                $_arr[$k] = $v;
-            }
-        }
+        foreach ($arr as $k => $v)
+            if(in_array($k,$farr)) $_arr[$k] = $v;
+
         return $this->filter_arr($_arr);
     }
 
@@ -50,11 +47,9 @@ class AppController extends Controller
     //过滤空数据
     function filter_arr($arr=array()){
         $_arr = [];
-        foreach ($arr as $k => $v) {
-            if($v !== '' && $v !== null){
-                $_arr[$k] = $v;
-            }
-        }
+        foreach ($arr as $k => $v)
+            if($v !== '' && $v !== null) $_arr[$k] = $v;
+
         return $_arr;
     }
 
