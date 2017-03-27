@@ -232,7 +232,7 @@ SELECT s.sort,o.num_iid as id,o.title as name,o.volume as stock,o.price as price
 	 */
 	public function getTypes()
 	{
-		return M()->query('select pid as id ,name from gw_category  where name is not null group by name order by pid asc','all');
+		return M()->query('select pid as id ,name from gw_category  where me is not null group by name order by pid asc','all');
 	}
 
 	/**

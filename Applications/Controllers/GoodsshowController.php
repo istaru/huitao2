@@ -15,7 +15,6 @@ class GoodsShowController extends AppController
      */
     public function goods()
     {
-        file_put_contents(DIR.'/llogs.txt', json_encode($this->dparam));
         $cur_page = ($this->dparam['cur_page'] - 1) * $this->dparam['page_size'] ;
         $page_size = $cur_page + $this->dparam['page_size'] - 1;
 

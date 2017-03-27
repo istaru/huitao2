@@ -3,22 +3,29 @@
  * 淘宝订单信息获取类
  */
 class TaoBaoKeController extends AppController {
-    // 订单id
+    public $sql = '';
+    // 商品id
     public $id = [];
-    //存储商品混淆id付款成功单号 以及商品退单单号
+    //存储商品付款成功单号 以及商品退单单号
     public $aggregate = [];
     //配置文件数组
     public static $params = [];
-    //批量添加付款成功的数据入库
-    public $sql = '';
     //存储商品列表服务api查询到的数据
     public $taobaoList = [];
+    //设置类属性默认值
+    public function setVariable() {
+        $this->aggregate = [
+            2 => [],    //存储付款成功单号
+            5 => [],    //存储退款成功单号
+        ];
+        $this->sql       = 'INSERT IGNORE INTO gw_order_status('.('`'.implode('`,`', array_keys($this->setFileds())).'`').') VALUES ';
+    }
     public function run() {
-        if(empty(self::$params))
-            self::$params = include DIR_CORE.'baiChuanConfig.php';
-        foreach(self::$params['order'] as $v) {
-            //初始化每次循环产生的数据存储变量
-            $this->unsetVariable();
+        if(empty(self::$params) && empty(self::$params = (include DIR_CORE.'baiChuanConfig.php')['order']))
+            info('缺少appkey');
+        foreach(self::$params as $v) {
+            //初始化每次循环产生的数据
+            $this->setVariable();
             TaoBaoApiController::__setas($v['appkey'], $v['secret']);
             $this->message();
         }
@@ -27,17 +34,12 @@ class TaoBaoKeController extends AppController {
 
     // 订单信息
     public function message() {
-        $this->unsetVariable();
+        //获取所有订单信息
         // $resp = TaoBaoApiController::tmcMessagesConsumeRequest();
-        // if(empty($resp['messages']['tmc_message']))
-            // return;
-        // $order = $resp['messages']['tmc_message'];
+        // if(empty($resp['messages']['tmc_message']) || !$order = $resp['messages']['tmc_message']) return;
         $order = (json_decode(file_get_contents('http://localhost/test/2.json'), true))['tmc_message'];
-        if(empty($order))
-            return;
         //获取订单id 用作确认消息
         $this->id = array_column($order,'id');
-        $i = 0;
         foreach($order as $k => $v) {
             $content = json_decode($v['content'], true);
             //映射对应的订单状态
@@ -46,20 +48,19 @@ class TaoBaoKeController extends AppController {
             $content['app_key'] = $v['pub_app_key'];
             //获取全部付款成功的商品混淆id 以及退款成功 付款成功的订单号
             if(2 == $content['status']) {
-                foreach($content['auction_infos'] as $_v) {
-                    $this->aggregate[2][$i]['auctionId'] = $_v['auction_id'];
-                    $this->aggregate[2][$i++]['orderId'] = $_v['detail_order_id'];
+                foreach($content['auction_infos'] as $_k => $_v) {
+                    $auctionId[] = $_v['auction_id'];
+                    $this->aggregate[2][] = $_v['detail_order_id'];
                 }
-            } else if(4 == $content['status']) {
+            } else if(5 == $content['status']) {
                 $this->aggregate[5][] = $content['tid'];
             }
             $data[] = $content;
         }
         //通过商品列表服务api拿到明文id 以及邮费
-        // $this->taobaoList = TaoBaoApiController::taeItemsListRequest();
+        // empty($auctionId) or $this->taobaoList = TaoBaoApiController::taeItemsListRequest('', $auctionId));
         //订单入库
         $this->addOrder($data);
-        echo '处理完成';
     }
     public function addOrder($data) {
         foreach($data as $v) {
@@ -70,7 +71,6 @@ class TaoBaoKeController extends AppController {
             foreach($v['auction_infos'] as $_v) {
                 //把auction_infos字段里的值和外面的值组合在一起进行处理入库
                 $v = array_merge($v, $_v);
-                unset($v['auction_infos']);
                 //匹配从商品列表服务api查出来的混淆id 获取到该商品明文id
                 foreach($this->taobaoList as $taobaoList) {
                     //对于付款成功的订单需要减去邮费入库
@@ -88,12 +88,10 @@ class TaoBaoKeController extends AppController {
         M()->query(rtrim($this->sql, ','));
         //确认消息
         TaoBaoApiController::tmcMessagesConfirmRequest($this->id);
-        $purchaseRecord = isset($this->aggregate[2]) ? array_column($this->aggregate[2], 'orderId') : [];
-        $backOrder      = isset($this->aggregate[5]) ? $this->aggregate[5] : [];
         //处理付款成功的订单id
-        empty($purchaseRecord) or $this->notice(2, array_diff($purchaseRecord, $backOrder));
+        empty($this->aggregate[2]) or $this->notice(2, array_diff($this->aggregate[2], $this->aggregate[5]));
         //处理退款成功的订单id
-        empty($backOrder)      or $this->notice(5, array_diff($backOrder, $purchaseRecord));
+        empty($this->aggregate[5]) or $this->notice(5, array_diff($this->aggregate[5], $this->aggregate[2]));
     }
 
     /**
@@ -113,32 +111,26 @@ class TaoBaoKeController extends AppController {
                 break;
         }
     }
-    //恢复变量默认值
-    public function unsetVariable() {
-        $this->id        = [];
-        $this->aggregate = [];
-        $this->sql       = 'INSERT IGNORE INTO gw_order_status('.('`'.implode('`,`', array_keys($this->setFileds())).'`').') VALUES ';
-    }
     //设置表字段以及默认值
     public function setFileds($value = []) {
         $filed = [
-            'buyer_id'          => empty($value['buyer_id'])            ? ' '    : $value['buyer_id'],
-            'order_id'          => empty($value['order_id'])            ? ' '    : $value['order_id'],
-            'open_id'           => empty($value['open_id'])             ? ' '    : $value['open_id'],
-            'post_fee'          => empty($value['post_fee'])            ?  0     : $value['post_fee'],
-            'paid_fee'          => empty($value['paid_fee'])            ?  0     : $value['paid_fee'],
-            'status'            => empty($value['status'])              ? 'NULL' : $value['status'],
-            'msg'               => empty($value['msg'])                 ? ' '    : $value['msg'],
-            'auction_amount'    => empty($value['auction_amount'])      ? 'NULL' : $value['auction_amount'],
-            'auction_id'        => empty($value['auction_id'])          ? ' '    : $value['auction_id'],
-            'seller_nick'       => empty($value['seller_nick'])         ? ' '    : $value['seller_nick'],
-            'shop_title'        => empty($value['shop_title'])          ? ' '    : $value['shop_title'],
-            'auction_title'     => empty($value['auction_title'])       ? ' '    : $value['auction_title'],
-            'oid'               => empty($value['oid'])                 ? ' '    : $value['oid'],
-            'refund_id'         => empty($value['refund_id'])           ? ' '    : $value['refund_id'],
-            'detail_order_id'   => empty($value['detail_order_id'])     ? ' '    : $value['detail_order_id'],
-            'create_order_time' => empty($value['create_order_time'])   ? ' '    : $value['create_order_time'],
-            'auction_pict_url'  => empty($value['auction_pict_url'])    ? ' '    : $value['auction_pict_url'],
+            'buyer_id'          => !isset($value['buyer_id'])            ? ' '    : $value['buyer_id'],
+            'order_id'          => !isset($value['order_id'])            ? ' '    : $value['order_id'],
+            'open_id'           => !isset($value['open_id'])             ? ' '    : $value['open_id'],
+            'post_fee'          => !isset($value['post_fee'])            ?  0     : $value['post_fee'],
+            'paid_fee'          => !isset($value['paid_fee'])            ?  0     : $value['paid_fee'],
+            'status'            => !isset($value['status'])              ? 'NULL' : $value['status'],
+            'msg'               => !isset($value['msg'])                 ? ' '    : $value['msg'],
+            'auction_amount'    => !isset($value['auction_amount'])      ? 'NULL' : $value['auction_amount'],
+            'auction_id'        => !isset($value['auction_id'])          ? ' '    : $value['auction_id'],
+            'seller_nick'       => !isset($value['seller_nick'])         ? ' '    : $value['seller_nick'],
+            'shop_title'        => !isset($value['shop_title'])          ? ' '    : $value['shop_title'],
+            'auction_title'     => !isset($value['auction_title'])       ? ' '    : $value['auction_title'],
+            'oid'               => !isset($value['oid'])                 ? ' '    : $value['oid'],
+            'refund_id'         => !isset($value['refund_id'])           ? ' '    : $value['refund_id'],
+            'detail_order_id'   => !isset($value['detail_order_id'])     ? ' '    : $value['detail_order_id'],
+            'create_order_time' => !isset($value['create_order_time'])   ? ' '    : $value['create_order_time'],
+            'auction_pict_url'  => !isset($value['auction_pict_url'])    ? ' '    : $value['auction_pict_url'],
         ];
         foreach($filed as &$v) {
             if(is_string($v) && !empty($v))
