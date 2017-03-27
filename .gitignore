@@ -1,0 +1,6 @@
+*.svn
+*.DS_Store
+sftp-config.json
+/Core/baiChuanConfig.php
+.idea/*
+/Applications/Views/*
