@@ -17,10 +17,10 @@ class LoginController extends AppController
 			$this->checkUid();
 
 			//存在验证码码表示修改密码登入
-			if(!empty($this->dparam['id_code']))
-				$this->checkCode();
-			else
-				$this->checkPwd();
+			// if(!empty($this->dparam['id_code']))
+			// 	$this->checkCode();
+			// else
+			// 	$this->checkPwd();
 
 			$this->checkDid();
 			$this->unionHandleForLogin();

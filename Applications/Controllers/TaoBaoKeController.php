@@ -67,25 +67,22 @@ class TaoBaoKeController extends AppController {
             $v = $this->replaceField($v);
             //如果此字段为空则表示收到的这笔订单是正在退款中或者退款成功的 也组合在一起循环处理
             !empty($v['auction_infos']) or $v['auction_infos'][] = $v;
-            if(!empty($v['auction_infos'])) {
-                //auction_infos字段是数组形式[以防万一 循环处理]
-                foreach($v['auction_infos'] as $_v) {
-                    //把auction_infos字段里的值和外面的值组合在一起进行处理入库
-                    $v = array_merge($v, $_v);
-                    unset($v['auction_infos']);
-                    //匹配从商品列表服务api查出来的混淆id 获取到该商品明文id
-                    foreach($this->taobaoList as $taobaoList) {
-                        //对于付款成功的订单需要减去邮费入库
-                        if($taobaoList['open_iid'] == $v['auction_id'] and $v['status'] == 2) {
-                            //减过邮费之后的价钱
-                            $v['paid_fee']   = abs($v['paid_fee']) - abs($taobaoList['post_fee']) < 0 ? 0 : abs($v['paid_fee']) - abs($taobaoList['post_fee']);
-                            //获取明文id
-                            $v['open_id'] = $taobaoList['open_id'];
-                        }
+            foreach($v['auction_infos'] as $_v) {
+                //把auction_infos字段里的值和外面的值组合在一起进行处理入库
+                $v = array_merge($v, $_v);
+                unset($v['auction_infos']);
+                //匹配从商品列表服务api查出来的混淆id 获取到该商品明文id
+                foreach($this->taobaoList as $taobaoList) {
+                    //对于付款成功的订单需要减去邮费入库
+                    if($taobaoList['open_iid'] == $v['auction_id'] and $v['status'] == 2) {
+                        //减过邮费之后的价钱
+                        $v['paid_fee']   = abs($v['paid_fee']) - abs($taobaoList['post_fee']) < 0 ? 0 : abs($v['paid_fee']) - abs($taobaoList['post_fee']);
+                        //获取明文id
+                        $v['open_id'] = $taobaoList['open_id'];
                     }
-                    //把所有订单数据拼接成一条sql语句
-                    $this->sql .= '('.implode($this->setFileds($v), ',').'),';
                 }
+                //把所有订单数据拼接成一条sql语句
+                $this->sql .= '('.implode($this->setFileds($v), ',').'),';
             }
         }
         M()->query(rtrim($this->sql, ','));
