@@ -431,4 +431,15 @@
         "msg": "非法手机号",
         "data": []
     }
+}{
+    "time": "2017-03-28 17:31:17",
+    "spendTime": "0.063s",
+    "userIp": "192.168.1.101",
+    "url": "192.168.1.181\/shopping_new\/login\/register",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "非法手机号",
+        "data": []
+    }
 }

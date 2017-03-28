@@ -18,7 +18,7 @@ class LoginController extends AppController
 
 			//存在验证码码表示修改密码登入
 			if(!empty($this->dparam['id_code']))
-				$this->checkCode();
+				$this->checkCode(2);
 			else
 				$this->checkPwd();
 
@@ -44,7 +44,7 @@ class LoginController extends AppController
 		M()->startTrans();
 		try {
 			$this->checkParam();
-			$this->checkCode();
+			$this->checkCode(1);
 			$this->checkDid();
 			$this->uidRegister();
 			$this->unionHandle();
@@ -167,11 +167,11 @@ class LoginController extends AppController
 	/**
 	 * [checkVcode 检查验证码]
 	 */
-	public function checkCode()
+	public function checkCode($type)
 	{
 		empty($this->dparam['id_code']) && info('请输入验证码!',-1);
 		//查询6分钟内的该手机号对应验证码
-		$sql	=	" SELECT * FROM gw_vaild_log WHERE type = 1 AND phone = '{$this->dparam['phone']}' AND expire > ".(time()-600);
+		$sql	=	" SELECT * FROM gw_vaild_log WHERE type = {$type} AND phone = '{$this->dparam['phone']}' AND expire > ".(time()-600);
 		$info	=	M()->query($sql,'single');
 		if(empty($info['vaild_code']) || $info['vaild_code'] != $this->dparam['id_code']) info('验证码不正确!',-1);
 

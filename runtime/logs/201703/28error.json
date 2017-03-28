@@ -3318,4 +3318,13 @@
     "file": "LoginController.php",
     "message": "Undefined index: phone",
     "getTrace": ""
+}{
+    "time": "2017-03-28 17:31:17",
+    "url": "192.168.1.181\/shopping_new\/login\/register",
+    "parameter": "{\"deviceW\":720,\"id_code\":\"\",\"phone\":\"\",\"wifiBid\":\"e8:fc:af:a3:ee:fb\",\"appVer\":\"1.0.5-debug\",\"onlineType\":\"\",\"appBid\":\"com.shhb.gd.shop\",\"imei\":\"863396023330903\",\"deviceVer\":\"6\",\"deviceModel\":\"android\",\"type\":\"1\",\"password\":\"\",\"ip\":\"116.231.154.205\",\"appName\":\"HuiAmoy\",\"simType\":\"N\/A\",\"deviceName\":\"nubia\",\"deviceH\":1280,\"bdid\":\"\",\"wifiSid\":\"\\\"houbu2\\\"\",\"jaibreak\":\"\"}",
+    "code": 8,
+    "line": 222,
+    "file": "LoginController.php",
+    "message": "Undefined index: phone",
+    "getTrace": ""
 }
