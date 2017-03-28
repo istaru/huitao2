@@ -297,4 +297,105 @@
         "msg": "密码不正确!",
         "data": []
     }
+}{
+    "time": "2017-03-28 15:53:22",
+    "spendTime": "0.119s",
+    "userIp": "192.168.1.101",
+    "url": "192.168.1.181\/shopping_new\/login\/login",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "请先注册!",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 15:53:47",
+    "spendTime": "0.057s",
+    "userIp": "192.168.1.101",
+    "url": "192.168.1.181\/shopping_new\/login\/login",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "请先注册!",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 15:53:56",
+    "spendTime": "0.058s",
+    "userIp": "192.168.1.101",
+    "url": "192.168.1.181\/shopping_new\/login\/login",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "请先注册!",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 15:53:58",
+    "spendTime": "0.065s",
+    "userIp": "192.168.1.101",
+    "url": "192.168.1.181\/shopping_new\/login\/login",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "请先注册!",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 15:59:44",
+    "spendTime": "0.07s",
+    "userIp": "192.168.1.101",
+    "url": "192.168.1.181\/shopping_new\/login\/login",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "非法手机号",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 15:59:51",
+    "spendTime": "0.056s",
+    "userIp": "192.168.1.101",
+    "url": "192.168.1.181\/shopping_new\/login\/login",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "密码不正确!",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 16:00:46",
+    "spendTime": "0.204s",
+    "userIp": "192.168.1.101",
+    "url": "192.168.1.181\/shopping_new\/login\/login",
+    "parameter": [],
+    "return": {
+        "msg": "登入成功!",
+        "status": 1,
+        "user_id": "8NoO8sqDbo",
+        "nickname": "istaru",
+        "invite": "666666"
+    }
+}{
+    "time": "2017-03-28 16:04:18",
+    "spendTime": "0.004s",
+    "userIp": "192.168.1.101",
+    "url": "192.168.1.181\/shopping_new\/login\/login",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "非法手机号",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 17:15:26",
+    "spendTime": "0.07s",
+    "userIp": "192.168.1.101",
+    "url": "192.168.1.181\/shopping_new\/login\/register",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "非法手机号",
+        "data": []
+    }
 }
