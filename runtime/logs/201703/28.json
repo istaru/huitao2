@@ -398,4 +398,37 @@
         "msg": "非法手机号",
         "data": []
     }
+}{
+    "time": "2017-03-28 17:19:21",
+    "spendTime": "0.004s",
+    "userIp": "192.168.1.101",
+    "url": "192.168.1.181\/shopping_new\/login\/register",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "非法手机号",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 17:19:52",
+    "spendTime": "0.004s",
+    "userIp": "192.168.1.101",
+    "url": "192.168.1.181\/shopping_new\/login\/register",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "非法手机号",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 17:27:40",
+    "spendTime": "0.07s",
+    "userIp": "192.168.1.101",
+    "url": "192.168.1.181\/shopping_new\/login\/register",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "非法手机号",
+        "data": []
+    }
 }
