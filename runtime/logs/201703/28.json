@@ -1,0 +1,300 @@
+{
+    "time": "2017-03-28 03:39:05",
+    "spendTime": "0.004s",
+    "userIp": "::1",
+    "url": "localhost\/shopping_new\/login\/register",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "请输入验证码!",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 03:39:30",
+    "spendTime": "0.637s",
+    "userIp": "::1",
+    "url": "localhost\/shopping_new\/login\/login",
+    "parameter": [],
+    "return": {
+        "msg": "登入成功!",
+        "status": 1,
+        "user_id": "QQUvzMJI8C",
+        "nickname": "istaru",
+        "invite": "0K00"
+    }
+}{
+    "time": "2017-03-28 15:06:29",
+    "spendTime": "0.121s",
+    "userIp": "192.168.1.101",
+    "url": "192.168.1.181\/shopping_new\/login\/login",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "请先注册!",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 15:06:59",
+    "spendTime": "0.121s",
+    "userIp": "192.168.1.101",
+    "url": "192.168.1.181\/shopping_new\/login\/login",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "密码不正确!",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 15:11:19",
+    "spendTime": "0.058s",
+    "userIp": "192.168.1.101",
+    "url": "192.168.1.181\/shopping_new\/login\/login",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "密码不正确!",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 15:13:36",
+    "spendTime": "0.058s",
+    "userIp": "192.168.1.101",
+    "url": "192.168.1.181\/shopping_new\/login\/login",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "请先注册!",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 15:16:32",
+    "spendTime": "0.058s",
+    "userIp": "192.168.1.101",
+    "url": "192.168.1.181\/shopping_new\/login\/login",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "请先注册!",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 15:19:48",
+    "spendTime": "0.058s",
+    "userIp": "192.168.1.101",
+    "url": "192.168.1.181\/shopping_new\/login\/login",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "请先注册!",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 15:24:53",
+    "spendTime": "0.003s",
+    "userIp": "::1",
+    "url": "localhost\/shopping_new\/login\/register",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "请输入验证码!",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 15:24:54",
+    "spendTime": "0.004s",
+    "userIp": "::1",
+    "url": "localhost\/shopping_new\/login\/register",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "请输入验证码!",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 15:24:55",
+    "spendTime": "0.003s",
+    "userIp": "::1",
+    "url": "localhost\/shopping_new\/login\/register",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "请输入验证码!",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 15:24:55",
+    "spendTime": "0.003s",
+    "userIp": "::1",
+    "url": "localhost\/shopping_new\/login\/register",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "请输入验证码!",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 15:24:55",
+    "spendTime": "0.004s",
+    "userIp": "::1",
+    "url": "localhost\/shopping_new\/login\/register",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "请输入验证码!",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 15:24:56",
+    "spendTime": "0.059s",
+    "userIp": "192.168.1.101",
+    "url": "192.168.1.181\/shopping_new\/login\/login",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "请先注册!",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 15:24:56",
+    "spendTime": "0.003s",
+    "userIp": "::1",
+    "url": "localhost\/shopping_new\/login\/register",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "请输入验证码!",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 15:24:56",
+    "spendTime": "0.003s",
+    "userIp": "::1",
+    "url": "localhost\/shopping_new\/login\/register",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "请输入验证码!",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 15:24:57",
+    "spendTime": "0.003s",
+    "userIp": "::1",
+    "url": "localhost\/shopping_new\/login\/register",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "请输入验证码!",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 15:24:59",
+    "spendTime": "0.061s",
+    "userIp": "192.168.1.101",
+    "url": "192.168.1.181\/shopping_new\/login\/login",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "请先注册!",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 15:25:05",
+    "spendTime": "0.056s",
+    "userIp": "192.168.1.101",
+    "url": "192.168.1.181\/shopping_new\/login\/login",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "请先注册!",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 15:25:15",
+    "spendTime": "0.056s",
+    "userIp": "192.168.1.101",
+    "url": "192.168.1.181\/shopping_new\/login\/login",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "密码不正确!",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 15:25:45",
+    "spendTime": "0.057s",
+    "userIp": "192.168.1.101",
+    "url": "192.168.1.181\/shopping_new\/login\/login",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "密码不正确!",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 15:30:36",
+    "spendTime": "0.12s",
+    "userIp": "192.168.1.101",
+    "url": "192.168.1.181\/shopping_new\/login\/login",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "密码不正确!",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 15:30:46",
+    "spendTime": "0.059s",
+    "userIp": "192.168.1.101",
+    "url": "192.168.1.181\/shopping_new\/login\/login",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "密码不正确!",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 15:31:06",
+    "spendTime": "0.057s",
+    "userIp": "192.168.1.101",
+    "url": "192.168.1.181\/shopping_new\/login\/login",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "密码不正确!",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 15:31:32",
+    "spendTime": "0.058s",
+    "userIp": "192.168.1.101",
+    "url": "192.168.1.181\/shopping_new\/login\/login",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "密码不正确!",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 15:31:39",
+    "spendTime": "0.058s",
+    "userIp": "192.168.1.101",
+    "url": "192.168.1.181\/shopping_new\/login\/login",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "密码不正确!",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 15:31:48",
+    "spendTime": "0.062s",
+    "userIp": "192.168.1.101",
+    "url": "192.168.1.181\/shopping_new\/login\/login",
+    "parameter": [],
+    "return": {
+        "status": -1,
+        "msg": "密码不正确!",
+        "data": []
+    }
+}

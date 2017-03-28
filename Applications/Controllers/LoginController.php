@@ -17,10 +17,10 @@ class LoginController extends AppController
 			$this->checkUid();
 
 			//存在验证码码表示修改密码登入
-			// if(!empty($this->dparam['id_code']))
-			// 	$this->checkCode();
-			// else
-			// 	$this->checkPwd();
+			if(!empty($this->dparam['id_code']))
+				$this->checkCode();
+			else
+				$this->checkPwd();
 
 			$this->checkDid();
 			$this->unionHandleForLogin();
@@ -103,6 +103,7 @@ class LoginController extends AppController
 				$data['token']		= md5($this->dparam['phone'].time());
 				$data['password']	= $this->dparam['password'];
 			}
+			unset($data['phone']);
 			M('uid')->where(" objectId = '{$this->uid_info['objectId']}' ")->save($data);
 		}
 	}
@@ -117,6 +118,9 @@ class LoginController extends AppController
 		M('did_log')->add($this->dparam,'ignore');
 		//新增登入日志
 		M('uid_login_log')->add($this->dparam);
+		//新增友盟device_token和uid对应关系
+		if(!empty($this->dparam['device_token']))
+			M('push_assoc')->add($this->dparam);
 	}
 
 

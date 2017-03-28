@@ -135,12 +135,11 @@ class GoodsShowController extends AppController
         }
     }
     public function searchGoods() {
-        $page_no   = isset($this->dparam['page_no'])   ? $this->dparam['page_no']   : 1;
-        $page_size = isset($this->dparam['page_size']) ? $this->dparam['page_size'] : 20;
-        $title     = formattedData(isset($this->dparam['title']) ? $this->dparam['title'] : '');
-        $type      = !isset($this->dparam['type']) ? '0,1' : $this->dparam['type'];
+        if(empty($this->dparam['page_no']) || empty($this->dparam['page_size']) || !isset($this->dparam['system']) || !isset($this->dparam['title']))
+            info('缺少参数', -1);
+        $type = !isset($this->dparam['type']) ? '0,1' : $this->dparam['type'];
        //优先展示自己的商品
-       $sql = "SELECT num_iid,title,seller_name nick,pict_url,price,deal_price zk_final_price,item_url,reduce,volume FROM gw_goods_online WHERE status =1 AND store_type IN('{$type}') AND title like '%{$title}%' LIMIT ";
+       $sql = "SELECT num_iid,title,seller_name nick,pict_url,price,deal_price zk_final_price,item_url,reduce,volume FROM gw_goods_online WHERE status = 1 AND store_type IN('{$type}') AND title like '%".formattedData($this->dparam['title'])."%' LIMIT ";
        $self = M()->query($sql .= !empty($this->dparam['query']) ? (($page_no - 1) * $page_size).','.$page_size : 3, 'all');
         //淘宝客商品查询
         TaoBaoApiController::__setas('23630111', 'd2a2eded0c22d6f69f8aae033f42cdce');

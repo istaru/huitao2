@@ -21,7 +21,7 @@ class GuestController {
         $data or info('还没有邀请过好友呢',-1);
         //获取被邀请人总人数
         $gather['sumInviter'] = count(array_filter(array_column($data, 'phone')));
-        $data = array_splice($data, ($params['page_no']-1)*$params['page_size'], $params['page_size']);
+        $data = array_splice($data, ($params['page_no']-1) * $params['page_size'], $params['page_size']);
         $data = [
             'msg'    => 'ok',
             'status' => 1,

@@ -43,7 +43,6 @@ class Route {
     public static function pathInfo()
     {
 
-
         if(substr(php_sapi_name(), 0, 3) == 'cli'){
 
                 $arr = getopt('c:f:');
@@ -91,20 +90,12 @@ class Route {
      */
     public static function checkClass($class = '', $func = '')
     {
-        //类文件首字母转大写
         $cla = ucfirst($class);
         $cla = strpos($cla,'Controller') ? $cla : $cla.'Controller';
-        if(class_exists($cla)) {
-            $cla = new $cla();
-            if(method_exists($cla,$func)) {
-                call_user_func_array([$cla,$func],self::$arr);
-            }
-            else {
-                die('方法不存在');
-            }
-        } else {
-            die('类不存在');
-        }
+        $cla = new $cla();
+        if(method_exists($cla,$func)) {
+            call_user_func_array([$cla,$func],self::$arr);
+        } else E('没有这个方法');
     }
     public static function loadCoreClass($value, $key = null) {
         if(!is_array($value))

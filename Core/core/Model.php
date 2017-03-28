@@ -39,7 +39,7 @@ class Model
         if(!self::$conn) {
             $data = $this->ckparamster();
             self::$conn = Database::pdo($data['DB_DSN'],$data['DB_USER'],$data['DB_PWD']);
-            !empty($data['DB_CHARSET']) && self::$conn->exec('SET NAMES '.$data['DB_CHARSET']);
+            empty($data['DB_CHARSET']) OR self::$conn->exec('SET NAMES '.$data['DB_CHARSET']);
             self::$prefix = $data['DB_PREFIX'];
         }
         self::$table = self::$prefix ? self::$prefix.$table : $table;

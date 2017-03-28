@@ -283,7 +283,7 @@ class UserController extends AppController
 	 */
 	public function login_log()
 	{
-		if(empty($this->dparam['imei']) && empty($this->dparam['idfa']) && empty($this->dparam['uuid']) && empty($this->dparam['bdid'])) info('用户信息不完整',-1);
+		if(empty($this->dparam['imei']) && empty($this->dparam['idfa']) && empty($this->dparam['uuid']) && empty($this->dparam['bdid'])) info('设备信息不完整',-1);
 
 		if(empty($this->dparam['user_id'])) info('用户信息不完整',-1);
 

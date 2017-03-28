@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('Asia/Shanghai');
 /**
  * 开启全局session
  */
@@ -17,12 +18,12 @@ define('DIR',dirname(__FILE__));
 /**
  * 上线设为false 改为日志记录
  */
-define('APP_DEBUG',true);
+define('APP_DEBUG',false);
 /**
  * 网站根url
  */
 define('URL_SITE','http://es1.laizhuan.com');
-define('RES_SITE','http://127.0.0.1/');
+define('RES_SITE','http://es1.laizhuan.com/');
 /**
  * 根文件名
  */

@@ -67,14 +67,14 @@ class TaoBaoKeController extends AppController {
             //key进行替换
             $v = $this->replaceField($v);
             //如果此字段为空则表示收到的这笔订单是正在退款中或者退款成功的 也组合在一起循环处理
-            !empty($v['auction_infos']) or $v['auction_infos'][] = $v;
+            !empty($v['auction_infos']) OR $v['auction_infos'][] = $v;
             foreach($v['auction_infos'] as $_v) {
                 //把auction_infos字段里的值和外面的值组合在一起进行处理入库
                 $v = array_merge($v, $_v);
                 //匹配从商品列表服务api查出来的混淆id 获取到该商品明文id
                 foreach($this->taobaoList as $taobaoList) {
                     //对于付款成功的订单需要减去邮费入库
-                    if($taobaoList['open_iid'] == $v['auction_id'] and $v['status'] == 2) {
+                    if($taobaoList['open_iid'] == $v['auction_id'] and 2 == $v['status']) {
                         //减过邮费之后的价钱
                         $v['paid_fee']   = abs($v['paid_fee']) - abs($taobaoList['post_fee']) < 0 ? 0 : abs($v['paid_fee']) - abs($taobaoList['post_fee']);
                         //获取明文id
@@ -89,13 +89,13 @@ class TaoBaoKeController extends AppController {
         //确认消息
         TaoBaoApiController::tmcMessagesConfirmRequest($this->id);
         //处理付款成功的订单id
-        empty($this->aggregate[2]) or $this->notice(2, array_diff($this->aggregate[2], $this->aggregate[5]));
+        empty($this->aggregate[2]) OR $this->notice(2, array_diff($this->aggregate[2], $this->aggregate[5]));
         //处理退款成功的订单id
-        empty($this->aggregate[5]) or $this->notice(5, array_diff($this->aggregate[5], $this->aggregate[2]));
+        empty($this->aggregate[5]) OR $this->notice(5, array_diff($this->aggregate[5], $this->aggregate[2]));
     }
 
     /**
-     * [notice 分发处理消息队列]
+     * [notice 分发处理]
      */
     public function notice($status = '', $data = '') {
         $record  = new RecordController;
@@ -154,7 +154,7 @@ class TaoBaoKeController extends AppController {
         return isset($data[$name]) ? $data[$name] : [$name, 0];
    }
     /**
-     * [replaceField 重复字段替换]
+     * [replaceField 字段替换]
      */
     private function replaceField($arr)
     {

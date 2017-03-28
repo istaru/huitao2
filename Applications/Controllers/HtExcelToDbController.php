@@ -22,8 +22,8 @@ class HtExcelToDbController extends Controller
                 //开始导入热卖,大淘客和淘客助手，
 //                 $pa= new HtPaController();
 //                 $pa->insertdb();
-                $pa2= new HtPa2Controller();
-                $pa2->insert2db();
+//                $pa2= new HtPa2Controller();
+//                $pa2->insert2db();
                 $dataoke=new HtHotgoodController();
                 $dataoke->import();
                 echo("上架筛选开始...".date("Y-m-d H:i:s")."<br/>");

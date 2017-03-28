@@ -6,7 +6,7 @@ class Log {
         self::$startTime = $time ? $time : microtime(true);
     }
     public static function writeLog($data = []) {
-        if(empty(C('writeLog')) || !is_writeable(DIR)) return;
+        if(empty(C('log:writeLog')) || !is_writeable(DIR)) return;
         if(!is_dir(DIR_RUNTIME))
             mkdir(DIR_RUNTIME);
         if(!is_dir(DIR_RUNTIME_LOG))

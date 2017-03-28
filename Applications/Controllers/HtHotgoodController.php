@@ -37,7 +37,7 @@ class HtHotgoodController extends  Controller
         $mydata=[];
         $getdata=file_get_contents("http://api.dataoke.com/index.php?r=Port/index&type=top100&appkey=ar6h3wb99l&v=2");
         $res_arr=json_decode($getdata,true)['result'];
-        for($i=0;$i<30;$i++){
+        for($i=0;$i<50;$i++){
             $mydata[$i]['num_iid']=$res_arr[$i]['GoodsID'];  /*商品id*/
             $mydata[$i]['title']=$res_arr[$i]['Title'];   /*标题*/
             $mydata[$i]['pict_url']=$res_arr[$i]['Pic'];   /*图片地址*/
@@ -51,6 +51,7 @@ class HtHotgoodController extends  Controller
             $mydata[$i]['end_time']=date('Y-m-d', strtotime($res_arr[$i]['Quan_time']));   /*优惠券的结束时间*/
             $mydata[$i]['num']=$res_arr[$i]['Quan_surplus'];   /*优惠券剩余数量*/
             $mydata[$i]['created_date']=date("Y-m-d");   /*创建时间*/
+            $mydata[$i]['top']="1";   /*是否热卖*/
             $mydata[$i]['sum']=$res_arr[$i]['Quan_receive']+$res_arr[$i]['Quan_surplus'];   /*总量=已领数量+剩余数量*/
             $mydata[$i]['url']="https://taoquan.taobao.com/coupon/unify_apply.htm?sellerId=".$res_arr[$i]['SellerID']."&activityId=".$res_arr[$i]['Quan_id'];   /*优惠券链接*/
             $mydata[$i]['coupon_url']="https://h5.m.taobao.com/ump/coupon/detail/index.html?sellerId=".$res_arr[$i]['SellerID']."&activityId=".$res_arr[$i]['Quan_id']."&global_seller=false&currency=CNY";   /*手机券链接*/
