@@ -29,10 +29,10 @@ class Route {
             'message'   => $msg,
             'getTrace'  => $getTrace
         ];
+        $data = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
         if(!APP_DEBUG) {
-            $data = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-            file_put_contents(DIR_RUNTIME_LOG.date('Ym').DS.date('d').'error.json', $data, FILE_APPEND);
-        } else echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+            is_writable(DIR) ? file_put_contents(DIR_RUNTIME_LOG.date('Ym').DS.date('d').'error.json', $data, FILE_APPEND) : info('发生个错误但是没有可写权限', 999);
+        } else exit($data);
     }
     /**
      * [pathInfo 路由处理]

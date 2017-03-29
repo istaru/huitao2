@@ -1,4 +1,5 @@
 <?php
+ini_set('memory_limit', '-1');
 class HtGoodsController
 {
     /**
@@ -20,10 +21,9 @@ class HtGoodsController
             }else{
                 $addtion="";
             }
-
-            $sql="select  b.num_iid,c.name,b.title,b.id id,c.name cname,b.`status`,a.click,a.purchase,a.score,a.top,a.is_front,a.created_date date
-         from gw_goods_online b
-         left join gw_goods_info a on a.num_iid=b.num_iid 
+            $sql="select  a.num_iid,c.name,b.title,a.source,c.name cname,a.`status`,a.click,a.purchase,a.score,a.top,a.is_front,b.created_date date
+          from gw_goods_info a
+         left join gw_goods_online b on a.num_iid=b.num_iid 
          left join (SELECT pid,name from gw_category group by pid,name)c on c.pid=a.category_id 
          WHERE b.title like '%".$_REQUEST['keyword']."%'  or b.num_iid like '%".$_REQUEST['keyword']."%'".$addtion;
            $res=M()->query($sql,'all');
@@ -32,15 +32,15 @@ class HtGoodsController
             $data['data']?info("success",1,$data):info('failed',-4,[]);
         }
         else{
-            //排序规则
+            //排序规则,因为是联表查询，所以来自不同表的排序字段也要做区分
             if(I('o_para')&&I('order')){
-                $addtion=" ORDER BY a.".$_REQUEST['o_para']." ".$_REQUEST['order'];
+                    $addtion=" ORDER BY a.".$_REQUEST['o_para']." ".$_REQUEST['order'];
             }else{
                 $addtion="";
             }
             $c_goods_type=self::explain('source');
             $c_is_new=self::explain('is_new');
-            $c_goods_status=self::explain('status');
+            $c_goods_status=I('status')? "AND a.status='".$_REQUEST["status"]."'":"";
             $c_is_sold=self::explain('is_sold');
             $c_is_board=self::explain('is_board');
             $c_category_id=self::explain('category_id');
@@ -48,9 +48,9 @@ class HtGoodsController
             $c_sdate=I('c_sdate')? "AND a.created_date>='".$_REQUEST["c_sdate"]."'":"";
             $c_edate=I('c_edate')? "AND a.created_date<='".$_REQUEST["c_edate"]."'":"";
             $c_limited=" limit ".(($_REQUEST['page']-1)*50).",50";
-            $sql='select  b.num_iid,c.name,b.title,b.id,c.name cname,b.`status`,a.click,a.purchase,a.score,a.top,a.is_front,a.created_date date
-          from gw_goods_online b
-         left join gw_goods_info a on a.num_iid=b.num_iid 
+            $sql='select  a.num_iid,c.name,b.title,a.source,c.name cname,a.`status`,a.click,a.purchase,a.score,a.top,a.is_front,a.created_date date
+          from gw_goods_info a
+         left join gw_goods_online b on a.num_iid=b.num_iid 
          left join (SELECT pid,name from gw_category group by pid,name)c on c.pid=a.category_id WHERE 1=1 '
                 .$c_goods_type.$c_is_new.$c_goods_status.$c_is_sold.$c_is_board.$c_category_id.$c_is_front.$c_sdate.$c_edate.$addtion;
             $sql_info=$sql.$c_limited;                                   //返回给前端的数据，这里每次写固定了，每次50条
@@ -69,7 +69,7 @@ class HtGoodsController
     public function deletegoods()
     {
          if(I('POST:type')){
-             $sql="update gw_goods_info a,gw_goods_online b set b.title='".$_REQUEST['title']."',a.status='".$_REQUEST['status']."',b.status='".$_REQUEST['status']."',a.top='".$_REQUEST['top']
+             $sql="update gw_goods_info a,gw_goods_online b set b.title='".$_REQUEST['title']."',b.status='".$_REQUEST['status']."',a.top='".$_REQUEST['top']
                    ."',a.score='".$_REQUEST['score']."',a.is_front='".$_REQUEST['is_front']."' where a.num_iid='".$_REQUEST['num_iid']."' and b.num_iid='".$_REQUEST['num_iid']."'";
 //             D($sql);
              $res=M()->exec($sql);
@@ -106,23 +106,22 @@ class HtGoodsController
             //上架
            if($_REQUEST['type']==1){
                $colum=implode(',',$_REQUEST['arr']);
-//               $sql="update gw_goods_online a,gw_goods_info b set a.status=1,b.status=1 where a.num_iid IN (".$colum.") and b.num_iid IN (".$colum.")";
-               $sql="update gw_goods_online set status=1 where id IN (".$colum.")";
+               $sql="update gw_goods_online a,gw_goods_info b set a.status=1,b.status=1 where a.num_iid IN (".$colum.") and b.num_iid IN (".$colum.")";
                $res=M()->exec($sql);
                $res?info("操作成功","1",[]):info("操作失败","1",[]);
 
            }
-           //下架
+           //手工下架
            else if($_REQUEST['type']==2){
                $colum=implode(',',$_REQUEST['arr']);
-               $sql="update gw_goods_online set status=5 where id IN (".$colum.")";
+               $sql="update gw_goods_online a,gw_goods_info b set a.status=3,b.status=5 where a.num_iid IN (".$colum.") and b.num_iid IN (".$colum.")";
                $res=M()->exec($sql);
                $res?info("操作成功","1",[]):info("操作失败","1",[]);
            }
            //上架不显示
            else{
                $colum=implode(',',$_REQUEST['arr']);
-               $sql="update gw_goods_online set status=3 where id IN (".$colum.")";
+               $sql="update gw_goods_online a,gw_goods_info b set a.status=3,b.status=3 where a.num_iid IN (".$colum.") and b.num_iid IN (".$colum.")";
                $res=M()->exec($sql);
                $res?info("操作成功","1",[]):info("操作失败","1",[]);
            }

@@ -77,22 +77,41 @@ JOIN
     }
     //排行榜
     public function rankingList() {
-        !empty($this->dparam['type']) or $this->dparam['type'] = 1;
-        switch ($this->dparam['type']) {
-            //邀请榜
-            case 1:
-                $sql = 'SELECT invitation_count friends_num , nickname , head_img FROM gw_uid ORDER BY invitation_count DESC LIMIT 10';
-                break;
-            //收入榜
-            case 2:
-                // $sql = 'SELECT price, objectId uid, head_img, nickname FROM gw_uid ORDER BY price DESC LIMIT 10';
-                $sql = 'SELECT * FROM( SELECT sum(price) friends_num , uid FROM gw_uid_log WHERE status = 2 GROUP BY uid LIMIT 10) a LEFT JOIN( SELECT nickname , head_img , objectId FROM gw_uid) b ON b.objectId = a.uid ORDER BY friends_num DESC';
-                break;
-            //任务榜
-            case 3:
-                $sql = 'SELECT a.friends_num , a.uid , b.head_img , b.nickname FROM( SELECT count(0) friends_num , uid FROM gw_task GROUP BY uid DESC LIMIT 10) a LEFT JOIN( SELECT head_img , nickname , objectId FROM gw_uid) b ON b.objectId = a.uid ORDER BY friends_num';
-                break;
+        $parmas = $this->dparam;
+        /**
+         * [查看用户自己的收入(包含预估收入)以及邀请人数]
+         */
+        $self = empty($parmas['user_id']) ? ['money' => 0, 'person_num' => 0] : M()->query("SELECT a.money,b.person_num FROM( SELECT sum(price) money , uid FROM gw_uid_log WHERE status IN(1 , 2) AND uid = '{$parmas['user_id']}') a LEFT JOIN( SELECT count(0) person_num , uid FROM gw_uid_log WHERE score_type = 2 AND uid = '{$parmas['user_id']}') b ON b.uid = a.uid");
+       $startTime = $endTime = '';
+       if(isset($parmas['query']) && $parmas['query'] == 'month') {
+            $startTime = date('Y-m-d 00:00:00',strtotime(date('Y-m')));
+            $endTime   = date('Y-m-d 24:00:00',strtotime(date('Y-m-t')));
+       } else if(isset($parmas['query']) && $parmas['query'] == 'week') {
+            $startTime = date('Y-m-d 00:00:00',strtotime( '+'. 1 - date('w') .' days' ));
+            $endTime   = date('Y-m-d 24:00:00', strtotime('+'. 7 - date('w') .' days' ));
         }
-        info('ok', 1, M()->query($sql, 'all'));
+        /**
+         * type[1 = 收入榜, 2 = 邀请榜]
+         */
+        if($parmas['type'] == 1) {
+            $list = $this->queryRankingList($startTime, $endTime);
+        } else if($parmas['type'] == 2)
+            $list = M()->query('SELECT b.nickname , b.head_img, a.friends_num FROM( SELECT count(0) friends_num , uid FROM gw_uid_log WHERE score_type = 2 GROUP BY uid ORDER BY friends_num DESC LIMIT 10) a LEFT JOIN( SELECT nickname , head_img , objectId FROM gw_uid) b ON b.objectId = a.uid', 'all');
+        else info('参数异常');
+        info([
+            'status'       => 1,
+            'msg'          => '请求成功',
+            'data'        => [
+                'self'          => $self,
+                'ranking_list'  => isset($list) ? $list : []
+            ],
+        ]);
+    }
+    // 所选日期内查询所有用户收入
+    public function queryRankingList($startTime, $endTime) {
+        $str = '';
+        if($startTime && $endTime)
+            $str = "AND createdAt >= '{$startTime}' AND  createdAt < '{$endTime}'";
+        return M()->query('SELECT b.nickname , b.head_img, a.friends_num FROM( SELECT sum(price) friends_num , uid FROM gw_uid_log WHERE status = 2 ' .$str. ' GROUP BY uid ORDER BY friends_num DESC LIMIT 10) a LEFT JOIN( SELECT nickname , head_img , objectId FROM gw_uid) b ON b.objectId = a.uid', 'all');
     }
 }

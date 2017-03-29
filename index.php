@@ -18,7 +18,7 @@ define('DIR',dirname(__FILE__));
 /**
  * 上线设为false 改为日志记录
  */
-define('APP_DEBUG',false);
+define('APP_DEBUG',true);
 /**
  * 网站根url
  */

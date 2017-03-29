@@ -1,29 +1,10 @@
 <?php
-   
-    class RedisCacheController{
 
-        public $task_info_key = "task_info_";
+class RedisCache extends GoodsModule{
 
-        public $app_info_key = "app_info_";
+        public $db;
 
-        public $report_data_key = "report_info_";
-
-        public $log_data_key = "log_info_";
-
-        public $affiliate_key = "affiliate_info_";
-
-        public $idfa_key = "idfa_info_";
-
-        public $idfa_new_key = "idfa_new_info_";
-
-        public $redis;
-
-        public $task_callback_key = "task_callback_";
-
-
-
-
-       
+        public $pdo;
 
         public $click_data_key = "click_data_";
 
@@ -40,9 +21,28 @@
 
         public $date;
 
-        function __construct(){
-           
+        public $redis;
 
+        function __construct(){
+           // echo 1;
+            //$this->pdo = jpLaizhuanCon("shopping");
+
+            //$this->db = "jpItem";
+            //
+            if(substr(php_sapi_name(), 0, 3) == 'cli'){
+
+                $arr = getopt('d:');
+
+                $this->date = isset($arr['d']) ? $arr['d'] : date("Y-m-d");
+
+            }else{
+
+                $this->date = isset($_GET["date"]) ? $_GET["date"] : date("Y-m-d");
+            }
+
+            $this->pdo = $this->isDebug?locationCon("shopping_new"):shoppingCon();
+
+            $this->db = $this->isDebug?"shopping_new":"huitao";
             // echo 2;
             $this->expire_cyc = 3600 * 24 * 7;
 
@@ -223,26 +223,4 @@
         }
 
 
-        
-
     }
-
-             
-        //$RedisCache = new RedisCacheController();
-        //$RedisCache->llen("list");exit;
-        //$task->fetchIdfa(452186370);
-         /*$task_id = 1;
-
-        //$task->saveTaskInfo($task_id);
-
-        print_r($task->readTaskInfo($task_id));
-
-        //echo $task->redis->get("task_info_1");
-
-        $task->delTaskInfo($task_id);
-
-        //echo $task->readTaskInfo($task_id);
-        //
-        //
-        $task->tokenVaild("hb575002176678b",1);*/
-?>

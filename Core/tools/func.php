@@ -27,6 +27,14 @@ function req_filter($filter=null){
 
 }
 
+
+
+function  setVaildParam($v,$k,$isNotSetSign = 0){
+
+    return (isset($v[$k]) ? $v[$k] : $isNotSetSign);
+
+}
+
 function param_filter($param,$filter){
 
 	if(is_array($filter)&&is_array($param)){
@@ -67,12 +75,12 @@ function db_transaction($pdo,$insert_sql,$delete_sql){
 
     $isBad = 0;
 
-    try{
+    try{ 
 
-            $pdo->beginTransaction();
+            $pdo->beginTransaction(); 
 
             if($delete_sql){
-
+            
                 if(false===$pdo->exec($delete_sql)){
                     print_r($pdo->errorInfo());
                     print_r($pdo->errorCode());
@@ -80,7 +88,7 @@ function db_transaction($pdo,$insert_sql,$delete_sql){
                     $isBad =1;
                 }
             }
-
+           
 
             if(false===$pdo->exec($insert_sql)){
 
@@ -91,13 +99,13 @@ function db_transaction($pdo,$insert_sql,$delete_sql){
 
             if($isBad)return false;
 
-            $pdo->commit();
+            $pdo->commit(); 
 
 
          }catch(PDOException $e){
             echo date("Y-m-d H:i:s").":".$e->getMessage()."\r\n";
             $pdo->rollback();
-        }
+        }  
 
         $pdo->setAttribute(PDO::ATTR_AUTOCOMMIT, 1);
 
@@ -105,7 +113,7 @@ function db_transaction($pdo,$insert_sql,$delete_sql){
 }
 */
 
-function db_transaction($pdo,$sql_list){
+function db_transaction($pdo,$sql_list){    
 
     if(!is_array($sql_list)||count($sql_list)==0)return -1;
 
@@ -117,10 +125,10 @@ function db_transaction($pdo,$sql_list){
 
     $isBad = 0;
 
-    try{
+    try{ 
 
-            $pdo->beginTransaction();
-
+            $pdo->beginTransaction(); 
+            
             foreach ($sql_list as $key => $sql) {
                 //echo $sql;
                 if(false===$pdo->exec($sql)){
@@ -135,13 +143,13 @@ function db_transaction($pdo,$sql_list){
 
             }
 
-            $pdo->commit();
+            $pdo->commit(); 
 
 
          }catch(PDOException $e){
             echo date("Y-m-d H:i:s").":".$e->getMessage()."\r\n";
             $pdo->rollback();
-        }
+        }  
 
         $pdo->setAttribute(PDO::ATTR_AUTOCOMMIT, 1);
 
@@ -224,6 +232,11 @@ function locationCon($db="test_db"){
 	return ini_pdo($db,$ip="localhost:3306",$user="root",$pwd="root");
 }
 
+function huitaotest($db="huitao"){
+
+    return ini_pdo($db,$ip="192.168.1.151:3306",$user="huitao",$pwd="huitao");
+}
+
 function offerCon($db="taskofr"){
 	return ini_pdo($db,$ip="taskofr.rdsm9ln50om7rva.rds.bj.baidubce.com:3306",$user="taskofr",$pwd="rdsm9ln50om7rva");
 }
@@ -260,6 +273,7 @@ function db_execute($sql,$db="laizhuan",$bindParam=array(),$set_pdo=null){
 			 echo "\r\n\r\n";
 			 echo "行号: ".$e->getLine();
 			 echo "\r\n\r\n";
+             return false;
 
 		}
 
@@ -277,11 +291,12 @@ function db_execute($sql,$db="laizhuan",$bindParam=array(),$set_pdo=null){
 
 			if($stmt->execute($bindParam))return $pdo->lastInsertId();
 
-			else return false;
+			else return 0;
 
 		}catch(PDOException $e){
 			 echo "错误: ".$e->getMessage()."\r\n";
 			 echo "行号: ".$e->getLine()."\r\n";
+             return false;
 		}
 
 	}
@@ -571,7 +586,7 @@ function db_execute($sql,$db="laizhuan",$bindParam=array(),$set_pdo=null){
 				break;
 
 				case "singal":
-
+                    $data ="";
 					while($row = $stmt->fetch(PDO::FETCH_NUM))  {
 
 					   $data = $row[0];
@@ -761,6 +776,14 @@ function request_filter($mapping=null,$part=1){
 	return $part?$request["data"]:$request;
 }
 
+function loader_php( $file ){
+    
+    if(is_file($file)){
+
+            require_once $file;
+        }
+}
+
 //根据类名载入某个路径下的文件
 function load_file_path($class,$module='',$base_path='/new'){
 
@@ -809,14 +832,13 @@ function load_module_instance($class,$module='',$base_path='new',$agr=array()){
 
     return $class->newInstanceArgs($agr);
 }
-/*
-function load_model($class,$agr=array()){
 
-	if($agr&&!is_array($agr))$agr=array($agr);
-
-	return load_module_instance($class,"model","new",$agr);
+function load_module($module){
+	
+    $m = new Module("goods");
+    return $m->load_module("goods");
 }
-*/
+
 /**
  * datatable的检索条件返回
  *
@@ -1034,7 +1056,7 @@ function sreturn($data=array(),$t=2,$isRt=0){
 
 
 	$return->status = $t;
-
+    
 	if(!empty($data)) {
 		if($t == 2) {
 			$return->data = array();
@@ -1057,19 +1079,23 @@ function sreturn($data=array(),$t=2,$isRt=0){
 			$return->msg = "操作成功";
 		}
 	}
+    
 	if($isRt)return json_encode($return);
 	echo json_encode($return);
 	exit();
 }
 
-function ssreturn($data,$msg,$t=2,$isRt=0){
+function ssreturn($data,$msg='操作成功',$t=2,$isRt=1){
 
-    $s = new stdClass;
-    $s->data = $data;
-    $s->msg = $msg;
-    return sreturn($s,$t,$isRt);
+    $return = new stdClass; 
+    $return->data = $data;
+    $return->msg = $msg;
+    $return->status = $t;
+    //print_r($return);exit;
+    if($isRt)return $return;
+    echo json_encode($return);
+    exit();
 }
-
 
 
 //$alias_mapping 针对某些属性需要别名
@@ -1334,3 +1360,284 @@ function condition_param($params,$filter_mapping=null,$hook_func=null,$hook_func
             return $params;
 
         }
+
+
+    //断点操作多次数据库操作&记录日志
+    class TransactionTools{
+
+        //记录方式
+        //① 文件记录
+        //② 内存记录
+        public $record_type;
+         //记录方式最后一行：
+            // A：100%
+            // B:
+
+        public $TxtFileName = "record.log.txt";
+
+        public $TxtRes;
+
+        public $cut_line;
+        //默认的标识成功的内容
+        protected $success_sign = array("Work End.","100%");
+
+        //public $writeRecordSign;
+
+        public function __construct(){
+            //要创建的两个文件
+            //$TxtFileName = "record.log.txt";
+            //以读写方式打写指定文件，如果文件不存则创建
+            if( ($this->TxtRes=fopen ($this->TxtFileName,"a+")) === FALSE){
+                echo("创建可写文件：".$this->TxtFileName."失败");
+                exit();
+            }
+            
+            $os = strtoupper(substr(PHP_OS,0,3))==='WIN'?1:0;
+            //根据os的换行符
+            $this->cut_line = $os ? "\r\n" : "\n"; 
+            /*
+            $this->writeRecord();
+
+            $this->beginMission("vv.kj8323n");
+
+            //$this->endMission();
+
+           // $this->endRecord();
+
+            $res = $this->listenProcess(":","Work End.");
+            print_r($this->FileLastLines($this->TxtFileName,4));
+            print_r($this->getLastLines($this->TxtFileName,4));
+            */
+           
+            //return $res;
+
+        }
+        
+        public function __destruct(){
+            fclose ($this->TxtRes); //关闭指针
+        }
+        //监听工作流程
+        //@param sign:追加标识成功的内容，抓取的内容
+        //@param sign:标识回滚点内容，分割的依据
+        //@param : 回滚内容
+        public function listenProcess($rollback_con,$rollback_sign=':',$add_success_sign=array()){
+            
+            $c = $this->FileLastLines($this->TxtFileName,10);
+
+            $last_line = '';
+            //可能有空行，过滤10条，第一个不是空行的内容作为第一行
+            foreach ($c as $line) {
+                
+                if(trim($line)){
+                    //echo $line.",";
+                    $last_line=$line;break;
+                }
+            }
+            //echo $last_line;
+            //没读到最后行
+            if(''===$last_line)return -3;
+
+            if(!is_array($add_success_sign))$add_success_sign = array($add_success_sign);
+            //追加的值
+            $success_sign  = array_merge($this->success_sign,$add_success_sign);
+
+            if(!is_array($success_sign))return ssreturn("",$msg='TransactionTools success_sign format wrong.',2,1) ;
+            //没问题（结束成功sign）
+            //c[0]的值，就已经是一个成功标记，跳过
+            
+            if(in_array(trim($last_line),$success_sign))return 0;
+
+            else { 
+                //var_dump(strpos($c[0],$rollback_sign));
+                //找不到回滚标志
+                if(strpos($last_line,$rollback_sign)===false)return -2;
+               
+                $vals = explode($rollback_sign,$last_line);
+                //!!*成功与否的结果必须在数组最后一个元素中
+                $end = count($vals) - 1;
+                //回滚内容标记
+                $sign = 0;
+                //是否有成功匹配
+                $success = 0;
+                //2017-03-22:mission_a:value_b
+                //长度为>1，取最后个sign=100%,也没问题（任务成功sign）
+                foreach ($vals as $k => $v) {
+                    //找到了成功标记，返回0
+                    if(in_array(trim($v),$success_sign))return 0;
+                    //找到这个回滚的内容,内容有存在回滚内容中。
+                    if(is_array($rollback_con)&&in_array(trim($v),$rollback_con))$sign = $v;
+                    //echo $v;
+                    //print_r($rollback_con);
+                }
+                //执行到这，看返回回滚内容/还是没结果。
+                if($sign)
+                    
+                    return $sign;
+                
+                else 
+
+                    return -1;
+                
+            }
+
+           
+           
+           
+        }
+
+        //记录数据
+        public function writeRecord($s = ''){
+
+
+
+            //检查是不是已经有过今天的开始记录，有就不写了。
+            //读文件获取。
+            //还是分零食文件和日志文件记录
+            //sldfsdjf();
+            if($s)$str = $s;
+
+            else $str = date("Y-m-d")." 's Work:".$this->cut_line;
+
+            $r = $this->ckContentExist($str,$this->TxtFileName);
+
+            if(!$r)
+
+                fwrite($this->TxtRes,$str);
+
+        }
+        //开始任务
+        public function beginMission($m){
+
+            $str = $this->cut_line.date("H:i:s")." - start:". $m.":";
+
+            //$str = $str . $m.":";
+
+            fwrite($this->TxtRes,$str);
+        }
+        //结束任务
+        public function endMission(){
+
+            $str = "100%".$this->cut_line;
+
+            fwrite($this->TxtRes,$str);
+        }
+        //记录没有辨识号的任务日志
+        public function addMissionLog($m){
+
+            $r = $this->ckContentExist($m,$this->TxtFileName);
+
+            if(!$r){
+
+                $this->beginMission($m);
+
+                $this->endMission();
+            }
+        }
+
+        public function addErrorLog($e){
+
+            $str = $this->cut_line.date("H:i:s")." - error ".$e.$this->cut_line;
+
+            fwrite($this->TxtRes,$str);
+        }
+
+        //记录没有辨识号的任务日志
+        public function addLog($c){
+
+            $r = $this->ckContentExist($c,$this->TxtFileName);
+
+            if(!$r){
+
+                $str = $this->cut_line.$c.$this->cut_line;
+
+                fwrite($this->TxtRes,$str);
+            }
+        }
+
+        //结束数据
+        public function endRecord(){
+
+            //$start = date("Y-m-d H:i:s")."start:/n"
+
+            $str = $this->cut_line."Work End.";
+
+            fwrite($this->TxtRes,$str);
+
+        }
+        /*
+         * 取文件最后$n行
+         * @param string $filename 文件路径
+         * @param int $n 最后几行
+         * @return mixed false表示有错误，成功则返回字符串
+         */
+        public function FileLastLines($filename,$n=1){
+            
+            $filename = "record.log.txt";
+            if(!$fp=fopen($filename,'r')){
+                echo "打开文件失败，请检查文件路径是否正确，路径和文件名不要包含中文";
+                return false;
+            }
+            $pos=-2;
+            $eof="";
+            $str_arr=array();
+            while($n>0){
+                while($eof!="\n"){
+                    if(!fseek($fp,$pos,SEEK_END)){
+                        $eof=fgetc($fp);
+                        $pos--;
+                    }else{
+                        break;
+                    }
+            }
+                $str_arr[]=fgets($fp);
+                $eof="";
+                $n--;
+          }
+          return $str_arr;
+           
+        }
+
+        //通用方法 小内容文件
+        public function getLastLines($filename,$n){
+            
+            $file = file($filename);
+            
+            $i=0;$t = array();
+            //print_r($file);exit;
+            foreach(array_reverse($file) as $k=>$line){
+
+                if($i>=$n)break;
+                    
+                if($line){
+                    //array_unshift($t,$line);
+                    $t[] = $line; $i++;                        
+                }
+            }
+            return $t;
+        }
+    
+        //检查这段内容存在情况，是否重复写入，存在1，不存在0
+        //@content:内容
+        public function ckContentExist($content,$filename){
+
+            $content = trim($content);
+            
+            $lines = file($filename);
+            //print_r($lines);
+            foreach ($lines as $key => $value) {
+                
+                if(trim($value)&&strpos(trim($value),$content)!==false){//
+                    //var_dump(strpos($value,$content));exit;
+                    //var_dump(trim($value));echo "<br>";
+                   // var_dump(strpos("21","1"));echo "<br>";
+                    //echo $value.":".$content."-".strpos(trim($value),$content)."<br>";
+                    return true;
+
+                }
+            }
+
+            return false;
+        }
+
+
+    }

@@ -14,7 +14,7 @@ class LoginController extends AppController
 		M()->startTrans();
 		try {
 			$this->checkParam();
-			$this->checkUid();
+			$this->checkUid(2);
 
 			//存在验证码码表示修改密码登入
 			if(!empty($this->dparam['id_code']))
@@ -45,6 +45,7 @@ class LoginController extends AppController
 		try {
 			$this->checkParam();
 			$this->checkCode(1);
+			$this->checkUid(1);
 			$this->checkDid();
 			$this->uidRegister();
 			$this->unionHandle();
@@ -72,13 +73,13 @@ class LoginController extends AppController
 	/**
 	 * [checkUid 检查用户]
 	 */
-	public function checkUid()
+	public function checkUid($type)
 	{
 		//检查是否老用户
 		$sql = " SELECT * FROM gw_uid WHERE phone = {$this->dparam['phone']} ";
 		$this->uid_info = M()->query($sql,'single');
-		if(empty($this->uid_info)) info('请先注册!',-1);
-
+		if(empty($this->uid_info) && $type == 2) info('请先注册!',-1);
+		if(!empty($this->uid_info) && $type == 1) info('您已是惠淘会员,请登入!',-1);
 		$this->dparam['uid']			= $this->uid_info['objectId'];
 		$this->dparam['report_date']	=	date('Y-m-d',time());
 
@@ -219,7 +220,7 @@ class LoginController extends AppController
 				info('设备信息不完整',-1);
 
 		//检查手机号码
-		!preg_match("/^1[34578]\d{9}$/",$this->dparam['phone']) && info('非法手机号',-1);
+		if(empty($this->dparam['phone']) || !preg_match("/^1[34578]\d{9}$/",$this->dparam['phone'])) info('非法手机号',-1);
 	}
 
 

@@ -48,13 +48,13 @@ class VcodeController extends AppController
 				{	//发送成功
 					info('验证码已发送',1);
 				}else{	//发送失败
-					info('请求频繁',-2);
+					info('请求频繁',-1);
 				}
 			}else{	//记录失败
 				info('验证码数据异常',-1);
 			}
 		}else{
-			info('您的操作过于频繁,5分钟后再试',-2);
+			info('您的操作过于频繁,5分钟后再试',-1);
 		}
 	}
 

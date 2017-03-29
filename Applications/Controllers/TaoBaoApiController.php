@@ -1,9 +1,8 @@
 <?php
 class TaoBaoApiController {
     //商品混淆id
-    public static $goodsId = '';
-    //初始化参数
-    public static function __setas($appkey = '', $secret = '') {
+    public $goodsId = '';
+    public function __construct($appkey, $secret) {
         TaoBaoController::__setas($appkey, $secret);
     }
   /**
@@ -12,16 +11,16 @@ class TaoBaoApiController {
    * @param  array  $open_iids [混淆id最大长度为300]
    * @return [type]            [description]
    */
-    public static function taeItemsListRequest($num_iids = [], $open_iids = []) {
-        self::$goodsId = [];
+    public function taeItemsListRequest($num_iids = [], $open_iids = []) {
+        $this->$goodsId = [];
         if($open_iids)
-            self::getOpenIids($open_iids);
+            $this->getOpenIids($open_iids);
         else if($num_iids)
-            // self::$goodsId = array_chunk($num_iids, 50);
+            // $this->$goodsId = array_chunk($num_iids, 50);
         $res  = [];
         $data = [];
-        foreach(self::$goodsId as $v) {
-            $res[] = self::goodsListRequest('', $v);
+        foreach($this->$goodsId as $v) {
+            $res[] = $this->goodsListRequest('', $v);
         }
         foreach($res as $v) {
             if(is_array($v)) {
@@ -32,7 +31,7 @@ class TaoBaoApiController {
         }
         return $data;
     }
-    public static function goodsListRequest($num_iids, $open_iids = []) {
+    public function goodsListRequest($num_iids, $open_iids = []) {
         $resp = TaoBaoController::send([
             'fields'    => 'title,nick,cid,price,post_fee,promoted_service,shop_name',
             'num_iids'  => $num_iids,
@@ -41,7 +40,7 @@ class TaoBaoApiController {
         ]);
         return !empty($resp['tae_items_list_response']['items']['x_item']) ? $resp['tae_items_list_response']['items']['x_item'] : '';
     }
-    public static function getOpenIids($data) {
+    public function getOpenIids($data) {
        $str = '';
        if(empty($data))
            return $str;
@@ -50,11 +49,11 @@ class TaoBaoApiController {
            $str .= $v.',';
            unset($data[$k]);
        }
-       self::$goodsId[] = rtrim($str, ',');
-       self::getOpenIids($data);
+       $this->$goodsId[] = rtrim($str, ',');
+       $this->getOpenIids($data);
     }
     //获取订单状态 http://open.taobao.com/docs/api.htm?spm=a219a.7395905.0.0.pJy3zR&apiId=21986
-    public static function tmcMessagesConsumeRequest() {
+    public function tmcMessagesConsumeRequest() {
         $resp = TaoBaoController::send([
             'quantity' => 200,
             'method'   => 'taobao.tmc.messages.consume',
@@ -62,7 +61,7 @@ class TaoBaoApiController {
         return !empty($resp['tmc_messages_consume_response']) ? $resp['tmc_messages_consume_response'] : '';
     }
     //确认消息 http://open.taobao.com/docs/api.htm?spm=a219a.7395905.0.0.V2dlzx&apiId=21985
-    public static function tmcMessagesConfirmRequest($id) {
+    public function tmcMessagesConfirmRequest($id) {
         $id = array_chunk($id, 200);
         foreach($id as $v) {
             TaoBaoController::send([
@@ -72,7 +71,7 @@ class TaoBaoApiController {
         }
     }
     //淘宝客商品查询搜索 http://open.taobao.com/docs/api.htm?spm=a219a.7629065.0.0.1m81nR&apiId=24515
-    public static function tbkItemGetRequest($paramster) {
+    public function tbkItemGetRequest($paramster) {
         $data = [
             'q'             => addslashes(htmlspecialchars(isset($paramster['title']) ? $paramster['title'] : '.')),
             'fields'        => 'num_iid,title,pict_url,reserve_price,zk_final_price,user_type,provcity,item_url,seller_id,volume,nick',

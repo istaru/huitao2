@@ -12,13 +12,14 @@ class TaoBaoKeController extends AppController {
     public static $params = [];
     //存储商品列表服务api查询到的数据
     public $taobaoList = [];
+    public $taoBaoApi = '';
     //设置类属性默认值
     public function setVariable() {
         $this->aggregate = [
             2 => [],    //存储付款成功单号
             5 => [],    //存储退款成功单号
         ];
-        $this->sql       = 'INSERT IGNORE INTO gw_order_status('.('`'.implode('`,`', array_keys($this->setFileds())).'`').') VALUES ';
+        $this->sql = 'INSERT IGNORE INTO gw_order_status('.('`'.implode('`,`', array_keys($this->setFileds())).'`').') VALUES ';
     }
     public function run() {
         if(empty(self::$params) && empty(self::$params = (include DIR_CORE.'baiChuanConfig.php')['order']))
@@ -26,7 +27,7 @@ class TaoBaoKeController extends AppController {
         foreach(self::$params as $v) {
             //初始化每次循环产生的数据
             $this->setVariable();
-            TaoBaoApiController::__setas($v['appkey'], $v['secret']);
+            $this->taoBaoApi = new TaoBaoApiController($v['appkey'], $v['secret']);
             $this->message();
         }
         echo '处理完成';
@@ -35,7 +36,7 @@ class TaoBaoKeController extends AppController {
     // 订单信息
     public function message() {
         //获取所有订单信息
-        // $resp = TaoBaoApiController::tmcMessagesConsumeRequest();
+        // $resp = $this->taoBaoApi->tmcMessagesConsumeRequest();
         // if(empty($resp['messages']['tmc_message']) || !$order = $resp['messages']['tmc_message']) return;
         $order = (json_decode(file_get_contents('http://localhost/test/2.json'), true))['tmc_message'];
         //获取订单id 用作确认消息
@@ -58,7 +59,7 @@ class TaoBaoKeController extends AppController {
             $data[] = $content;
         }
         //通过商品列表服务api拿到明文id 以及邮费
-        // empty($auctionId) or $this->taobaoList = TaoBaoApiController::taeItemsListRequest('', $auctionId));
+        // empty($auctionId) or $this->taobaoList = $this->taoBaoApi->taeItemsListRequest('', $auctionId));
         //订单入库
         $this->addOrder($data);
     }
@@ -87,7 +88,7 @@ class TaoBaoKeController extends AppController {
         }
         M()->query(rtrim($this->sql, ','));
         //确认消息
-        TaoBaoApiController::tmcMessagesConfirmRequest($this->id);
+        $this->taoBaoApi->tmcMessagesConfirmRequest($this->id);
         //处理付款成功的订单id
         empty($this->aggregate[2]) OR $this->notice(2, array_diff($this->aggregate[2], $this->aggregate[5]));
         //处理退款成功的订单id

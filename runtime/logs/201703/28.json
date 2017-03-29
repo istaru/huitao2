@@ -1,445 +1,191 @@
 {
-    "time": "2017-03-28 03:39:05",
-    "spendTime": "0.004s",
+    "time": "2017-03-28 07:15:49",
+    "spendTime": "0.052s",
     "userIp": "::1",
-    "url": "localhost\/shopping_new\/login\/register",
+    "url": "localhost\/shopping_new\/Goodsshow\/searchGoods",
     "parameter": [],
     "return": {
         "status": -1,
-        "msg": "请输入验证码!",
+        "msg": "缺少参数",
         "data": []
     }
 }{
-    "time": "2017-03-28 03:39:30",
-    "spendTime": "0.637s",
+    "time": "2017-03-28 07:16:04",
+    "spendTime": "0.003s",
     "userIp": "::1",
-    "url": "localhost\/shopping_new\/login\/login",
+    "url": "localhost\/shopping_new\/Goodsshow\/searchGoods",
     "parameter": [],
     "return": {
-        "msg": "登入成功!",
+        "status": -1,
+        "msg": "缺少参数",
+        "data": []
+    }
+}{
+    "time": "2017-03-28 07:18:01",
+    "spendTime": "1.122s",
+    "userIp": "::1",
+    "url": "localhost\/shopping_new\/Goodsshow\/searchGoods",
+    "parameter": {
+        "{\"title\":\"男装\",\"page_no\":2,\"page_size\":5,\"system\":0}": ""
+    },
+    "return": {
         "status": 1,
-        "user_id": "QQUvzMJI8C",
-        "nickname": "istaru",
-        "invite": "0K00"
+        "msg": "ok",
+        "data": {
+            "self": [
+                {
+                    "num_iid": "544214738911",
+                    "title": "2017春季新款T恤青少年长袖T恤男装潮男打底衫薄款韩版修身上衣",
+                    "nick": "兹派旗舰店",
+                    "pict_url": "http:\/\/img03.taobaocdn.com\/bao\/uploaded\/i3\/TB1fnBiPXXXXXXsapXXXXXXXXXX_!!0-item_pic.jpg",
+                    "price": "29.90",
+                    "zk_final_price": "9.90",
+                    "item_url": "http:\/\/item.taobao.com\/item.htm?id=544214738911",
+                    "reduce": "20",
+                    "volume": "244"
+                },
+                {
+                    "num_iid": "525866575482",
+                    "title": "卫衣男青年开衫男装外套男冬季加绒学生韩版修身棒球服潮牌情侣装",
+                    "nick": "诗班雅旗舰店",
+                    "pict_url": "http:\/\/img01.taobaocdn.com\/bao\/uploaded\/i1\/TB1.ic7NXXXXXX4aXXXXXXXXXXX_!!0-item_pic.jpg",
+                    "price": "89.00",
+                    "zk_final_price": "49.00",
+                    "item_url": "http:\/\/item.taobao.com\/item.htm?id=525866575482",
+                    "reduce": "40",
+                    "volume": "96"
+                },
+                {
+                    "num_iid": "544264237048",
+                    "title": "花花公子男士长袖t恤春秋季韩版修身V领体恤打底衫青年男装上衣服",
+                    "nick": "鑫娜服饰专营店",
+                    "pict_url": "http:\/\/img01.taobaocdn.com\/bao\/uploaded\/i1\/TB1MKVUPXXXXXbnXVXXXXXXXXXX_!!0-item_pic.jpg",
+                    "price": "139.00",
+                    "zk_final_price": "79.00",
+                    "item_url": "http:\/\/item.taobao.com\/item.htm?id=544264237048",
+                    "reduce": "60",
+                    "volume": "30"
+                }
+            ],
+            "taobaoGoods": [],
+            "taobaoGoodsSum": 0
+        }
     }
 }{
-    "time": "2017-03-28 15:06:29",
-    "spendTime": "0.121s",
-    "userIp": "192.168.1.101",
-    "url": "192.168.1.181\/shopping_new\/login\/login",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "请先注册!",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 15:06:59",
-    "spendTime": "0.121s",
-    "userIp": "192.168.1.101",
-    "url": "192.168.1.181\/shopping_new\/login\/login",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "密码不正确!",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 15:11:19",
-    "spendTime": "0.058s",
-    "userIp": "192.168.1.101",
-    "url": "192.168.1.181\/shopping_new\/login\/login",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "密码不正确!",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 15:13:36",
-    "spendTime": "0.058s",
-    "userIp": "192.168.1.101",
-    "url": "192.168.1.181\/shopping_new\/login\/login",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "请先注册!",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 15:16:32",
-    "spendTime": "0.058s",
-    "userIp": "192.168.1.101",
-    "url": "192.168.1.181\/shopping_new\/login\/login",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "请先注册!",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 15:19:48",
-    "spendTime": "0.058s",
-    "userIp": "192.168.1.101",
-    "url": "192.168.1.181\/shopping_new\/login\/login",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "请先注册!",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 15:24:53",
-    "spendTime": "0.003s",
+    "time": "2017-03-28 07:19:12",
+    "spendTime": "0.192s",
     "userIp": "::1",
-    "url": "localhost\/shopping_new\/login\/register",
-    "parameter": [],
+    "url": "localhost\/shopping_new\/Goodsshow\/searchGoods",
+    "parameter": {
+        "{\"title\":\"男装\",\"page_no\":2,\"page_size\":5,\"system\":0}": ""
+    },
     "return": {
-        "status": -1,
-        "msg": "请输入验证码!",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 15:24:54",
-    "spendTime": "0.004s",
-    "userIp": "::1",
-    "url": "localhost\/shopping_new\/login\/register",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "请输入验证码!",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 15:24:55",
-    "spendTime": "0.003s",
-    "userIp": "::1",
-    "url": "localhost\/shopping_new\/login\/register",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "请输入验证码!",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 15:24:55",
-    "spendTime": "0.003s",
-    "userIp": "::1",
-    "url": "localhost\/shopping_new\/login\/register",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "请输入验证码!",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 15:24:55",
-    "spendTime": "0.004s",
-    "userIp": "::1",
-    "url": "localhost\/shopping_new\/login\/register",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "请输入验证码!",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 15:24:56",
-    "spendTime": "0.059s",
-    "userIp": "192.168.1.101",
-    "url": "192.168.1.181\/shopping_new\/login\/login",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "请先注册!",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 15:24:56",
-    "spendTime": "0.003s",
-    "userIp": "::1",
-    "url": "localhost\/shopping_new\/login\/register",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "请输入验证码!",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 15:24:56",
-    "spendTime": "0.003s",
-    "userIp": "::1",
-    "url": "localhost\/shopping_new\/login\/register",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "请输入验证码!",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 15:24:57",
-    "spendTime": "0.003s",
-    "userIp": "::1",
-    "url": "localhost\/shopping_new\/login\/register",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "请输入验证码!",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 15:24:59",
-    "spendTime": "0.061s",
-    "userIp": "192.168.1.101",
-    "url": "192.168.1.181\/shopping_new\/login\/login",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "请先注册!",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 15:25:05",
-    "spendTime": "0.056s",
-    "userIp": "192.168.1.101",
-    "url": "192.168.1.181\/shopping_new\/login\/login",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "请先注册!",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 15:25:15",
-    "spendTime": "0.056s",
-    "userIp": "192.168.1.101",
-    "url": "192.168.1.181\/shopping_new\/login\/login",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "密码不正确!",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 15:25:45",
-    "spendTime": "0.057s",
-    "userIp": "192.168.1.101",
-    "url": "192.168.1.181\/shopping_new\/login\/login",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "密码不正确!",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 15:30:36",
-    "spendTime": "0.12s",
-    "userIp": "192.168.1.101",
-    "url": "192.168.1.181\/shopping_new\/login\/login",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "密码不正确!",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 15:30:46",
-    "spendTime": "0.059s",
-    "userIp": "192.168.1.101",
-    "url": "192.168.1.181\/shopping_new\/login\/login",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "密码不正确!",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 15:31:06",
-    "spendTime": "0.057s",
-    "userIp": "192.168.1.101",
-    "url": "192.168.1.181\/shopping_new\/login\/login",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "密码不正确!",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 15:31:32",
-    "spendTime": "0.058s",
-    "userIp": "192.168.1.101",
-    "url": "192.168.1.181\/shopping_new\/login\/login",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "密码不正确!",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 15:31:39",
-    "spendTime": "0.058s",
-    "userIp": "192.168.1.101",
-    "url": "192.168.1.181\/shopping_new\/login\/login",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "密码不正确!",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 15:31:48",
-    "spendTime": "0.062s",
-    "userIp": "192.168.1.101",
-    "url": "192.168.1.181\/shopping_new\/login\/login",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "密码不正确!",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 15:53:22",
-    "spendTime": "0.119s",
-    "userIp": "192.168.1.101",
-    "url": "192.168.1.181\/shopping_new\/login\/login",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "请先注册!",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 15:53:47",
-    "spendTime": "0.057s",
-    "userIp": "192.168.1.101",
-    "url": "192.168.1.181\/shopping_new\/login\/login",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "请先注册!",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 15:53:56",
-    "spendTime": "0.058s",
-    "userIp": "192.168.1.101",
-    "url": "192.168.1.181\/shopping_new\/login\/login",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "请先注册!",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 15:53:58",
-    "spendTime": "0.065s",
-    "userIp": "192.168.1.101",
-    "url": "192.168.1.181\/shopping_new\/login\/login",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "请先注册!",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 15:59:44",
-    "spendTime": "0.07s",
-    "userIp": "192.168.1.101",
-    "url": "192.168.1.181\/shopping_new\/login\/login",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "非法手机号",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 15:59:51",
-    "spendTime": "0.056s",
-    "userIp": "192.168.1.101",
-    "url": "192.168.1.181\/shopping_new\/login\/login",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "密码不正确!",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 16:00:46",
-    "spendTime": "0.204s",
-    "userIp": "192.168.1.101",
-    "url": "192.168.1.181\/shopping_new\/login\/login",
-    "parameter": [],
-    "return": {
-        "msg": "登入成功!",
         "status": 1,
-        "user_id": "8NoO8sqDbo",
-        "nickname": "istaru",
-        "invite": "666666"
-    }
-}{
-    "time": "2017-03-28 16:04:18",
-    "spendTime": "0.004s",
-    "userIp": "192.168.1.101",
-    "url": "192.168.1.181\/shopping_new\/login\/login",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "非法手机号",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 17:15:26",
-    "spendTime": "0.07s",
-    "userIp": "192.168.1.101",
-    "url": "192.168.1.181\/shopping_new\/login\/register",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "非法手机号",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 17:19:21",
-    "spendTime": "0.004s",
-    "userIp": "192.168.1.101",
-    "url": "192.168.1.181\/shopping_new\/login\/register",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "非法手机号",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 17:19:52",
-    "spendTime": "0.004s",
-    "userIp": "192.168.1.101",
-    "url": "192.168.1.181\/shopping_new\/login\/register",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "非法手机号",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 17:27:40",
-    "spendTime": "0.07s",
-    "userIp": "192.168.1.101",
-    "url": "192.168.1.181\/shopping_new\/login\/register",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "非法手机号",
-        "data": []
-    }
-}{
-    "time": "2017-03-28 17:31:17",
-    "spendTime": "0.063s",
-    "userIp": "192.168.1.101",
-    "url": "192.168.1.181\/shopping_new\/login\/register",
-    "parameter": [],
-    "return": {
-        "status": -1,
-        "msg": "非法手机号",
-        "data": []
+        "msg": "ok",
+        "data": {
+            "self": [
+                {
+                    "num_iid": "544214738911",
+                    "title": "2017春季新款T恤青少年长袖T恤男装潮男打底衫薄款韩版修身上衣",
+                    "nick": "兹派旗舰店",
+                    "pict_url": "http:\/\/img03.taobaocdn.com\/bao\/uploaded\/i3\/TB1fnBiPXXXXXXsapXXXXXXXXXX_!!0-item_pic.jpg",
+                    "price": "29.90",
+                    "zk_final_price": "9.90",
+                    "item_url": "http:\/\/item.taobao.com\/item.htm?id=544214738911",
+                    "reduce": "20",
+                    "volume": "244"
+                },
+                {
+                    "num_iid": "525866575482",
+                    "title": "卫衣男青年开衫男装外套男冬季加绒学生韩版修身棒球服潮牌情侣装",
+                    "nick": "诗班雅旗舰店",
+                    "pict_url": "http:\/\/img01.taobaocdn.com\/bao\/uploaded\/i1\/TB1.ic7NXXXXXX4aXXXXXXXXXXX_!!0-item_pic.jpg",
+                    "price": "89.00",
+                    "zk_final_price": "49.00",
+                    "item_url": "http:\/\/item.taobao.com\/item.htm?id=525866575482",
+                    "reduce": "40",
+                    "volume": "96"
+                },
+                {
+                    "num_iid": "544264237048",
+                    "title": "花花公子男士长袖t恤春秋季韩版修身V领体恤打底衫青年男装上衣服",
+                    "nick": "鑫娜服饰专营店",
+                    "pict_url": "http:\/\/img01.taobaocdn.com\/bao\/uploaded\/i1\/TB1MKVUPXXXXXbnXVXXXXXXXXXX_!!0-item_pic.jpg",
+                    "price": "139.00",
+                    "zk_final_price": "79.00",
+                    "item_url": "http:\/\/item.taobao.com\/item.htm?id=544264237048",
+                    "reduce": "60",
+                    "volume": "30"
+                }
+            ],
+            "taobaoGoods": [
+                {
+                    "item_url": "http:\/\/item.taobao.com\/item.htm?id=26823848149",
+                    "nick": "mjx旗舰店",
+                    "num_iid": 26823848149,
+                    "pict_url": "http:\/\/img3.tbcdn.cn\/tfscom\/i2\/TB1nL02KVXXXXXaXFXXXXXXXXXX_!!0-item_pic.jpg",
+                    "provcity": "浙江 金华",
+                    "reserve_price": "198.00",
+                    "seller_id": 762039651,
+                    "title": "MJX白衬衫长袖衬衣男士纯色韩版修身商务正装职业工装春季男装寸",
+                    "user_type": 1,
+                    "volume": 72364,
+                    "zk_final_price": "28.00"
+                },
+                {
+                    "item_url": "http:\/\/item.taobao.com\/item.htm?id=544701059177",
+                    "nick": "品际旗舰店",
+                    "num_iid": 544701059177,
+                    "pict_url": "http:\/\/img4.tbcdn.cn\/tfscom\/i1\/TB1Zq4vQXXXXXazapXXXXXXXXXX_!!0-item_pic.jpg",
+                    "provcity": "江西 南昌",
+                    "reserve_price": "128.00",
+                    "seller_id": 2985444859,
+                    "title": "夏季男士T恤短袖圆领学生体恤修身半袖男装韩版打底衫潮流上衣服",
+                    "user_type": 1,
+                    "volume": 71451,
+                    "zk_final_price": "13.90"
+                },
+                {
+                    "item_url": "http:\/\/item.taobao.com\/item.htm?id=532104480367",
+                    "nick": "巴索玛仕旗舰店",
+                    "num_iid": 532104480367,
+                    "pict_url": "http:\/\/img1.tbcdn.cn\/tfscom\/i4\/TB1N6XROXXXXXarXFXXXXXXXXXX_!!0-item_pic.jpg",
+                    "provcity": "广东 广州",
+                    "reserve_price": "298.00",
+                    "seller_id": 2248325458,
+                    "title": "男士休闲裤男弹力韩版修身小脚裤男春季新款2017黑色裤子潮流百搭",
+                    "user_type": 1,
+                    "volume": 69501,
+                    "zk_final_price": "69.00"
+                },
+                {
+                    "item_url": "http:\/\/item.taobao.com\/item.htm?id=45612398152",
+                    "nick": "fisen旗舰店",
+                    "num_iid": 45612398152,
+                    "pict_url": "http:\/\/img1.tbcdn.cn\/tfscom\/i1\/TB1V617PpXXXXXlaXXXXXXXXXXX_!!0-item_pic.jpg",
+                    "provcity": "浙江 杭州",
+                    "reserve_price": "89.00",
+                    "seller_id": 2042547067,
+                    "title": "短袖t恤男夏季修身半袖上衣服 韩版日系潮男装学生打底衫圆领体恤",
+                    "user_type": 1,
+                    "volume": 60099,
+                    "zk_final_price": "9.90"
+                },
+                {
+                    "item_url": "http:\/\/item.taobao.com\/item.htm?id=545113680210",
+                    "nick": "千禧蚂蚁旗舰店",
+                    "num_iid": 545113680210,
+                    "pict_url": "http:\/\/img4.tbcdn.cn\/tfscom\/i2\/TB1ibk3PpXXXXbhXpXXXXXXXXXX_!!0-item_pic.jpg",
+                    "provcity": "湖北 武汉",
+                    "reserve_price": "199.00",
+                    "seller_id": 2005147151,
+                    "title": "夏季男士短袖圆领印花t恤潮男装韩版半袖大码青少年学生宽松纯棉",
+                    "user_type": 1,
+                    "volume": 59370,
+                    "zk_final_price": "68.80"
+                }
+            ],
+            "taobaoGoodsSum": 19616
+        }
     }
 }
