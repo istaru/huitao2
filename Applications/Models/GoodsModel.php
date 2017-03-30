@@ -203,7 +203,6 @@ SELECT s.sort,o.num_iid as id,o.title as name,o.volume as stock,o.price as price
 			$index = 0;
 		}
 		R()->setKV('listRange',$index);	//更新当前位置
-		echo $index;
 	}
 
 	/**

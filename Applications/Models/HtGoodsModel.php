@@ -27,10 +27,6 @@ class HtGoodsModel
             return $data;
         }
     }
-    public function deleteGoods($num_iid = '')
-    {
-        return M('goods_info')->where(['num_iid' => ['=',$num_iid]])->save();
-    }
     public function addGoods($data)
     {
         if(is_array($data))

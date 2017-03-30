@@ -17,7 +17,7 @@ abstract class NewGoods extends GoodsModule
         //定义了日期
         parent::__construct();
        
-        $this->pdo = new FavoriteGoodsPdo($this->isDebug,$this->adzone_id);
+       
 	}
 
     //各种类型商品数据获取
@@ -33,9 +33,145 @@ abstract class NewGoods extends GoodsModule
 //Excel导入商品
 class ExcelGoods extends NewGoods{
 
+    public function __construct(){
+        //定义了日期
+        parent::__construct();
+        
+        $this->pdo = new ExcelGoodsPdo($this->isDebug);
+
+    }
+
     public function getGoodsData(){
 
-    }   
+        //$this->_dealCoupon();exit;
+
+        $attrs = $this->_getTempTableAttrs();
+
+        for($i=0;$i<5;$i++){
+            //一次取2000条数据
+            //直接去掉无法提取的分类
+            $datas = $this->pdo->fetchCategoryInfo($attrs,20,$i*2000);
+            
+            //print_r($datas);//exit;
+            //$this->_dealCategory();
+            foreach ($datas as $key => $value) {
+
+                if(!$value["num_iid"])continue;
+                //处理分类
+                list(
+                $datas[$key]["category"],
+                $datas[$key]["category_id"],
+                $datas[$key]["favorite"],
+                $datas[$key]["favorite_id"]) = $this->_dealCategory($value);
+                //处理商铺分类
+                $datas[$key]["store_type"] = $this->_dealStoreType($value["store_type"]);
+                
+                $datas[$key]["created_date"] = $this->date;
+                //处理优惠券
+                list(
+                $datas[$key]["limited"],
+                $datas[$key]["reduce"],
+                $datas[$key]["deal_price"],
+                $datas[$key]["discount"],
+                $datas[$key]["coupon_get_url"] ) = $this->_dealCoupon($value);
+
+            }
+            //print_r($datas);exit;
+            $this->pdo->InsertEffortsToGoods($datas);exit;
+
+        }
+
+    } 
+
+    //获取零时表并转化属性
+    protected function _getTempTableAttrs(){
+
+        $r = $this->pdo->ckTempTableExist();
+        //存在
+        if($r){
+
+             $column = $this->pdo->fetchColumn();
+             //print_r($column);
+             //行数相同
+             if(count($column) == 22){
+
+                $attrs = "";
+
+                foreach ($column as $key => $val) {
+                    
+                    if(!$val||!isset($this->pdo->attrs[$key])){
+                        
+                        return ssreturn($column,$msg='构成语句失败.',2,1);
+
+                        break;
+                    }
+                  
+                    $attrs .= $val." as ".$this->pdo->attrs[$key].",";                    
+
+                }
+
+                $attrs = trim($attrs,",");
+
+                //print_r($this->pdo->fetchData($attrs));
+                return $attrs;
+              
+             }
+        }
+        //不存在
+        else {
+
+            return ssreturn($this->pdo->temp_table,$msg='导入临时表获取失败.',2,1);
+        }
+    }  
+
+    //处理分类,直接过滤掉没有映射的分类
+    protected function _dealCategory($value){
+        //category,category_id,favorite,favorite_id
+        return array($value["cname"],$value["cid"],$value["category"],0);
+
+
+    }
+   // /0-天猫 1-淘宝
+    protected function _dealStoreType($store_type){
+
+        return $store_type == "天猫" ? 0 : 1;
+
+    }
+    //处理分析优惠券
+    protected function _dealCoupon($value){
+
+        preg_match_all("|\d+|i",$value['val'],$result);
+        //优惠券门槛
+        $limit = 0;
+        //优惠券力度
+        $reduce = 0;
+
+        if(count($result[0])){
+
+            if(count($result[0]) == 1){
+
+                $limit = 0;
+
+                $reduce = $result[0][0];
+            }else {
+
+                $limit = $result[0][0];
+
+                $reduce = $result[0][1];
+            }
+        }
+        //echo $limit.",".$reduce;
+       
+        $deal_price = $value['price'] - $reduce;
+
+        $discount = number_format($deal_price/$value['price']*100,2);
+
+        $coupon_get_url = "https://h5.m.taobao.com/ump/coupon/detail/index.html?sellerId=".$value["seller_id"]."&activityId=".$value["coupon_id"]."&global_seller=false&currency=CNY";
+        
+        return array($limit,$reduce,$deal_price,$discount,$coupon_get_url);
+    }
+
+
     //excel型实质是不需要代码导入的
     public function onlineGoods(){
 
@@ -57,6 +193,8 @@ class FavoriteGoods extends NewGoods{
         parent::__construct();
         //断点操作工具
         $this->transaction_tools = new TransactionTools();
+
+        $this->pdo = new FavoriteGoodsPdo($this->isDebug,$this->adzone_id);
 
     }
 

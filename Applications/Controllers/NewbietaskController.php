@@ -106,20 +106,20 @@ class NewbietaskController extends AppController
 			//成功邀请一名好友
 			6 => M('uid_log')->where("uid = '{$uid}' AND score_type = 2")->select('single'),
 			//所有好友累计两次下单
-			7 => M('uid_log')->where(['uid' => ['=', $uid], 'score_type' => ['=', 3]])->count() > 1 ? 1 : 0,
+			7 => (M()->query("SELECT count(b.uid) num FROM( SELECT score_source FROM gw_uid_log WHERE score_type = 2 AND uid = '{$uid}') a JOIN(SELECT uid , order_id FROM gw_order) b ON b.uid = a.score_source"))['num'] > 1 ? 1 : 0,
 			//所有好友累计两次确认收货
-			8 => count(M()->query("SELECT id FROM gw_order_status WHERE order_id IN( SELECT order_id FROM gw_order WHERE uid = '{$uid}' AND title IS NOT NULL GROUP BY order_id) AND status = 3")) > 1 ? 1 : 0,
+			8 => (M()->query("SELECT count(c.id) num FROM( SELECT score_source FROM gw_uid_log WHERE score_type = 2 AND uid = '{$uid}') a JOIN(SELECT uid , order_id FROM gw_order) b ON b.uid = a.score_source JOIN( SELECT id , order_id FROM gw_order_status WHERE status = 3) c ON c.order_id = b.order_id"))['num'] > 1 ? 1 : 0
 		];
 		return isset($data[$key]) ? $data[$key] : '';
 	}
 	public function ckNewUserMission($uid, $data) {
-		if(!empty($this->ckTask($data['task_id'], $uid))) {
+		if($this->ckTask($data['task_id'], $uid)) {
 			//任务表并不存在这一条记录的时候 添加一条记录
 			if(empty(M('task_log')->where("uid = '{$uid}' AND task_id = {$data['task_id']}")->select('single'))) {
-				$data['uid'] 		= $uid;
+				$data['uid'] = $uid;
 				//添加该任务日志记录
 				M('task_log')->add($data);
-				//当任务奖励大于0的时候 给用户钱并存uid_bill_log 记录 然后info给前端 红包未领的状态
+				//当任务奖励金额大于0的时候 给用户钱并存uid_bill_log 记录 然后info给前端 红包未领的状态
 				if($data['price'] > 0) {
 					M('uid_bill_log')->add([
 						'type'		   => 2,
@@ -138,11 +138,12 @@ class NewbietaskController extends AppController
 		}
 	}
 	//查询新手任务进度
-	public function queryTask($uid = '123') {
-		$uid = !empty($this->dparam['user_id']) ? $this->dparam['user_id'] : info('请您赶快去注册登录吧!', -1);
+	public function queryTask($uid = '') {
+		$params = $_POST;
+		$uid = !empty($params['user_id']) ? $params['user_id'] : empty($uid) ? info('请您赶快去注册登录吧!', -1) : $uid;
 		//判断用户注册时间 是否可以做新手任务
 		if($user = M('uid')->where("objectId = '{$uid}'")->field('createdAt')->select('single')) {
-			!strtotime($user['createdAt']) < 1487944802 or info('2017-02-24之后注册的用户才可以参加此次活动', -1);
+			!strtotime($user['createdAt']) < 1487944802 or info('2017-02-24之后注册的用户才可以参加新手任务', -1);
 			$field = 'id task_id,name,introduce,price,createdAt';
 			//检测当前用户已完成的任务中是否还有未领取的奖励 如果有则不显示下个任务
 			if($task = M()->query("SELECT {$field} FROM gw_task WHERE id IN( SELECT order_id FROM gw_uid_bill_log WHERE status = 1 AND type = 2 AND uid = '{$uid}')", 'single'))
@@ -153,7 +154,7 @@ class NewbietaskController extends AppController
 			!empty($data) or info('您已经做完了全部新手任务!', 1);
 			//检测该任务用户是否已经完成了
 			$this->ckNewUserMission($uid, $data);
-			//如果能走到这一步表示用户完成的是那种没钱的任务 递归再调用一次
+			//如果能走到这一步表示用户完成的是那种没钱的任务 递归再检查下个任务
 			$this->queryTask($uid);
 		}
 		info('请您快去注册登录吧!');

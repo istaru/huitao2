@@ -25,8 +25,6 @@ class TaoBaoKeController extends AppController {
         if(empty(self::$params) && empty(self::$params = (include DIR_CORE.'baiChuanConfig.php')['order']))
             info('缺少appkey');
         foreach(self::$params as $v) {
-            //初始化每次循环产生的数据
-            $this->setVariable();
             $this->taoBaoApi = new TaoBaoApiController($v['appkey'], $v['secret']);
             $this->message();
         }
@@ -35,6 +33,8 @@ class TaoBaoKeController extends AppController {
 
     // 订单信息
     public function message() {
+        //初始化每次的变量数据
+        $this->setVariable();
         //获取所有订单信息
         // $resp = $this->taoBaoApi->tmcMessagesConsumeRequest();
         // if(empty($resp['messages']['tmc_message']) || !$order = $resp['messages']['tmc_message']) return;

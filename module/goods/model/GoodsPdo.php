@@ -22,6 +22,142 @@ class GoodsPdo extends GoodsModule{
 
         }
     }
+//优惠券导入
+class ExcelGoodsPdo extends GoodsPdo{
+
+    public $temp_table = "page1";
+
+    public $attrs = array('num_iid','title','pict_url','pict_detail_url','category','tbk_url','price','volumn',
+        'rating','rating_fee','seller_name','seller_id','store_name',
+'store_type','coupon_id','sum','num','val','start_time','end_time','coupon_url','coupon_tg_url');
+
+    public function __construct($isDebug){
+
+        parent::__construct($isDebug);
+
+    }
+    //检查零时表是否存在
+    public function ckTempTableExist(){
+
+        $sql = "SHOW TABLES LIKE '".$this->temp_table."'";
+    
+        $r = db_query_singal($sql,$this->db,array(),$this->pdo);
+        
+        return $r;
+    }
+
+    public function fetchColumn(){
+
+        $sql = "select COLUMN_NAME from information_schema.COLUMNS where table_name = '".$this->temp_table."' and table_schema = '". $this->db."'";
+
+        $r = db_query_col($sql,$this->db,array(),$this->pdo);
+        
+        return $r;
+
+    }
+
+    public function fetchData($attrs,$limit,$offset,$is_sql=1){
+        
+        if($attrs){
+            
+            $sql = "select ".$attrs." from page1 limit $limit offset $offset";
+            
+            if($is_sql)return $sql;
+            
+            return db_query($sql,$this->db,array(),$this->pdo);
+        }
+        return false;
+    }
+
+    //取出可以能完成分类的映射的商品
+    public function fetchCategoryInfo($attrs,$limit,$offset){
+
+        $t_sql = $this->fetchData($attrs,$limit,$offset);
+
+        $sql = "select a.*,b.id as cid,b.name as cname from (".$t_sql.")a join gw_category b on a.category = b.taobao_category_name where name is not null";
+        echo $sql;
+        return db_query($sql,$this->db,array(),$this->pdo);
+
+    }
+
+    //插入信息到商品库表
+    //@$category_info : $key => $value 选品库类型
+    public function InsertEffortsToGoods($data){
+
+        $insert_goods_sql = "replace into ".$this->table_pre."goods (source,num_iid,title,pict_url,small_images,item_url,category,category_id,favorite,favorite_id,price,volume,rating,seller_id,seller_name,store_name,store_type,coupon_id,nick,created_date,discount,deal_price)values";
+       
+        $insert_coupon_sql = "replace into ".$this->table_pre."goods_coupon (num_iid,coupon_id,sum,num,val,limited,reduce,start_time,end_time,url,coupon_url,created_date)values";
+
+        $c = $c1 = "";
+
+        $bindParam = array();
+
+        $bindParam1 = array();
+
+        foreach ($data as $k => $v) {
+            //22 ?
+            $c .= "(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?),";
+            //12 ?
+            $c1.= "(?,?,?,?,?,?,?,?,?,?,?,?),";
+            
+            $t = array(0,
+                setVaildParam($v,"num_iid"),
+                setVaildParam($v,'title',''),
+                setVaildParam($v,'pict_url',''),
+                json_encode(setVaildParam($v,'small_images','')),
+               
+                setVaildParam($v,'item_url',''),
+                setVaildParam($v,'category',''),
+                setVaildParam($v,'category_id',''),
+                setVaildParam($v,'favorite',''),
+                setVaildParam($v,'favorite_id',''),
+                
+                setVaildParam($v,"price"),
+                setVaildParam($v,"volume"),
+                setVaildParam($v,"rating"),
+                setVaildParam($v,"seller_id"),
+                setVaildParam($v,"seller_name",''),
+                
+                setVaildParam($v,"store_name",''),
+                setVaildParam($v,"store_type"),
+                setVaildParam($v,"coupon_id",''),
+                setVaildParam($v,"nick",''),
+                setVaildParam($v,"created_date",''),
+                
+                setVaildParam($v,"discount"),
+                setVaildParam($v,"deal_price")
+            );
+            
+            $bindParam = array_merge($bindParam,$t);
+
+            $t1 = array(
+                setVaildParam($v,'num_iid',''),
+                setVaildParam($v,'coupon_id',''),
+                setVaildParam($v,'sum',''),
+                setVaildParam($v,'num',''),
+                setVaildParam($v,'val',''),
+                
+                setVaildParam($v,"limited"),
+                setVaildParam($v,"reduce"),
+                setVaildParam($v,"start_time",''),
+                setVaildParam($v,"end_time",''),
+                setVaildParam($v,"coupon_url",''),
+                
+                setVaildParam($v,"coupon_get_url",''),
+                setVaildParam($v,"created_date",''),
+            );
+
+            $bindParam1 = array_merge($bindParam1,$t1);
+            
+        }
+
+        $insert_goods_sql = $insert_goods_sql.trim($c,",");
+        //echo $insert_goods_sql;
+        $insert_coupon_sql = $insert_coupon_sql.trim($c1,",");
+        //echo $insert_coupon_sql;exit;
+        $r = db_transaction($this->pdo,array($insert_goods_sql),array($bindParam,$bindParam1));
+    }
+}
 
     //选品库
 class FavoriteGoodsPdo extends GoodsPdo{
@@ -231,6 +367,7 @@ class FavoriteGoodsPdo extends GoodsPdo{
         
         return $r;
     }
+
 
 
 

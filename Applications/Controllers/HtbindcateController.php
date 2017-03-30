@@ -48,4 +48,13 @@ class HtbindcateController extends Controller
         info("参数不全",-2);
     }
 
+    /**
+     * 加载分类列表
+     */
+    public function getcatitem(){
+        $sql1='select pid,name from gw_category where name is not null GROUP BY name,pid ORDER BY pid ASC';
+        $data=M()->query($sql1,'all');
+        info('success',1,$data);
+    }
+
 }

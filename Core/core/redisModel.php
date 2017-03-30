@@ -59,7 +59,8 @@ class redisModel
 		$list = self::$handle->lrange($key,$current,$len);
 		if(empty($list)) return $list;
 		foreach ($list as $k => $v) {
-			$_list[] = json_decode($v,true);
+			$data = json_decode($v,true);
+			$_list[$data['id']] = $data;
 		}
 		return $_list;
 	}
