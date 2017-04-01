@@ -43,7 +43,7 @@ class redisModel
 		self::$handle->exec();
 	}
 
-	public function setHashSingle($field,$k,$data)
+	public function addHashSingle($field,$k,$data)
 	{
 		self::$handle->hset($field,$k,json_encode($data));
 	}
@@ -95,9 +95,9 @@ class redisModel
 	/**
 	 * [hsetnx 将哈希表key中的field设置值，当且仅当域field不存在]
 	 */
-	public function hsetnx($field)
+	public function hsetnx($field,$k,$data)
 	{
-		return self::$handle->hsetnx($field);
+		return self::$handle->hsetnx($field,$k,json_encode($data));
 	}
 
 	/**

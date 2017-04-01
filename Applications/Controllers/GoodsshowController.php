@@ -145,14 +145,10 @@ class GoodsShowController extends AppController
         //淘宝客商品查询
         if($parmas['query'] != 1 || count($self) < $parmas['page_size'])
             $data = (new TaoBaoApiController('23630111', 'd2a2eded0c22d6f69f8aae033f42cdce'))->tbkItemGetRequest($parmas);
-        info([
-            'status' => 1,
-            'msg'    => 'ok',
-            'data'   => [
-                'self'           => $self,
-                'taobaoGoods'    => isset($data['taobaoGoods']) ? $data['taobaoGoods'] : [],
-                'taobaoGoodsSum' => isset($data['sum'])         ? $data['sum']         : 0,
-            ]
+        info('ok', 1, [
+            'self'           => $self,
+            'taobaoGoods'    => isset($data['taobaoGoods']) ? $data['taobaoGoods'] : [],
+            'taobaoGoodsSum' => isset($data['sum'])         ? $data['sum']         : 0,
         ]);
     }
 

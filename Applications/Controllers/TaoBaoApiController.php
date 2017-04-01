@@ -2,8 +2,9 @@
 class TaoBaoApiController {
     //商品混淆id
     public $goodsId = '';
-    public function __construct($appkey, $secret) {
-        TaoBaoController::__setas($appkey, $secret);
+    public $taoBao = '';
+    public function __construct($appKey, $secret) {
+        $this->taoBao = new TaoBaoController($appKey, $secret);
     }
   /**
    * [taeItemsListRequest 商品列表服务 https://open.taobao.com/doc2/apiDetail.htm?spm=a219a.7629140.0.0.iKkJiU&apiId=23731]
@@ -32,7 +33,7 @@ class TaoBaoApiController {
         return $data;
     }
     public function goodsListRequest($num_iids, $open_iids = []) {
-        $resp = TaoBaoController::send([
+        $resp = $this->taoBao->send([
             'fields'    => 'title,nick,cid,price,post_fee,promoted_service,shop_name',
             'num_iids'  => $num_iids,
             'open_iids' => $open_iids,
@@ -54,7 +55,7 @@ class TaoBaoApiController {
     }
     //获取订单状态 http://open.taobao.com/docs/api.htm?spm=a219a.7395905.0.0.pJy3zR&apiId=21986
     public function tmcMessagesConsumeRequest() {
-        $resp = TaoBaoController::send([
+        $resp = $this->taoBao->send([
             'quantity' => 200,
             'method'   => 'taobao.tmc.messages.consume',
         ]);
@@ -64,7 +65,7 @@ class TaoBaoApiController {
     public function tmcMessagesConfirmRequest($id) {
         $id = array_chunk($id, 200);
         foreach($id as $v) {
-            TaoBaoController::send([
+            $this->taoBao->send([
                 'method'        => 'taobao.tmc.messages.confirm ',
                 's_message_ids' => implode($v, ',')
             ]);
@@ -84,7 +85,7 @@ class TaoBaoApiController {
         //以商品价格进行筛选
         empty($paramster['start_price']) or $data['start_price'] = $paramster['start_price'];
         empty($paramster['end_price'])   or $data['end_price']   = $paramster['start_price'];
-        $taobaoGoods = TaoBaoController::send($data);
+        $taobaoGoods = $this->taoBao->send($data);
         $res['sum']         = !empty($taobaoGoods['tbk_item_get_response']['total_results']) ? $taobaoGoods['tbk_item_get_response']['total_results'] : 0;
         $res['taobaoGoods'] = !empty($taobaoGoods['tbk_item_get_response']['results']['n_tbk_item']) ? $taobaoGoods['tbk_item_get_response']['results']['n_tbk_item'] : [];
         return $res;

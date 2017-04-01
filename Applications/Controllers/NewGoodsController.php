@@ -34,7 +34,7 @@ class NewGoodsController extends AppController
     {
         $m = new Module("goods");
         //$m->load_module("goods");
-          
+
         /*$s = new Score();
         $s->addPurchaseRate();exit;
        */

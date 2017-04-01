@@ -16,8 +16,9 @@ class LoginController extends AppController
 			$this->checkParam();
 			$this->checkUid(2);
 
-			//存在验证码码表示修改密码登入
-			if(!empty($this->dparam['id_code']))
+			if(!empty($this->dparam['token']))
+				$this->checkToken();
+			else if(!empty($this->dparam['id_code']))	//存在验证码码表示修改密码登入
 				$this->checkCode(2);
 			else
 				$this->checkPwd();
@@ -64,7 +65,8 @@ class LoginController extends AppController
 	 */
 	public function optInfo($data)
 	{
-		$sql = " SELECT objectId AS user_id,nickname,Invitation_code AS invite FROM gw_uid WHERE phone = '{$this->dparam['phone']}'";
+
+		$sql = " SELECT objectId AS user_id,nickname,Invitation_code AS invite ". (empty($this->dparam['id_code']) ? '' : ',token ') ." FROM gw_uid WHERE phone = '{$this->dparam['phone']}'";
 		$info = M()->query($sql,'single');
 		info($data+$info);
 	}
@@ -93,18 +95,18 @@ class LoginController extends AppController
 	public function unionHandleForLogin()
 	{
 		if(!strstr($this->dparam['did'],$this->uid_info['did_list'])){
-			$data = $this->dparam;
+			$data				= $this->dparam;
 			$data['did']		= $this->uid_info['id'];
 			$data['did_list']	= $this->uid_info['did_list'].','.$this->dparam['did'];
 			$data['did_count']	= $this->uid_info['did_count'] + 1;
 			$data['logintime']	=	time();
-
+			unset($data['phone']);
+			unset($data['password']);
 			//修改密码 重置token
 			if(!empty($this->dparam['id_code'])){
 				$data['token']		= md5($this->dparam['phone'].time());
-				$data['password']	= $this->dparam['password'];
+				$data['password']	= md5($this->dparam['password']);
 			}
-			unset($data['phone']);
 			M('uid')->where(" objectId = '{$this->uid_info['objectId']}' ")->save($data);
 		}
 	}
@@ -156,10 +158,22 @@ class LoginController extends AppController
 
 
 	/**
+	 * [checkToken 检查token]
+	 */
+	public function checkToken()
+	{
+		if(empty($this->dparam['token'])) info('用户信息缺失!',-1);
+		($this->uid_info['token'] != $this->dparam['token']) && info('用户信息不正确!',-1);
+		return true;
+	}
+
+
+	/**
 	 * [checkPwd 检查密码]
 	 */
 	public function checkPwd()
 	{
+		if(empty($this->dparam['password'])) info('请输入密码!',-1);
 		($this->uid_info['password'] != md5($this->dparam['password'])) && info('密码不正确!',-1);
 		return true;
 	}
@@ -212,7 +226,6 @@ class LoginController extends AppController
 	{
 		//检查设备信息完整性
 		!isset($this->dparam['type']) && info('参数不完整',-1);
-
 		if($this->dparam['type'] == 1)
 			empty($this->dparam['imei']) && info('设备信息不完整',-1);
 		else

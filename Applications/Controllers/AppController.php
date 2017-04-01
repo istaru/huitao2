@@ -32,15 +32,15 @@ class AppController extends Controller
 
         //status 等1 的情况下 才会去过滤
         if($this ->status == 1 && !empty($this->dparam) )
-            $this ->dparam = array_filter($this ->dparam);
+            $this ->dparam = $this->filter_field($this->dparam);
     }
 
     //过滤非表字段的数据
-    public function filter_field($arr=array(),$farr=array()){
-        foreach ($arr as $k => $v)
-            if(in_array($k,$farr)) $_arr[$k] = $v;
+    public function filter_field($arr=[],$tmp=[]){
+        foreach ($arr as $k => &$v)
+            if($v == '0' || !empty($v)) $tmp[$k] = $v;
 
-        return array_filter($_arr);
+        return $tmp;
     }
 
 }

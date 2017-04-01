@@ -179,7 +179,7 @@ SELECT s.sort,o.num_iid as id,o.title as name,o.volume as stock,o.price as price
 				$front_list = array_merge($first_list,$range_list);	//前移的和剩余的拼接
 
 				file_put_contents(DIR.'/log.txt',json_encode($param['uid'] ));
-				R()->setHashSingle('usersGoods',$param['uid'],$front_list);
+				R()->addHashSingle('usersGoods',$param['uid'],$front_list);
 				R()->setExpire($param['uid'],120);
 			}
 

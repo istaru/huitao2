@@ -1,22 +1,22 @@
 <?php
 class TaoBaoController {
     public static $url          = 'http://gw.api.taobao.com/router/rest';
-    public static $appKey       = '';
-    public static $secret       = '';
+    public  $appKey       = '';
+    public  $secret       = '';
     protected static $parameter = [
         'format'        => 'json',
         'v'             => '2.0',
         'sign_method'   => 'md5',
     ];
-    public static function __setas($appKey, $secret) {
-        self::$appKey = $appKey;
-        self::$secret = $secret;
+    public function __construct($appKey, $secret) {
+        $this->appKey = $appKey;
+        $this->secret = $secret;
     }
-    public static function send($data = [], $secret = '') {
+    public function send($data = [], $secret = '') {
         //获取appkey
-        $data['app_key']   = isset($data['app_key']) ? $data['app_key'] : self::$appKey;
+        $data['app_key']   = isset($data['app_key']) ? $data['app_key'] : $this->appKey;
         //获取secret
-        $secret            = !empty($secret) ? $secret : self::$secret;
+        $secret            = !empty($secret) ? $secret : $this->secret;
         //组合公共参数以及业务参数
         $data              = array_merge(self::$parameter, $data);
         //获取加密签名
