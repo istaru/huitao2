@@ -5,7 +5,7 @@ class ScriptController extends Controller
 	public function Income()
 	{
 		//查出uid_log中所有 当前天数-7天内的 状态是预估的收入记录
-		$list = M()->query("SELECT id,uid,price,order_id,score_source,score_type,score_info FROM gw_uid_log WHERE createdAt < date_sub(curdate(),interval 7 day) AND status = 1",'all');
+		$list = M()->query("SELECT id,uid,price,order_id,score_source,score_type,score_info FROM gw_uid_log WHERE createdAt < date_sub(curdate(),interval 10 day) AND status = 1",'all');
 		// D($list);die;
 		if(empty($list)) die;
 		//遍历结果

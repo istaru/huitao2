@@ -328,4 +328,11 @@ class GoodsShowController extends AppController
         ]);
     }
 
+
+    public function category()
+    {
+        $sql = "SELECT id cid,name FROM gw_category WHERE pid = 1";
+        $cates = M()->query($sql,'all');
+        info('ok',1,$cates);
+    }
 }

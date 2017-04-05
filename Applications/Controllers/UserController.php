@@ -328,7 +328,7 @@ class UserController extends AppController
 	{
 		if(empty($_POST['task_id']) || empty($_POST['user_id']))
 			info(-1,'数据不完整');
-		$sql = "select * from gw_uid_bill_log where type = 2 and uid = '{$this->dparam['user_id']}' and task_id in ($_POST['task_id'])";
+		$sql = "select * from gw_uid_bill_log where type = 2 and uid = '{$_POST['user_id']}' and task_id = ($_POST['task_id'])";
 		$data = M()->query($sql,'all');
 
 		foreach ($data as $v){
