@@ -16,4 +16,7 @@ class MessageModel
 
         return $msg_info;
     }
+    public function batchAddMsg($data) {
+        return M('message')->batchAdd($data);
+    }
 }

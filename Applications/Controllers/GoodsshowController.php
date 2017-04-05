@@ -13,7 +13,7 @@ class GoodsShowController extends AppController
     public $goods       = [];
     public $nodes       = [];
     public $son_nodes   = [];
-    public $str         = " SELECT a.*,b.title,seller_name nick,pict_url,price,deal_price zk_final_price,item_url,reduce,volume FROM %s a JOIN gw_goods_online b ON a.num_iid = b.num_iid ";
+    public $str         = " SELECT a.*,b.title,b.seller_name nick,b.pict_url,b.price,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume FROM %s a JOIN gw_goods_online b ON a.num_iid = b.num_iid ";
     public $ref_str     = " SELECT b.* FROM gw_goods_category_ref a JOIN gw_goods_info b ON a.num_iid = b.num_iid WHERE a.status = 1 AND a.category_id =  ";
 
 
@@ -50,6 +50,8 @@ class GoodsShowController extends AppController
         if(empty($this->dparam['user_id']) || empty($this->dparam['num_iid'])) info('参数不全',-1);
 
         //记录到用户点击
+        $behaviour = BehaviourTempController::getObj();
+        $behaviour -> clickRecord($this->dparam['user_id'],$this->dparam['num_iid']);
 
         if(!R()->hashFeildExisit('detailLists',$this->dparam['num_iid'])){
 
@@ -61,7 +63,7 @@ class GoodsShowController extends AppController
 
         }
 
-        $info = R()->getHashSingle('detailLists',$this->dparam['num_iid']);
+        $info = R()->getHashSingle('detailLists',(string)$this->dparam['num_iid']);
         // D($info);die;
         info('请求成功',1,$info);
     }

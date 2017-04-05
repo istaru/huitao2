@@ -9,27 +9,21 @@ class TaoBaoAuthController extends AppController
         $data = $this->dparam;
         //取消授权
         if(empty($data['taobao_id']) && !empty($data['user_id'])) {
-            M('uid')->where(['objectId' => ['=',$data['user_id']]])->save([
-                'taobao_auth' => 0,
-                'nickname'    => $data['user_id'],
-                'head_img'    => RES_SITE."shoppingResource/head/".rand(1,2).".jpg",
-            ]) ? info('已成功取消授权',1) : info('取消授权失败',-1);
+            $this->upUserAuth($data['user_id'], 0, $data['user_id'], RES_SITE."shoppingResource/head/".rand(1,2).".jpg", $data['taobao_id']) ? info('已成功取消授权',1) : info('取消授权失败',-1);
         //授权认证
-        } else if(!empty($data['user_id']) && !empty($data['taobao_id']) && !empty($data['user_name']) && !empty($data['user_head_img']) && !empty($data['imei']) || !empty($data['bdid']) || !empty($data['idfa'])) {
-            //设置某些参数默认值 然后合并覆盖
-            $arr = ['bdid' => '', 'uuid' => '', 'idfa' => '', 'imei' => ''];
-            $data = array_merge($arr, $data);
+        } else if(!empty($data['user_id']) && !empty($data['taobao_id']) && !empty($data['user_name']) && !empty($data['user_head_img'])) {
             try {
                 M()->startTrans();
                 //查询该淘宝ID信息 是否已经存在taobao表中 不存在添加淘宝id信息
-                if(!M('taobao')->where(['taobao_id' => ['=', $data['taobao_id']]])->select('single')) {
+                if(!M('taobao')->where(['taobao_id' => ['=', $data['taobao_id']]])->select('single'))
                     M('taobao')->add([
                         'taobao_id' => $data['taobao_id'],
                         'nick'      => $data['user_name']
                     ]) OR E('授权失败');
-                }
                 //获取用户设备表主键id
-                $didId = (M('did_log')->where("(bdid='{$data['bdid']}' OR idfa='{$data['idfa']}' AND uuid='{$data['uuid']}') OR (imei='{$data['imei']}')")->field('id')->select('single'))['id'] ? : E('未能获取到您的设备信息');
+                foreach((new DidModel)->getUserDid($data['user_id']) as $v)
+                    $v['uid'] != $data['user_id'] OR $didId = $v['id'];
+                !empty($didId) or E('无法获取到您的设备信息');
                 //绑定淘宝账号与用户之间的关系 如果之前绑定过一样的则不需要再添加
                 if(!M('taobao_log')->where(['uid' => ['=', $data['user_id']], 'taobao_id' => ['=', $data['taobao_id']]],['and'])->select('single')) {
                     M('taobao_log')->add([
@@ -39,12 +33,7 @@ class TaoBaoAuthController extends AppController
                         'did_id'      => $didId
                     ]) OR E('授权失败');
                 }
-               //修改用户授权状态 用户头像 用户昵称
-                M('uid')->where(['objectId' => ['=',$data['user_id']]])->save([
-                    'taobao_auth'   => 1,
-                    'head_img'      => $data['user_head_img'],
-                    'nickname'      => $data['nick']
-                ]) OR E('授权失败');
+                $this->upUserAuth($data['user_id'], 1, $data['user_head_img'], $data['user_name'], $data['taobao_id']) OR E('授权失败');
             } catch(Exception $e) {
                 M()->rollback();
                 info($e->getMessage(), -1);
@@ -57,5 +46,22 @@ class TaoBaoAuthController extends AppController
             info('授权成功',1);
         }
         info('缺少参数',-1);
+    }
+    /**
+     * [upUserAuth description]
+     * @param  [String] $uid     [用户uid]
+     * @param  [Int] $status     [0 未授权 1 已授权]
+     * @param  [String] $headImg [用户头像]
+     * @param  [String] $taobaoId [淘宝ID]
+     * @param  [String] $name    [用户昵称]
+     * @return [Boolean]         [description]
+     */
+    public function upUserAuth($uid, $status, $headImg, $name, $taobaoId) {
+        return M('uid')->where("objectId = '{$uid}'")->save([
+            'taobao_auth'   => $status,
+            'taobao_id'     => $taobaoId,
+            'head_img'      => $headImg,
+            'nickname'      => $name
+        ]) ? : false;
     }
 }

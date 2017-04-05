@@ -19,6 +19,14 @@ class DidModel
 
         return M('did')->add($data,$status);
     }
+    public function getUserDid($uid) {
+        $data = array_filter(M('uid')->where("objectId = '{$uid}'")->field('imei,idfa,bdid,idfa,uuid')->select('single'));
+        $s = '';
+        foreach($data as $k => $v) {
+            $s .= $k.'='."'{$v}'".' AND ';
+        }
+        return M('did_log')->where(rtrim($s, ' AND '))->field('id,uid')->select();
+    }
 
 }
 

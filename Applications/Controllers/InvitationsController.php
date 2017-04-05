@@ -53,7 +53,7 @@ class InvitationsController extends AppController
         else info('参数异常');
         info('请求成功', 1, ['self' => $self, 'ranking_list' => isset($list) ? $list : []]);
     }
-    // 所选日期内查询所有用户收入
+    // 查询所选日期内用户的收入
     public function queryRankingList($startTime = '', $endTime = '') {
         $str = '';
         if($startTime && $endTime)
