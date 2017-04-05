@@ -125,4 +125,12 @@ class redisModel
 	{
 		return self::$handle->lSize($field);
 	}
+
+	/**
+	 * [getTtl 返回key 剩余生存时间]
+	 */
+	public function getTtl($field)
+	{
+		return self::$handle->ttl($field);
+	}
 }

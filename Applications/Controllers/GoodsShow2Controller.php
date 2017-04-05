@@ -32,7 +32,6 @@ class GoodsShow2Controller extends AppController
 
 		$total	= $this->sortGoods($this->goods['total']);	//排序后的多节点商品
 		$total	= $this->poll($total);
-		D($total);die;
 
 		$page	= $this->page($total);
 		info(['status'=>1,'msg'=>'操作成功!','data'=>$page,'son_cate'=>$this->son_nodes]);
@@ -106,7 +105,7 @@ class GoodsShow2Controller extends AppController
 		// 	$temp[] = $i;
 		// $polls = $temp;
 
-		$index		= time() % (ceil(count($polls) / $this->step)*$this->time);
+		$index		= time() % (ceil(count($polls) / $this->step) * $this->time);
 		$index		= ceil($index/$this->time);
 		// echo $index;
 		$polls		= array_chunk($polls,$this->step,true);

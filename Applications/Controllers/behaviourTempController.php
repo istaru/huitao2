@@ -11,6 +11,13 @@ class BehaviourTempController extends AppController
      */
     public function click()
     {
+        if(empty($this->dparam['user_id']) || empty($this->dparam['num_iid'])) info('数据不完整',-1);
 
+        if(!R()->exisit($this->dparam['user_id'])){
+
+            if(R()->getTtl($this->dparam['user_id']) < 200){
+
+            }
+        }
     }
 }

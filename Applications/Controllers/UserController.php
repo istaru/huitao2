@@ -320,16 +320,15 @@ class UserController extends AppController
 	}
 
 
-	//{"user_id":"123","task_id":["123"]}
+	//{"user_id":"123","task_id":["123","222"]}
 	/**
 	 * [getReward 拆红包(任务)]
 	 */
 	public function getRewardTask()
 	{
-		if(empty($this->dparam['task_id']) || empty($this->dparam['user_id']))
+		if(empty($_POST['task_id']) || empty($_POST['user_id']))
 			info(-1,'数据不完整');
-		$task_ids = implode(',',$this->dparam['task_id']);
-		$sql = "select * from gw_uid_bill_log where type = 2 and uid = '{$this->dparam['user_id']}' and task_id in ($task_ids)";
+		$sql = "select * from gw_uid_bill_log where type = 2 and uid = '{$this->dparam['user_id']}' and task_id in ($_POST['task_id'])";
 		$data = M()->query($sql,'all');
 
 		foreach ($data as $v){
