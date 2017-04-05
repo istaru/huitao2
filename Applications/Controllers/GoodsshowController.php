@@ -35,9 +35,9 @@ class GoodsShowController extends AppController
 
         $total  = $this->sortGoods($this->goods['total']);  //排序后的多节点商品
         $total  = $this->poll($total);
-
+        $count  = count($total);
         $page   = $this->page($total);
-        info(['status'=>1,'msg'=>'操作成功!','data'=>$page,'son_cate'=>$this->son_nodes]);
+        info(['status'=>1,'msg'=>'操作成功!','data'=>$page,'son_cate'=>$this->son_nodes,'total'=>$count]);
     }
 
 
