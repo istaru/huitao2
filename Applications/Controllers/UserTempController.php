@@ -1,9 +1,10 @@
 <?php
 class UserTempController
 {
-	public $status  = false;
-	public $count   = 10;   //记录商品数量
+	public $status	= true;
+	public $count	= 10;
 	public $type	= null;
+	public $expire 	= 3600 * 24 * 7;
 	private static $behaviour;
 
 
@@ -18,7 +19,7 @@ class UserTempController
 	}
 
 
-	//{"user_id":"","num_iid"}
+	//{"user_id":"","num_iid":""}
 	/**
 	 * [click 用户点击]
 	 */
@@ -37,7 +38,7 @@ class UserTempController
 				$data = $this->update($uid,$numid);
 		}else{
 			$data = $this->goodInfo($numid) + [$this->type => 1];
-			R()->hsetnx($uid,$this->type,[$numid => $data]);
+			R()->hsetnx($uid,$this->type,[$numid => $data],$this->expire);
 		}
 	}
 
@@ -60,7 +61,7 @@ class UserTempController
 				$data = $this->update($uid,$numid,$this->type);
 		}else{
 			$data = $this->goodInfo($numid) + [$this->type => 1];
-			R()->hsetnx($uid,$this->type,[$numid => $data]);
+			R()->hsetnx($uid,$this->type,[$numid => $data],$this->expire);
 		}
 	}
 
@@ -98,7 +99,7 @@ class UserTempController
 
 	private function ckClickCount($uid,$numid,$num)
 	{
-		if($num < 10){
+		if($num < $this->count){
 			return $num + 1;
 		}else{
 			$this->commit($uid,$numid,$count);
@@ -109,7 +110,7 @@ class UserTempController
 
 	private function ckGoodsCount($data)
 	{
-		if(count($data) < 10) return $data;
+		if(count($data) < $this->count) return $data;
 
 		//删除最早一条
 		$data = array_reverse($data,true);

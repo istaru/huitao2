@@ -8,7 +8,6 @@ function D($str)
 		echo $str;
 	}
 }
-
 function C($name = null, $value = null)
 {
     static $config = [];

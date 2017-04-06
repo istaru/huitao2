@@ -13,45 +13,31 @@ class TaoBaoApiController {
    * @return [type]            [description]
    */
     public function taeItemsListRequest($num_iids = [], $open_iids = []) {
-        $this->$goodsId = [];
-        if($open_iids)
-            $this->getOpenIids($open_iids);
-        else if($num_iids)
-            // $this->$goodsId = array_chunk($num_iids, 50);
-        $res  = [];
-        $data = [];
-        foreach($this->$goodsId as $v) {
-            $res[] = $this->goodsListRequest('', $v);
+        $this->goodsId = [];
+        $data = $num_iids ? array_chunk($num_iids, 50) : $this->arrayLengthSegmentation($open_iids, 80);
+        foreach($data as $v) {
+            $resp = $this->taoBao->send([
+                'fields'    => 'title,nick,cid,price,post_fee,promoted_service,shop_name',
+                'num_iids'  => $num_iids ? implode(',', $v) : '',
+                'open_iids' => $open_iids ? $v : '',
+                'method'    => 'taobao.tae.items.list',
+            ]);
+            $result[] = !empty($resp['tae_items_list_response']['items']['x_item']) ? $resp['tae_items_list_response']['items']['x_item'] : '';
         }
-        foreach($res as $v) {
-            if(is_array($v)) {
-                foreach($v as $_v) {
-                    $data[] = $_v;
-                }
+        return isset($result) ? $result : '';
+    }
+    //按照数组的值长度进行分割
+    public function arrayLengthSegmentation($data, $length) {
+        $str = '';
+        foreach($data as $k => $v) {
+            if($length > mb_strlen($v) + mb_strlen($str)) {
+                $str .= $v.',';
+                unset($data[$k]);
             }
         }
-        return $data;
-    }
-    public function goodsListRequest($num_iids, $open_iids = []) {
-        $resp = $this->taoBao->send([
-            'fields'    => 'title,nick,cid,price,post_fee,promoted_service,shop_name',
-            'num_iids'  => $num_iids,
-            'open_iids' => $open_iids,
-            'method'    => 'taobao.tae.items.list',
-        ]);
-        return !empty($resp['tae_items_list_response']['items']['x_item']) ? $resp['tae_items_list_response']['items']['x_item'] : '';
-    }
-    public function getOpenIids($data) {
-       $str = '';
-       if(empty($data))
-           return $str;
-       foreach($data as $k => &$v) {
-           if(300 <= mb_strlen($v) + mb_strlen($str)) break;
-           $str .= $v.',';
-           unset($data[$k]);
-       }
-       $this->$goodsId[] = rtrim($str, ',');
-       $this->getOpenIids($data);
+        $this->goodsId[] = rtrim($str, ',');
+        !$data or $this->arrayLengthSegmentation($data, $length);
+        return $this->goodsId;
     }
     //获取订单状态 http://open.taobao.com/docs/api.htm?spm=a219a.7395905.0.0.pJy3zR&apiId=21986
     public function tmcMessagesConsumeRequest() {

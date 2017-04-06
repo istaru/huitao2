@@ -43,9 +43,10 @@ class redisModel
 		self::$handle->exec();
 	}
 
-	public function addHashSingle($field,$k,$data)
+	public function addHashSingle($field,$k,$data,$expire='')
 	{
 		self::$handle->hset($field,$k,json_encode($data));
+		if(!empty($expire)) return $this->setExpire($field,$expire);
 	}
 
 	public function getHashSingle($key,$field){
@@ -79,9 +80,9 @@ class redisModel
 	public function setExpire($key,$time)
 	{
 		if($this->exisit($key))
-		{
-			self::$handle->expire($key,$time);  # 设置多少秒后过期
-		}
+			return self::$handle->expire($key,$time);  # 设置多少秒后过期
+		else
+			return false;
 	}
 
 	/**
@@ -95,9 +96,10 @@ class redisModel
 	/**
 	 * [hsetnx 将哈希表key中的field设置值，当且仅当域field不存在]
 	 */
-	public function hsetnx($field,$k,$data)
+	public function hsetnx($field,$k,$data,$expire='')
 	{
-		return self::$handle->hsetnx($field,$k,json_encode($data));
+		self::$handle->hsetnx($field,$k,json_encode($data));
+		if(!empty($expire)) return $this->setExpire($field,$expire);
 	}
 
 	/**
