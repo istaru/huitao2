@@ -331,10 +331,29 @@ class GoodsShowController extends AppController
     }
 
 
+    /**
+     * [category 首页商品分类]
+     */
     public function category()
     {
         $sql = "SELECT id cid,name FROM gw_category WHERE pid = 1";
         $cates = M()->query($sql,'all');
         info('ok',1,$cates);
+    }
+
+
+    //{"user_id":"","page_no":"","page_size":""}
+    /**
+     * [history 用户浏览记录]
+     */
+    public function history()
+    {
+        if(R()->hashFeildExisit($this->dparam['user_id'],'click')){
+            $total = R()->getHashSingle($this->dparam['user_id'],'click');
+            $page   = $this->page($total);
+            info(['status'=>1,'msg'=>'操作成功!','data'=>$page]);
+        }else{
+            info('暂无数据',-1);
+        }
     }
 }

@@ -34,31 +34,22 @@ class UserController extends AppController
 
 		info('请求成功',1,M()->query($sql,'all'));
 	}
-
-
-	//验证改用户是否可以绑定好友
+	//验证该用户是否可以绑定好友
 	public function checkbindMasters($uid, $sfuid) {
-		if($uid == $sfuid)
-			return '不允许绑定自己';
+		if($uid == $sfuid) 				return '不允许绑定自己';
 		$taobaoInfo = M()->query("SELECT * FROM gw_taobao_log WHERE taobao_id =( SELECT taobao_id FROM gw_uid WHERE objectId = '{$uid}')", 'all');
-		if(count($taobaoInfo) > 1)
-			return '您已经不是新用户啦';
-		else if(count($taobaoInfo) < 1)
-			return '请您先淘宝授权';
+		if(count($taobaoInfo) > 1) 		return '您已经不是新用户啦';
+		else if(count($taobaoInfo) < 1) return '请您先淘宝授权';
 		//徒弟 师傅如果是一个淘宝授权账号  禁止绑定关系
 		$sf = M('uid')->where(['objectId' => ['=', $sfuid]])->select('single');
-		if(empty($sf['taobao_id']))
-			return '您的好友可能还未允许淘宝授权';
-		if($sf['taobao_id'] == $taobaoInfo[0]['taobao_id'])
-			return '不允许淘宝授权账号一样的进行绑定好友';
+		if(empty($sf['taobao_id'])) 						return '您的好友可能还未允许淘宝授权';
+		if($sf['taobao_id'] == $taobaoInfo[0]['taobao_id']) return '不允许淘宝授权账号一样的进行绑定好友';
 		//用户设备号只有一次记录 才允许绑定好友关系
-		if(count((new DidModel)->getUserDid($uid)) > 1)
-			return '您已经不是新用户啦';
+		if(count((new DidModel)->getUserDid($uid)) > 1) 	return '您已经不是新用户啦';
 		//杜绝出现互绑情况 比如 1的徒弟是2  1的师傅是2
 		if($n = M('uid_log')->field('score_source')->where(['uid' => ['=', $uid], 'score_type' => ['=', 2],], ['and'])->select()) {
 			$n = array_column($n,'score_source');
-			if(in_array($sfuid, $n))
-				return '他已经是您的好友了呀';
+			if(in_array($sfuid, $n)) return '他已经是您的好友了呀';
 		}
 		return true;
 	}
@@ -270,23 +261,11 @@ class UserController extends AppController
 	 */
 	public function getRewardTask()
 	{
-		if(empty($this->dparam['task_id']) || empty($this->dparam['user_id']))
-<<<<<<< .mine
-			info(-1,'数据不完整');
-		$task_ids = implode(',',$this->dparam['task_id']);
-		$sql = "select * from gw_uid_bill_log where type = 2 and uid = '{$this->dparam['user_id']}' and task_id in ($task_ids)";
-		$data = M()->query($sql,'all');
-
-		foreach ($data as $v){
-			$shop = TaskincomeController::getObj();
-			$shop -> getReward($v);
-		}
-=======
+		if(empty($_POST['task_id']) || empty($_POST['user_id']))
 			info(-1,'缺少参数');
 		$data = M()->query("select * from gw_uid_bill_log where type = 2 and uid = '{$_POST['user_id']}' and task_id = {$_POST['task_id']}",'all');
 		foreach ($data as $v)
 			(TaskincomeController::getObj())->getReward($v);
->>>>>>> .r120
 	}
 
 }

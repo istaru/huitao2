@@ -1,8 +1,9 @@
 <?php
 class BehaviourTempController
 {
-	public $status  = true;
+	public $status  = false;
 	public $count   = 10;   //记录商品数量
+	public $type	= null;
 	private static $behaviour;
 
 
@@ -25,12 +26,51 @@ class BehaviourTempController
 	{
 		if(empty($uid) || empty($numid)) info('数据不完整',-1);
 
-		if(R()->hashFeildExisit($uid,'click')){
+		$this->type = 'click';
+
+		if(!$this->status){
+			$this->commit($uid,$numid,$count);
+			return;
+		}
+
+		if(R()->hashFeildExisit($uid,$this->type)){
 				$data = $this->update($uid,$numid);
 		}else{
-			$data = $this->goodInfo($numid) + ['click_num' => 1];
-			R()->hsetnx($uid,'click',[$numid => $data]);
+			$data = $this->goodInfo($numid) + [$this->type => 1];
+			R()->hsetnx($uid,$this->type,[$numid => $data]);
 		}
+	}
+
+
+	/**
+	 * [shareRecord description]
+	 */
+	public function shareRecord($uid,$numid)
+	{
+		if(empty($uid) || empty($numid)) info('数据不完整',-1);
+
+		$this->type = 'share';
+
+		if(!$this->status){
+			$this->commit($uid,$numid,$count);
+			return;
+		}
+
+		if(R()->hashFeildExisit($uid,$this->type)){
+				$data = $this->update($uid,$numid,$this->type);
+		}else{
+			$data = $this->goodInfo($numid) + [$this->type => 1];
+			R()->hsetnx($uid,$this->type,[$numid => $data]);
+		}
+	}
+
+
+	/**
+	 * [commitRecord 提交]
+	 */
+	public function commit($uid,$numid)
+	{
+		echo 'commit';
 	}
 
 
@@ -44,25 +84,24 @@ class BehaviourTempController
 	}
 
 
-	private function update($uid,$numid,$type='click')
+	private function update($uid,$numid)
 	{
-		$info = $this->ckGoodsCount(R()->getHashSingle($uid,$type));
+		$info = $this->ckGoodsCount(R()->getHashSingle($uid,$this->type));
 		if(array_key_exists($numid,$info)){
-			$info[$numid]['click_num'] = $this->ckClickCount($uid,$numid,$info[$numid]['click_num']);
+			$info[$numid][$this->type] = $this->ckClickCount($uid,$numid,$info[$numid][$this->type]);
 		}else{
-			$info[$numid] = $this->goodInfo($numid) + ['click_num' => 1];
+			$info[$numid] = $this->goodInfo($numid) + [$this->type => 1];
 		}
-		R()->addHashSingle($uid,'click',$info);
+		R()->addHashSingle($uid,$this->type,$info);
 	}
 
 
-	private function ckClickCount($uid,$numid,$click_num)
+	private function ckClickCount($uid,$numid,$num)
 	{
-		if($click_num < 10){
-			return $click_num + 1;
+		if($num < 10){
+			return $num + 1;
 		}else{
-			// $record = new RedisCacheController;
-			//$record->insertUidClickData(["num_iid"=>$numid,"uid"=>$uid,"click"=>$click_num+1,"type"=>2,"report_date"=>date('Y-m-d')]);
+			$this->commit($uid,$numid,$count);
         	return 1;
 		}
 	}
@@ -74,12 +113,12 @@ class BehaviourTempController
 
 		//删除最早一条
 		$data = array_reverse($data,true);
+		//提交
+		$this->commit($uid,$numid,$count);
 		array_pop($data);
 		return array_reverse($data,true);
 	}
 
 
-	private function clickHandle($uid,$numid)
-	{
-	}
+
 }

@@ -52,7 +52,7 @@ class HeadacheController {
             $aggregate[$k]['did']      = empty($v['idfa']) ? $v['imei'] : $v['idfa'];
         }
         //获取回调率以及回调基数
-        $this->setBase($self['system'] == 2 ? 2 : $self['system'] == 1 ? 1 : '');
+        $this->setBase($self['system']);
         if(count($callback) >= $this->base) {
             foreach(array_rand($callback, $this->percentage) as $v) {
                 //数据状态改为2 回调对方时把对方返回值也入库处理
