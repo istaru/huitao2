@@ -1,5 +1,5 @@
 <?php
-class BehaviourTempController
+class UserTempController
 {
 	public $status  = false;
 	public $count   = 10;   //记录商品数量
