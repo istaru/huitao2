@@ -407,10 +407,8 @@ function is_key_exists($parame, $data)
 	return 1;
 }
 function connectionArray($data, $parame = '') {
-	if($parame)
-		return "'".implode("','",array_column($data, $parame))."'";
-	else
-		return "'".implode("','", $data)."'";
+	if($parame) return $data ? "'".implode("','",array_column($data, $parame))."'" : '';
+	return $data ? "'".implode("','", $data)."'"  : '';
 
 }
 /**

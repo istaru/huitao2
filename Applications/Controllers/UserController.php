@@ -34,24 +34,36 @@ class UserController extends AppController
 
 		info('请求成功',1,M()->query($sql,'all'));
 	}
-	//验证该用户是否可以绑定好友
+	/**
+	 * [checkbindMasters 好友绑定验证规则]
+	 * @param  [type] $uid   [徒弟uid]
+	 * @param  [type] $sfuid [师傅uid]
+	 * @return [Array || String] [array('sfNname' => '师傅名称', 'name' => '徒弟名称') || 规则未通过的原因提示]
+	 */
 	public function checkbindMasters($uid, $sfuid) {
-		if($uid == $sfuid) 				return '不允许绑定自己';
-		$taobaoInfo = M()->query("SELECT * FROM gw_taobao_log WHERE taobao_id =( SELECT taobao_id FROM gw_uid WHERE objectId = '{$uid}')", 'all');
-		if(count($taobaoInfo) > 1) 		return '您已经不是新用户啦';
-		else if(count($taobaoInfo) < 1) return '请您先淘宝授权';
-		//徒弟 师傅如果是一个淘宝授权账号  禁止绑定关系
-		$sf = M('uid')->where(['objectId' => ['=', $sfuid]])->select('single');
-		if(empty($sf['taobao_id'])) 						return '您的好友可能还未允许淘宝授权';
-		if($sf['taobao_id'] == $taobaoInfo[0]['taobao_id']) return '不允许淘宝授权账号一样的进行绑定好友';
-		//用户设备号只有一次记录 才允许绑定好友关系
-		if(count((new DidModel)->getUserDid($uid)) > 1) 	return '您已经不是新用户啦';
-		//杜绝出现互绑情况 比如 1的徒弟是2  1的师傅是2
-		if($n = M('uid_log')->field('score_source')->where(['uid' => ['=', $uid], 'score_type' => ['=', 2],], ['and'])->select()) {
-			$n = array_column($n,'score_source');
-			if(in_array($sfuid, $n)) return '他已经是您的好友了呀';
+		try {
+			$uid != $sfuid OR E('不允许绑定自己');
+			//验证该用户是否存在表中
+			$user = M('uid')->field('sfuid,nickname,taobao_id')->where(['objectId'=> ['=',$uid]])->select('single');
+			empty($user) ? E('您赶紧去注册登录吧') : empty($user['sfuid']) ? : E('您已经填写过邀请人了');
+			//验证该用户是否已经淘宝授权过 且该淘宝账号只被授权过一次
+			$taobaoInfo = M('taobao_log')->where(['taobao_id' => ['=', $user['taobao_id']]])->select('all');
+			count($taobaoInfo) > 1 ? E('您已经不是新用户啦') : !count($taobaoInfo) < 1 ? : E('请您先淘宝授权');
+			//该用户设备号只有一次记录的才允许绑定好友
+			count((new DidModel)->getUserDid($uid)) == 1 OR E('您已经不是新用户啦');
+			//徒弟 师傅如果是一个淘宝授权账号  禁止绑定关系
+			$shiFu = M('uid')->where(['objectId' => ['=', $sfuid], 'Invitation_code' => ['=', $sfuid]], ['OR'])->select('single') OR E('您填写的好友不存在');
+			empty($shiFu['taobao_id']) ? E('您的好友可能还未允许淘宝授权暂时无法绑定好友') : $shiFu['taobao_id'] != $user['taobao_id'] OR E('淘宝授权账号重复暂时无法绑定好友');
+			//杜绝出现互绑情况 比如 1的徒弟是2  1的师傅是2
+			if($n = M('uid_log')->field('score_source')->where(['uid' => ['=', $uid], 'score_type' => ['=', 2],], ['and'])->select())
+				!in_array($sfuid, array_column($n,'score_source')) OR E('他已经是您的好友了呀');
+		} catch (Exception $e) {
+			return $e->getMessage();
 		}
-		return true;
+		return [
+			'sfNname' => $shiFu['nickname'],
+			'name'	  => $user['nickname']
+		];
 	}
 	/**
 	 * [bindMasters 绑定好友关系]
@@ -63,17 +75,8 @@ class UserController extends AppController
 	public function bindMasters($type = true, $objectId = '123', $sfuid = 'name') {
 		try {
 			M()->startTrans();
-			//如果是特邀用户则需要先查出来特邀用户的uid
-			$shiFu = M('uid')->where("objectId = '{$sfuid}' OR Invitation_code = '{$sfuid}'")->field('objectId,nickname')->select('single');
-			if(!empty($shiFu['objectId']) && !empty($shiFu['nickname']))
-				list($sfuid, $nickname) = array_values($shiFu);
-			else E('该好友账号可能还未注册');
-			//判断该用户是否存在表中
-			$user = M('uid')->field('sfuid,nickname')->where(['objectId'=> ['=',$objectId]])->select('single');
-			empty($user) ? E('您赶紧去注册登录吧') : empty($user['sfuid']) ? : E('您已经填写过邀请人了');
-			$nick = $user['nickname'];
 			//好友绑定规则验证
-			if(($value = $this->checkbindMasters($objectId, $sfuid)) !== true) E($value);
+			in_array($value = $this->checkbindMasters($objectId, $sfuid)) ? : E($value);
 			//如果是首次邀请徒弟则奖励2元 其余不奖励
 			list($price, $scoreInfo) = !M('uid_log')->where(['uid' => ['=', $sfuid], 'score_type' => ['=', 2]],['and'])->field('id')->count() ? [2, '首次绑定好友奖励2元'] : [0, '绑定好友'];
 			M('uid_log')->add([
@@ -90,10 +93,10 @@ class UserController extends AppController
 			(new MessageModel)->batchAddMsg([
 				[
 					'uid'		 => $sfuid,
-					'content'	 => $nick.'绑定了您为好友'
+					'content'	 => $value['name'].'绑定了您为好友'
 				], [
 					'uid'		=> $objectId,
-					'content'	=> '您成功绑定了'.$nickname.'为好友'
+					'content'	=> '您成功绑定了'.$value['sfNname'].'为好友'
 				],
 			]) OR E('绑定失败');
 		} catch(Exception $e) {

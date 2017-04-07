@@ -19,7 +19,7 @@ class redisModel
 		self::$handle->multi();
 		foreach($list as $k => $v)
 		{
-			if(!self::$handle->lpush($key,json_encode($v)))
+			if(!self::$handle->rpush($key,json_encode($v)))
 			{
 				self::$handle->discard();
 				info('addredis失败',-1);
@@ -43,6 +43,11 @@ class redisModel
 		self::$handle->exec();
 	}
 
+	public function addListSingle($key,$val)
+	{
+		self::$handle->rpush($key,json_encode($val));
+	}
+
 	public function addHashSingle($field,$k,$data,$expire='')
 	{
 		self::$handle->hset($field,$k,json_encode($data));
@@ -61,7 +66,9 @@ class redisModel
 		if(empty($list)) return $list;
 		foreach ($list as $k => $v) {
 			$data = json_decode($v,true);
-			$_list[$data['id']] = $data;
+			// $_list[$data['id']] = $data;
+			$_list[] = $data;
+
 		}
 		return $_list;
 	}

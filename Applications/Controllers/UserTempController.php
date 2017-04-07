@@ -23,55 +23,58 @@ class UserTempController
 	/**
 	 * [click 用户点击]
 	 */
-	public function clickRecord($uid,$numid)
+	public function clickRecord($uid,$numid,$system)
 	{
 		if(empty($uid) || empty($numid)) info('数据不完整',-1);
 
 		$this->type = 'click';
 
-		if(!$this->status){
-			$this->commit($uid,$numid,$count);
-			return;
-		}
+		$this->commit($uid,$numid,$system);
 
-		if(R()->hashFeildExisit($uid,$this->type)){
-				$data = $this->update($uid,$numid);
-		}else{
-			$data = $this->goodInfo($numid) + [$this->type => 1];
-			R()->hsetnx($uid,$this->type,[$numid => $data],$this->expire);
-		}
+		if(!$this->status) return;
+
+		if(R()->hashFeildExisit($uid,$this->type))
+			$data = $this->update($uid,$numid);
+		else
+			R()->hsetnx($uid,$this->type,[$numid => $this->goodInfo($numid)],$this->expire);
+
 	}
 
 
 	/**
 	 * [shareRecord description]
 	 */
-	public function shareRecord($uid,$numid)
+	public function shareRecord($uid,$numid,$system)
 	{
 		if(empty($uid) || empty($numid)) info('数据不完整',-1);
 
 		$this->type = 'share';
 
-		if(!$this->status){
-			$this->commit($uid,$numid,$count);
-			return;
-		}
+		$this->commit($uid,$numid,$system);
 
-		if(R()->hashFeildExisit($uid,$this->type)){
-				$data = $this->update($uid,$numid,$this->type);
-		}else{
-			$data = $this->goodInfo($numid) + [$this->type => 1];
-			R()->hsetnx($uid,$this->type,[$numid => $data],$this->expire);
-		}
+		if(!$this->status) return;
+
+		if(R()->hashFeildExisit($uid,$this->type))
+			$data = $this->update($uid,$numid,$this->type);
+		else
+			R()->hsetnx($uid,$this->type,[$numid => $this->goodInfo($numid)],$this->expire);
+
 	}
 
 
-	/**
-	 * [commitRecord 提交]
-	 */
-	public function commit($uid,$numid)
+	public function searchRecord($uid,$content,$system)
 	{
-		echo 'commit';
+		if(empty($uid) || empty($numid)) info('数据不完整',-1);
+
+		$this->type = 'search';
+
+		$this->commit($uid,$content,$system);
+	}
+
+
+	public function commit($uid,$content,$system)
+	{
+		R()->addListSingle($this->type,['uid'=>$uid,'content'=>$content,'type'=>$system]);
 	}
 
 
@@ -88,30 +91,13 @@ class UserTempController
 	private function update($uid,$numid)
 	{
 		$info = $this->ckGoodsCount(R()->getHashSingle($uid,$this->type));
-		if(array_key_exists($numid,$info)){
-			$info[$numid][$this->type] = $this->ckClickCount($uid,$numid,$info[$numid][$this->type]);
-		}else{
-			$info[$numid] = $this->goodInfo($numid) + [$this->type => 1];
-		}
 		R()->addHashSingle($uid,$this->type,$info);
-	}
-
-
-	private function ckClickCount($uid,$numid,$num)
-	{
-		if($num < $this->count){
-			return $num + 1;
-		}else{
-			$this->commit($uid,$numid,$count);
-        	return 1;
-		}
 	}
 
 
 	private function ckGoodsCount($data)
 	{
 		if(count($data) < $this->count) return $data;
-
 		//删除最早一条
 		$data = array_reverse($data,true);
 		//提交

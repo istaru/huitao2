@@ -58,8 +58,65 @@ class ScriptController extends Controller
 		echo 'ok'.$date.'\n';
 	}
 
-	public function offsetIndex()
+
+	public function behaviour()
 	{
-		A('Goods:offsetIndex');
+		$len	= 10;
+		$sql1	= $this->createSql($this->arrayTotal(R()->getListPage('click',0,$len)),'click');
+		$sql2	= $this->createSql($this->arrayTotal(R()->getListPage('share',0,$len)),'share');
+		$sql3	= $this->createSql(R()->getListPage('search',0,$len));
+
+		M()->startTrans();
+		try {
+			M()->query($sql1);
+			M()->query($sql2);
+			M()->query($sql3);
+		} catch (Exception $e) {
+			M()->rollback();
+		}
+		M()->commit();
+
+		//删除 redis相应条数
+	}
+
+
+	private function createSql($arr,$type)
+	{
+		$date = date('Y-m-d');
+
+		switch ($type) {
+			case 'click':
+				$str = " INSERT INTO ngw_click_log (uid,num_iid,click,type,report_date) VALUES ";
+				break;
+			case 'share':
+				$str = " INSERT INTO ngw_share_log (uid,num_iid,share,type,report_date) VALUES ";
+				break;
+			case 'search':
+				$str = " INSERT INTO ngw_search_log (uid,search_content,type,report_date) VALUES ";
+				break;
+		}
+
+		if($type == 'search'){
+			foreach ($arr as $k => $v)
+				$str .= "('{$v['uid']}','{$v['content']}',{$v['type']},'{$date}'),";
+		}else{
+			foreach ($arr as $k => $v)
+				$str .= "('{$v['uid']}','{$v['num_iid']}',{$v['num']},{$v['type']},'{$date}'),";
+		}
+
+		return rtrim($str,',');
+	}
+
+
+	private function arrayTotal($arr)
+	{
+		$temp = [];
+		foreach ($arr as $k => $v) {
+			if(!array_key_exists($v['uid'].$v['type'],$temp))
+				$temp[$v['uid'].$v['type']] = ['uid'=>$v['uid'],'num_iid'=>$v['content'],'num'=>1,'type'=>$v['type']];
+			else
+				$temp[$v['uid'].$v['type']]['num'] += 1;
+		}
+		return $temp;
 	}
 }

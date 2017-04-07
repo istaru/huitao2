@@ -138,9 +138,9 @@ class NewbietaskController extends AppController
 		}
 	}
 	//查询新手任务进度
-	public function queryTask($uid = '') {
+	public function queryTask() {
 		$params = $_POST;
-		$uid = !empty($params['user_id']) ? $params['user_id'] : empty($uid) ? info('请您赶快去注册登录吧!', -1) : $uid;
+		$uid = !empty($params['user_id']) ? $params['user_id'] : info('请您赶快去注册登录吧!', -1);
 		//判断用户注册时间 是否可以做新手任务
 		if($user = M('uid')->where("objectId = '{$uid}'")->field('createdAt')->select('single')) {
 			!strtotime($user['createdAt']) < 1487944802 or info('2017-02-24之后注册的用户才可以参加新手任务', -1);
@@ -157,6 +157,6 @@ class NewbietaskController extends AppController
 			//如果能走到这一步表示用户完成的是那种没钱的任务 递归再检查下个任务
 			$this->queryTask($uid);
 		}
-		info('请您快去注册登录吧!');
+		info('网络异常!');
 	}
 }

@@ -12,7 +12,7 @@ class AppController extends Controller
     const ALIDAYU_KEY = '23559394';
     const ALIDAYU_SECRET = '14ec3bb9c8d206eb00c97241cff58f60';
     const PERCENT = 0.2;
-    const SHARE_URL = 'http://liaoshiwei.cn/share/share.html';
+    const SHARE_URL = 'http://liaoshiwei.cn/share/share.html?num_iid=';
     static $aes = null;
     // static $aes = true;
     protected $param;

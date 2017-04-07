@@ -164,8 +164,7 @@ class Model
             self::$sqlCache = [];
         return $res;
     }
-    public function select($status = true)
-    {
+    public function select($status = true) {
         /**
          * 拼接sql语句
          */
@@ -273,11 +272,8 @@ class Model
      * @except  [false,true]    [false = 指定查询字段 true = 排除字段]
      * @return [type]
      */
-    public function field($field = true, $except=false)
-    {
-        /**
-         * 先获取到全部字段
-         */
+    public function field($field = true, $except=false) {
+        //先获取到全部字段
         $fields = $this->getTableFields(self::$table);
         if($field === true) {
           $field = $fields ? : '*';
@@ -297,9 +293,9 @@ class Model
      * @table  [String] $table [表名称]
      * @return [array]        [表字段]
      */
-    public function getTableFields()
-    {
+    public function getTableFields() {
         if(isset(self::$table)) {
+            $table_fields = [];
             $field_name = self::$conn->query('DESC '.self::$table)->fetchAll(PDO::FETCH_ASSOC);
             foreach($field_name as $k => $v)
                 $table_fields[] = $v['Field'];

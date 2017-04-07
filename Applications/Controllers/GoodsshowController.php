@@ -43,29 +43,27 @@ class GoodsShowController extends AppController
 
 	//{"user_id":"Nuwd8XEsBs","num_iid":"525103323591"}
 	/**
-	 * [share 分享商品]
+	 * [share 分享成功]
 	 */
 	public function share()
 	{
-		$this->detail('share');
+		if(empty($this->dparam['user_id']) || empty($this->dparam['num_iid'] || empty($this->dparam['type']))) info('参数不全',-1);
+
+		(UserTempController::getObj()) -> shareRecord($this->dparam['user_id'],$this->dparam['num_iid'],$this->dparam['type']);
+		info('ok',1);
 	}
 
 
-	//{"user_id":"Nuwd8XEsBs","num_iid":"525103323591"}
+	//{"user_id":"Nuwd8XEsBs","num_iid":"525103323591","type":"1"}
 	/**
 	 * [detail 商品详情]
 	 */
-	public function detail($type='click')
+	public function detail()
 	{
-		if(empty($this->dparam['user_id']) || empty($this->dparam['num_iid'])) info('参数不全',-1);
+		if(empty($this->dparam['user_id']) || empty($this->dparam['num_iid'] || empty($this->dparam['type']))) info('参数不全',-1);
 
 		//记录用户点击
-		if($type == 'click')
-			(UserTempController::getObj()) -> clickRecord($this->dparam['user_id'],$this->dparam['num_iid']);
-
-		//记录用户分享
-		if($type == 'share')
-            (UserTempController::getObj()) -> shareRecord($this->dparam['user_id'],$this->dparam['num_iid']);
+		(UserTempController::getObj()) -> clickRecord($this->dparam['user_id'],$this->dparam['num_iid'],$this->dparam['type']);
 
 
 		if(!R()->hashFeildExisit('detailLists',$this->dparam['num_iid'])){
@@ -73,7 +71,7 @@ class GoodsShowController extends AppController
 			$sql                = " SELECT * FROM gw_goods_online WHERE num_iid = '{$this->dparam['num_iid']}' ";
 			$info               = M()->query($sql,'single');
 			empty($info) && info('商品不存在',-1);
-			$info['share_url']  = parent::SHARE_URL;
+			$info['share_url']  = parent::SHARE_URL.$this->dparam['num_iid'];
 			R()->hsetnx('detailLists',$this->dparam['num_iid'],$info);
 
 		}
@@ -261,7 +259,7 @@ class GoodsShowController extends AppController
 		if(!R()->exisit($key)){
 			$list = $this->dbToGoods($key,$cid,$sql);
 
-			R()->addListAll($key,array_reverse($list));
+			R()->addListAll($key,$list);
 			R()->setExpire($key,100);
 
 		}
@@ -323,6 +321,10 @@ class GoodsShowController extends AppController
 		$parmas = $_POST;
 		if(empty($parmas['page_no']) || empty($parmas['page_size']) || !isset($parmas['system']) || !isset($parmas['title']))
 			info('缺少参数', -1);
+
+		//记录用户搜索
+		(UserTempController::getObj()) -> searchRecord($parmas['user_id'],$parmas['num_iid'],$parmas['system']);
+
 		$type = !isset($parmas['type']) ? '0,1' : $parmas['type'];
 	   //优先展示自己的商品
 	   $sql = "SELECT num_iid,title,seller_name nick,pict_url,price,deal_price zk_final_price,item_url,reduce,volume FROM gw_goods_online WHERE status = 1 AND store_type IN('{$type}') AND title like '%".formattedData($parmas['title'])."%' LIMIT ";

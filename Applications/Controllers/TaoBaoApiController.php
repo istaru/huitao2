@@ -14,17 +14,20 @@ class TaoBaoApiController {
    */
     public function taeItemsListRequest($num_iids = [], $open_iids = []) {
         $this->goodsId = [];
-        $data = $num_iids ? array_chunk($num_iids, 50) : $this->arrayLengthSegmentation($open_iids, 80);
-        foreach($data as $v) {
-            $resp = $this->taoBao->send([
-                'fields'    => 'title,nick,cid,price,post_fee,promoted_service,shop_name',
-                'num_iids'  => $num_iids ? implode(',', $v) : '',
-                'open_iids' => $open_iids ? $v : '',
-                'method'    => 'taobao.tae.items.list',
-            ]);
-            $result[] = !empty($resp['tae_items_list_response']['items']['x_item']) ? $resp['tae_items_list_response']['items']['x_item'] : '';
+        $data = $num_iids ? array_chunk($num_iids, 50) : $this->arrayLengthSegmentation($open_iids, 300);
+        if(!empty($num_iids) || !empty($open_iids)) {
+            foreach($data as $v) {
+                $resp = $this->taoBao->send([
+                    'fields'    => 'title,nick,cid,price,post_fee,promoted_service,shop_name',
+                    'num_iids'  => $num_iids ? implode(',', $v) : '',
+                    'open_iids' => $open_iids ? $v : '',
+                    'method'    => 'taobao.tae.items.list',
+                ]);
+                $result[] = !empty($resp['tae_items_list_response']['items']['x_item']) ? $resp['tae_items_list_response']['items']['x_item'] : '';
+            }
+            return isset($result) ? $result : '';
         }
-        return isset($result) ? $result : '';
+        return;
     }
     //按照数组的值长度进行分割
     public function arrayLengthSegmentation($data, $length) {
