@@ -71,13 +71,16 @@ class TaoBaoKeController extends AppController {
         }
         $sql = 'INSERT INTO gw_goods_online('.('`'.implode('`,`', array_keys($this->setFileds([],['id', 'updatedAt', 'createdAt'], 'goods_online'))).'`').') VALUES ';
         foreach($goods as $v) {
-            $sql .= '('.implode($this->setFileds($this->replaceField($v, [
-                'open_id'       => 'num_iid', //明文id
-                'pic_url'       => 'pict_url', //主图链接
-                'tk_rate'       => 'rating',  //淘宝佣金比
+            //字段值替换
+            $data = $this->setFileds($this->replaceField($v, [
+                'open_id'       => 'num_iid',       //明文id
+                'pic_url'       => 'pict_url',      //主图链接
+                'tk_rate'       => 'rating',        //淘宝佣金比
                 'shop_name'     => 'store_name',    //店铺名称
-                'reserve_price' => 'price'      //商品一口价
-            ]), ['id', 'updatedAt', 'createdAt'], 'goods_online'), ',').'),';
+                'reserve_price' => 'price',         //商品一口价
+                'mall'          => 'store_type'     //是否是天猫商品
+            ]), ['id', 'updatedAt', 'createdAt']);
+            // $sql .= '('.implode($data ',').'),';
         }
         D($sql);
         exit;

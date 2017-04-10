@@ -1,5 +1,5 @@
 <?php
-class HtUserController  extends HtController  {
+class HtUserController  extends htController {
     /**
      * [getInfo  获取所有app用户信息]
      */

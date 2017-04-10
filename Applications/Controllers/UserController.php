@@ -251,10 +251,9 @@ class UserController extends AppController
 		$sql = "select * from gw_uid_bill_log where type = 1 and uid = '{$this->dparam['user_id']}' and id in ($bill_ids)";
 		$data = M()->query($sql,'all');
 
-		foreach ($data as $v){
-			$shop = ShopincomeController::getObj();
-			$shop -> getReward($v);
-		}
+		foreach ($data as $v)
+			(ShopincomeController::getObj())->getReward($v);
+
 	}
 
 

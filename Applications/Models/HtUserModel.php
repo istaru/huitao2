@@ -21,7 +21,7 @@
                * 查询每页的用户数量
                */
 
-              $data['data'] = M('uid')->field(['id','nickname','objectId','price','sfuid','phone','power','alipay'])->page($page,10)->select();
+              $data['data'] = M('uid')->field(['id','nickname','objectId','price','sfuid','phone','power','alipay'])->page($page,30)->select();
               /**
                * 查询用户总数量
                */

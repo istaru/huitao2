@@ -64,24 +64,42 @@ class ScriptController extends Controller
 		$len	= 10;
 		$sql1	= $this->createSql($this->arrayTotal(R()->getListPage('click',0,$len)),'click');
 		$sql2	= $this->createSql($this->arrayTotal(R()->getListPage('share',0,$len)),'share');
-		$sql3	= $this->createSql(R()->getListPage('search',0,$len));
+		$sql3	= $this->createSql($this->arrayTotal(R()->getListPage('search',0,$len)),'search');
 
+		//开始事务
 		M()->startTrans();
+		R()->startTrans();
 		try {
-			M()->query($sql1);
-			M()->query($sql2);
-			M()->query($sql3);
+			if($sql1){
+				M()->query($sql1);
+				R()->ltrim('click',$len,-1);
+			}
+
+			if($sql2){
+				M()->query($sql2);
+				R()->ltrim('share',$len,-1);
+			}
+
+			if($sql3){
+				M()->query($sql3);
+				R()->ltrim('search',$len,-1);
+			}
+
 		} catch (Exception $e) {
 			M()->rollback();
+			R()->rollback();
 		}
 		M()->commit();
-
+		R()->commit();
+		echo 1;
 		//删除 redis相应条数
 	}
 
 
 	private function createSql($arr,$type)
 	{
+		if(empty($arr)) return false;
+
 		$date = date('Y-m-d');
 
 		switch ($type) {

@@ -19,6 +19,7 @@ class AppController extends Controller
     public $status = 1;
     public function __construct()
     {
+        // echo rawurldecode(file_get_contents('php://input'));die;
         if($_SERVER['REQUEST_METHOD'] == 'POST')
             $this->dparam = json_decode(rawurldecode(file_get_contents('php://input')),true);
         else
@@ -29,7 +30,6 @@ class AppController extends Controller
             $this->dparam = aes_decode($this->dparam['content'],$this->dparam['secret']);
             self::$aes = true;
         }
-
         //status 等1 的情况下 才会去过滤
         if($this ->status == 1 && !empty($this->dparam) )
             $this ->dparam = $this->filter_field($this->dparam);

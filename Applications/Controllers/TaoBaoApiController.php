@@ -79,4 +79,17 @@ class TaoBaoApiController {
         $res['taobaoGoods'] = !empty($taobaoGoods['tbk_item_get_response']['results']['n_tbk_item']) ? $taobaoGoods['tbk_item_get_response']['results']['n_tbk_item'] : [];
         return $res;
     }
+    /**
+     * [tbkItemInfoGetRequest 淘宝客商品详情(简版) https://open.taobao.com/docs/api.htm?spm=a219a.7395905.0.0.5FvwhC&apiId=24518]
+     * @param  [type]  $openId   [商品明文id 最多40个 例如:123,456,789]
+     * @param  integer $platform [链接形式：1：PC，2：无线，默认：１]
+     * @return [type]            [description]
+     */
+    public function tbkItemInfoGetRequest($openId, $platform = 2) {
+        $resp = $this->taoBao->send([
+            'fields'    => 'num_iid,title,pict_url,small_images,reserve_price,zk_final_price,user_type,provcity,item_url',
+            'platform'  => $platform,
+            'num_iids'  => $openId
+        ]);
+    }
 }

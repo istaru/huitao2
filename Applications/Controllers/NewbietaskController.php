@@ -139,12 +139,13 @@ class NewbietaskController extends AppController
 	}
 	//查询新手任务进度
 	public function queryTask() {
-		$params = $_POST;
+		$params = $this->dparam ? : $_POST;
+		file_put_contents('1.txt',$this->dparam);
 		$uid = !empty($params['user_id']) ? $params['user_id'] : info('请您赶快去注册登录吧!', -1);
 		//判断用户注册时间 是否可以做新手任务
 		if($user = M('uid')->where("objectId = '{$uid}'")->field('createdAt')->select('single')) {
 			!strtotime($user['createdAt']) < 1487944802 or info('2017-02-24之后注册的用户才可以参加新手任务', -1);
-			$field = 'id task_id,name,introduce,price,createdAt';
+			$field = 'id task_id,name,step,price,createdAt,task_img';
 			//检测当前用户已完成的任务中是否还有未领取的奖励 如果有则不显示下个任务
 			if($task = M()->query("SELECT {$field} FROM gw_task WHERE id IN( SELECT order_id FROM gw_uid_bill_log WHERE status = 1 AND type = 2 AND uid = '{$uid}')", 'single'))
 				info('立即领取', 1, [$task]);

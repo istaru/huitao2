@@ -14,6 +14,26 @@ class redisModel
 			self::$conn = self::$handle->connect(C('redis:REDIS_DNS'),C('redis:REDIS_PORT'));
 	}
 
+	public function startTrans()
+	{
+		self::$handle->multi();
+	}
+
+	public function rollback()
+	{
+		return self::$handle->discard();
+	}
+
+	public function commit()
+	{
+		return self::$handle->exec();
+	}
+
+	public function ltrim($key,$index,$len)
+	{
+		return self::$handle->ltrim($key,$index,$len);
+	}
+
 	public function addListAll($key,$list)
 	{
 		self::$handle->multi();
@@ -42,6 +62,7 @@ class redisModel
 		}
 		self::$handle->exec();
 	}
+
 
 	public function addListSingle($key,$val)
 	{

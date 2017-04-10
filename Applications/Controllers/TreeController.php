@@ -12,6 +12,7 @@ class TreeController
      */
     public function addnode()
     {
+        if(empty($this->param['pid'])) info('参数不全',-1);
         //检查父节点
         if(!empty($this->param['pid'])){
             $sql = "SELECT * FROM gw_category WHERE id = '{$this->param['pid']}'";
@@ -45,6 +46,7 @@ class TreeController
      */
     public function delnode()
     {
+        if(empty($this->param['id'])) info('参数不全',-1);
         $sql = "SELECT * FROM gw_category WHERE `id` = '{$this->param['id']}'";
         $node = M()->query($sql,'single');
 
@@ -76,6 +78,7 @@ class TreeController
      */
     public function getpnode()
     {
+        if(empty($this->param['pid'])) info('参数不全',-1);
         $sql = "SELECT * FROM gw_category WHERE `id` = {$this->param['id']}";
         $node = M()->query($sql);
         $sql = "SELECT `id`,`pid`,`name` node,`depth` dep FROM gw_category WHERE `left` < {$node['left']} AND `right` > {$node['right']} ORDER BY depth ASC";
@@ -88,6 +91,7 @@ class TreeController
      */
     public function getsnode()
     {
+        if(empty($this->param['id'])) info('参数不全',-1);
         $sql = "SELECT * FROM gw_category WHERE `id` = {$this->param['id']}";
         $node = M()->query($sql);
         $sql = "SELECT `id`,`pid`,`name` node,`depth` dep FROM gw_category WHERE `left` > {$node['left']} AND `right` < {$node['right']} ORDER BY depth ASC";

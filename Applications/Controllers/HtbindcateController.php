@@ -38,7 +38,7 @@ class HtbindcateController extends Controller
           }
           info("参数不全",-2);
       }
-    //解除绑定
+    //解决绑定
     public function unbinded(){
         if(isset($_REQUEST['fid'])){
             $sql="update gw_category_favorite_ref set category_id=null,category_name=null where favorite_id=".$_REQUEST['fid'];

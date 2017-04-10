@@ -6,14 +6,15 @@ class GoodsShowController extends AppController
 {
 	public $lft;
 	public $rgt;
-	public $status      = true; //启用 redis
-	public $step        = 20;   //轮播成员数量
-	public $time        = 3;    //轮播频次
-	public $ex_len      = 3000; //excel商品数量
+	public $status      = true; 	//启用 redis
+	public $expire 		= 60*60*24;	//过期时间
+	public $step        = 20;   	//轮播成员数量
+	public $time        = 3;    	//轮播频次
+	public $ex_len      = 3000; 	//excel商品数量
 	public $goods       = [];
 	public $nodes       = [];
 	public $son_nodes   = [];
-	public $str         = " SELECT a.*,b.title,b.seller_name nick,b.pict_url,b.price,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume FROM %s a JOIN gw_goods_online b ON a.num_iid = b.num_iid ";
+	public $str         = " SELECT a.*,b.title,b.seller_name nick,b.store_type,b.pict_url,b.price,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume FROM %s a JOIN gw_goods_online b ON a.num_iid = b.num_iid ";
 	public $ref_str     = " SELECT b.* FROM gw_goods_category_ref a JOIN gw_goods_info b ON a.num_iid = b.num_iid WHERE a.status = 1 AND a.category_id =  ";
 
 
@@ -49,7 +50,7 @@ class GoodsShowController extends AppController
 	{
 		if(empty($this->dparam['user_id']) || empty($this->dparam['num_iid'] || empty($this->dparam['type']))) info('参数不全',-1);
 
-		(UserTempController::getObj()) -> shareRecord($this->dparam['user_id'],$this->dparam['num_iid'],$this->dparam['type']);
+		(UserRecordController::getObj()) -> shareRecord($this->dparam['user_id'],$this->dparam['num_iid'],$this->dparam['type']);
 		info('ok',1);
 	}
 
@@ -63,7 +64,7 @@ class GoodsShowController extends AppController
 		if(empty($this->dparam['user_id']) || empty($this->dparam['num_iid'] || empty($this->dparam['type']))) info('参数不全',-1);
 
 		//记录用户点击
-		(UserTempController::getObj()) -> clickRecord($this->dparam['user_id'],$this->dparam['num_iid'],$this->dparam['type']);
+		(UserRecordController::getObj()) -> clickRecord($this->dparam['user_id'],$this->dparam['num_iid'],$this->dparam['type']);
 
 
 		if(!R()->hashFeildExisit('detailLists',$this->dparam['num_iid'])){
@@ -186,7 +187,8 @@ class GoodsShowController extends AppController
 			$fun = $this->status === true ? 'redisToGoods' : 'dbToGoods';
 
 			$sql = $str.$v['id'];
-			$key = $this->dparam['type'] == 1 ? $v['name'] : 'ex_'.$v['name'];
+			// $key = $this->dparam['type'] == 1 ? $v['name'] : 'ex_'.$v['name'];
+			$key = 'lm_'.$v['name'];
 			$this->goods[$v['name']]    = $this->$fun($key,$v['id'],$sql);
 			$this->goods['total']       = array_merge($this->goods['total'],$this->goods[$v['name']]);
 		}
@@ -260,7 +262,8 @@ class GoodsShowController extends AppController
 			$list = $this->dbToGoods($key,$cid,$sql);
 
 			R()->addListAll($key,$list);
-			R()->setExpire($key,100);
+			if(!empty($this->expire))
+				R()->setExpire($key,$this->expire);
 
 		}
 		return R()->getListPage($key,0,-1);
@@ -323,7 +326,7 @@ class GoodsShowController extends AppController
 			info('缺少参数', -1);
 
 		//记录用户搜索
-		(UserTempController::getObj()) -> searchRecord($parmas['user_id'],$parmas['num_iid'],$parmas['system']);
+		(UserRecordController::getObj()) -> searchRecord($parmas['user_id'],$parmas['num_iid'],$parmas['system']);
 
 		$type = !isset($parmas['type']) ? '0,1' : $parmas['type'];
 	   //优先展示自己的商品
