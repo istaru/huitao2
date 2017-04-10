@@ -73,7 +73,7 @@ class GoodsShowController extends AppController
 			$info               = M()->query($sql,'single');
 			empty($info) && info('商品不存在',-1);
 			$info['share_url']  = parent::SHARE_URL.$this->dparam['num_iid'];
-			R()->hsetnx('detailLists',$this->dparam['num_iid'],$info);
+			R()->hsetnx('detailLists',$this->dparam['num_iid'],$info,$this->$expire);
 
 		}
 
@@ -321,7 +321,7 @@ class GoodsShowController extends AppController
 		}
 	}
 	public function searchGoods() {
-		$parmas = $_POST;
+		$parmas = $this->dparam;
 		if(empty($parmas['page_no']) || empty($parmas['page_size']) || !isset($parmas['system']) || !isset($parmas['title']))
 			info('缺少参数', -1);
 

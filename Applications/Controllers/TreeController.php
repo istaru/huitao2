@@ -50,7 +50,7 @@ class TreeController
         $sql = "SELECT * FROM gw_category WHERE `id` = '{$this->param['id']}'";
         $node = M()->query($sql,'single');
 
-        $sql = "SELECT count(id) count FROM gw_category WHERE `left` >= {$node['left']} AND `rgt` <= {$node['right']}";
+        $sql = "SELECT count(id) count FROM gw_category WHERE `left` >= {$node['left']} AND `right` <= {$node['right']}";
         $count = M()->query($sql);
 
         $count = $count['count']*2;
@@ -60,7 +60,7 @@ class TreeController
             $sql = "DELETE FROM gw_category WHERE `left` >= {$node['left']} AND `right` <= {$node['right']}";
             M()->query($sql);
 
-            $sql = "UPDATE gw_category SET left = `left`-{$count}, `right` = `right`-{$count} WHERE `left` > {$node['left']}";
+            $sql = "UPDATE gw_category SET `left` = `left`-{$count}, `right` = `right`-{$count} WHERE `left` > {$node['left']}";
             M()->query($sql);
 
             $sql = "UPDATE gw_category SET `right` = `right`-{$count} WHERE `right` > {$node['right']} AND `left` < {$node['left']}";

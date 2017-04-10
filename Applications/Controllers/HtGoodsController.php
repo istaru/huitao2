@@ -1,6 +1,6 @@
 <?php
 ini_set('memory_limit', '-1');
-class HtGoodsController extends HtController
+class HtGoodsController
 {
     /**
      * 解析post参数--仅限查询使用
@@ -27,8 +27,8 @@ class HtGoodsController extends HtController
                 }
                 $sql="select  a.num_iid,c.name,b.title,a.source,c.name cname,a.`status`,a.click,a.purchase,a.score,a.top,a.is_front,b.created_date date
           from gw_goods_info a
-         left join gw_goods_online b on a.num_iid=b.num_iid 
-         left join (SELECT pid,name from gw_category group by pid,name)c on c.pid=a.category_id 
+         left join gw_goods_online b on a.num_iid=b.num_iid
+         left join (SELECT pid,name from gw_category group by pid,name)c on c.pid=a.category_id
          WHERE b.title like '%".$_REQUEST['keyword']."%'  or b.num_iid like '%".$_REQUEST['keyword']."%'".$addtion;
                 $res=M()->query($sql,'all');
                 $data['data']=$res;
@@ -54,7 +54,7 @@ class HtGoodsController extends HtController
                 $c_limited=" limit ".(($_REQUEST['page']-1)*50).",50";
                 $sql='select  a.num_iid,c.name,b.title,a.source,c.name cname,a.`status`,a.click,a.purchase,a.score,a.top,a.is_front,a.created_date date
           from gw_goods_info a
-         left join gw_goods_online b on a.num_iid=b.num_iid 
+         left join gw_goods_online b on a.num_iid=b.num_iid
          left join (SELECT pid,name from gw_category group by pid,name)c on c.pid=a.category_id WHERE 1=1 '
                     .$c_goods_type.$c_is_new.$c_goods_status.$c_is_sold.$c_is_board.$c_category_id.$c_is_front.$c_sdate.$c_edate.$addtion;
                 $sql_info=$sql.$c_limited;                                   //返回给前端的数据，这里每次写固定了，每次50条
