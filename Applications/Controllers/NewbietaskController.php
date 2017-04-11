@@ -130,33 +130,49 @@ class NewbietaskController extends AppController
 						'score_info'   => $data['name'],
 						'report_date'  => date('Y-m-d')
 					]);
-					info('立即领取', 1, [$data]);
 				}
 			}
-		} else { //进行中
-			info('正在进行中', 1, [$data]);
+		} else {
+			$data['status'] = 1;
+			$data['msg']	= '任务正在进行中';
+			return $this->userCompletedTasks($uid, $data);
 		}
 	}
 	//查询新手任务进度
 	public function queryTask() {
 		$params = $this->dparam;
-		$uid = !empty($params['user_id']) ? $params['user_id'] : info('请您赶快去注册登录吧!', -1);
+		$uid = 1234;
+		// $uid = !empty($params['user_id']) ? $params['user_id'] : info('请您赶快去注册登录吧!', -1);
 		//判断用户注册时间 是否可以做新手任务
 		if($user = M('uid')->where("objectId = '{$uid}'")->field('createdAt')->select('single')) {
-			!strtotime($user['createdAt']) < 1487944802 or info('2017-02-24之后注册的用户才可以参加新手任务', -1);
-			$field = 'id task_id,name,introduce,step,price,createdAt,task_img';
+			!strtotime($user['createdAt']) < 1487944802 OR info('2017-02-24之后注册的用户才可以参加新手任务', -1);
+			$field = 'id task_id,name,introduce,step,price,task_img';
 			//检测当前用户已完成的任务中是否还有未领取的奖励 如果有则不显示下个任务
-			if($task = M()->query("SELECT {$field} FROM gw_task WHERE id IN( SELECT order_id FROM gw_uid_bill_log WHERE status = 1 AND type = 2 AND uid = '{$uid}')", 'single'))
-				info('立即领取', 1, [$task]);
+			if($task = M()->query("SELECT {$field} FROM gw_task WHERE id IN( SELECT order_id FROM gw_uid_bill_log WHERE status = 1 AND type = 2 AND uid = '{$uid}')", 'single')) {
+				$task['status']  = 2;
+				$task['msg']     = '立即领取红包奖励';
+				$this->userCompletedTasks($uid, $task);
+			}
 			//取出用户正在进行的任务
-			$data = M()->query("SELECT {$field} FROM gw_task WHERE id NOT IN( SELECT task_id FROM gw_task_log WHERE uid = '{$uid}') AND type = 1 LIMIT 1", 'single');
+			$data = M()->query("SELECT {$field} FROM gw_task WHERE id NOT IN( SELECT task_id FROM gw_task_log WHERE uid = '{$uid}') AND type = 1", 'single');
 			//如果没有查到任务则表示该用户任务已经全部做完
-			!empty($data) or info('您已经做完了全部新手任务!', 1);
+			!empty($data) OR info('您已经做完了全部新手任务!', 1);
 			//检测该任务用户是否已经完成了
 			$this->ckNewUserMission($uid, $data);
 			//如果能走到这一步表示用户完成的是那种没钱的任务 递归再检查下个任务
 			$this->queryTask($uid);
 		}
-		info('网络异常!');
+		info('请您赶快去注册登录吧!');
 	}
+	public function userCompletedTasks($uid, $data) {
+		$result   = M()->query("SELECT id task_id,name,introduce,step,price,task_img FROM gw_task WHERE id IN( SELECT task_id FROM gw_task_log WHERE uid = '{$uid}') AND type = 1", 'all');
+		$result[] = $data;
+		foreach($result as $k => &$v) {
+			list($v['msg'], $v['status']) = !empty($v['status']) ? [$v['msg'], $v['status']] : ['该任务已完成', 3];
+			if(in_array($v['name'], $data) && $v['status'] == 3)
+				unset($result[$k]);
+		}
+		info('ok', 1, array_values($result));
+	}
+
 }

@@ -63,7 +63,7 @@ class TaoBaoApiController {
             'q'             => addslashes(htmlspecialchars(isset($paramster['title']) ? $paramster['title'] : '.')),
             'fields'        => 'num_iid,title,pict_url,reserve_price,zk_final_price,user_type,provcity,item_url,seller_id,volume,nick',
             'sort'          => 'total_sales_des',
-            // 'is_tmall'      => false,
+            'is_tmall'      => isset($paramster['type']) ? $paramster['type'] ? 'true' : 'false' : 'true',
             'method'        => 'taobao.tbk.item.get',
             'page_no'       => isset($paramster['page_no'])   ? $paramster['page_no']   : 1,
             'page_size'     => isset($paramster['page_size']) ? $paramster['page_size'] : 20,
@@ -76,6 +76,52 @@ class TaoBaoApiController {
         $res['taobaoGoods'] = !empty($taobaoGoods['tbk_item_get_response']['results']['n_tbk_item']) ? $taobaoGoods['tbk_item_get_response']['results']['n_tbk_item'] : [];
         return $res;
     }
+
+
+
+
+    public function ibkUatmFavorites(){
+
+          self::__setas('23550152',"d27bdb2a9dba59cc20d7099f371d03d3");
+
+          $rsp  = TaoBaoController::send([
+            'fields'    => "favorites_title,favorites_id,type",
+            'method'    => 'taobao.tbk.uatm.favorites.get',
+            'page_no'       => 1,
+            'page_size'     => 200
+
+         ]);
+       
+         if(isset($rsp["tbk_uatm_favorites_get_response"]))return $rsp["tbk_uatm_favorites_get_response"];
+
+    }
+
+    public function tbkUatmFavoritesItem($param=null){
+  
+
+        self::__setas('23550152',"d27bdb2a9dba59cc20d7099f371d03d3");
+
+        $rsp = TaoBaoController::send([
+            'fields'    => isset($param['fields'])  ? $param['fields'] : "num_iid,title,pict_url,small_images,reserve_price,zk_final_price,user_type,provcity,item_url,seller_id,volume,nick,shop_title,zk_final_price_wap,event_start_time,event_end_time,tk_rate,status,type",
+            'method'    => 'taobao.tbk.uatm.favorites.item.get',
+            'page_no'       => isset($param['page_no'])  ? $param['page_no']   : 1,
+            'page_size'     => isset($param['page_size'])  ? $param['page_size']   : 1,
+            'favorites_id'=>isset($param['favorites_id'])  ? $param['favorites_id']   : 3519044,
+            'adzone_id'=>isset($param['adzone_id'])  ? $param['adzone_id']   : 67202476,
+            'platform'=>isset($param['platform'])  ? $param['platform']   : 1,
+            
+         ]);
+
+         if(isset($rsp["tbk_uatm_favorites_item_get_response"]))return $rsp["tbk_uatm_favorites_item_get_response"];
+    }
+
+
+
+
+   
+
+
+
     /**
      * [tbkItemInfoGetRequest 淘宝客商品详情(简版) https://open.taobao.com/docs/api.htm?spm=a219a.7395905.0.0.5FvwhC&apiId=24518]
      * @param  [type]  $openId   [商品明文id 最多40个 例如:123,456,789]
@@ -99,4 +145,5 @@ class TaoBaoApiController {
         }
         return $res;
     }
+
 }

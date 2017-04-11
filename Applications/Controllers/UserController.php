@@ -261,13 +261,15 @@ class UserController extends AppController
 	/**
 	 * [getReward 拆红包(任务)]
 	 */
-	public function getRewardTask()
-	{
-		if(empty($_POST['task_id']) || empty($_POST['user_id']))
+	public function getRewardTask() {
+		$params = $this->dparam;
+		if(empty($params['task_id']) || empty($params['user_id']))
 			info(-1,'缺少参数');
-		$data = M()->query("select * from gw_uid_bill_log where type = 2 and uid = '{$_POST['user_id']}' and task_id = {$_POST['task_id']}",'all');
-		foreach ($data as $v)
-			(TaskincomeController::getObj())->getReward($v);
+		$data = M()->query("select * from gw_uid_bill_log where type = 2 and uid = '{$params['user_id']}' and task_id = {$params['task_id']}",'all');
+		if(!empty($data)) {
+			foreach ($data as $v)
+				(TaskincomeController::getObj())->getReward($v);
+		} else info('参数异常',-1);
 	}
 
 }

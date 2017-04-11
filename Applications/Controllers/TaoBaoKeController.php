@@ -36,16 +36,17 @@ class TaoBaoKeController extends AppController {
             list($content['msg'], $content['status']) = isset(self::$option[$v['topic']]) ? self::$option[$v['topic']] : [$v['topic'], 0];
             //获取全部付款成功的商品混淆id 以及退款成功 付款成功的订单号
             if(2 == $content['status']) {
-               $auctionId       = array_column($content['auction_infos'], 'auction_id');
-               $paymentSuccess  = array_column($content['auction_infos'], 'detail_order_id');
+               foreach($content['auction_infos'] as $v) {
+                    $auctionId[]        = $v['auction_id'];
+                    $paymentSuccess[]   = $v['detail_order_id'];
+               }
             } else if(5 == $content['status']) $refundSuccess[] = $content['tid'];
             $data[] = $content;
         }
-        $auctionId = ['AAGhANc9ADye1K1g5HHixNeA', 'AAGQANc9ADye1K1g5HXJu5LS', 'AAGvANc9ADye1K1g5HGu9Q7a'];
         //批量进行请求api拿到明文id 以及邮费
         // empty($auctionId) OR $this->taobaoList = $this->taoBaoApi->taeItemsListRequest([], array_unique($auctionId));
         //批量补全商品表中没有的商品
-        empty($this->taobaoList) OR $this->complementGoodsOnline($this->taobaoList);
+        $this->complementGoodsOnline($this->taobaoList);
         //订单批量入库
         $this->addOrder($data);
         return;
@@ -75,47 +76,53 @@ class TaoBaoKeController extends AppController {
                 }
             }
         }
-        $sql = 'INSERT INTO gw_goods_online('.('`'.implode('`,`', array_keys($this->setFileds([],['id', 'updatedAt', 'createdAt'], 'goods_online'))).'`').') VALUES ';
-        foreach($results as $v) {
-            $v['small_images']  = json_encode($v['small_images'], JSON_UNESCAPED_UNICODE);  //小图列表
-            $v['store_type']    = $v['mall'] ? 0 : 1;   //平台类型
-            $v['rating']        = $v['tk_rate'] / 100;  //淘宝客佣金比率
-            $v['status']        = 10;
-            $sql .= '('.implode($this->setFileds($this->replaceField($v, [
-                'pic_url'       => 'pict_url',      //主图链接
-                'shop_name'     => 'store_name',    //店铺名称
-                'reserve_price' => 'price',         //商品一口价
-                'nick'          => 'seller_name'    //卖家旺旺
-            ]), ['id', 'updatedAt', 'createdAt'], 'goods_online'), ',').'),';
+        if(!empty($results)) {
+            $sql = 'INSERT INTO gw_goods_online('.('`'.implode('`,`', array_keys($this->setFileds([], 'goods_online'))).'`').') VALUES ';
+            foreach($results as $v) {
+
+                $v['small_images']  = json_encode($v['small_images'], JSON_UNESCAPED_UNICODE);  //小图列表
+                $v['store_type']    = $v['mall'] ? 0 : 1;   //平台类型
+                $v['rating']        = $v['tk_rate'] / 100;  //淘宝客佣金比率
+                $v['status']        = 10;
+
+                $sql .= '('.implode($this->setFileds($this->replaceField($v, [
+                    'pic_url'       => 'pict_url',      //主图链接
+                    'shop_name'     => 'store_name',    //店铺名称
+                    'reserve_price' => 'price',         //商品一口价
+                    'nick'          => 'seller_name'    //卖家旺旺
+                ]), 'goods_online'), ',').'),';
+            }
+            return M()->query(rtrim($sql, ','));
         }
-        M()->query(rtrim($sql, ','));
     }
     private function addOrder($data) {
-        $sql = 'INSERT IGNORE INTO gw_order_status('.('`'.implode('`,`', array_keys($this->setFileds([],['id', 'updatedAt', 'createdAt']))).'`').') VALUES ';
-        foreach($data as $v) {
-            $v = $this->replaceField($v, [
-                'tid'        => 'order_id',
-                'refund_fee' => 'paid_fee'
-            ]);
-            !empty($v['auction_infos'])     OR $v['auction_infos'][] = $v;
-            foreach($v['auction_infos'] as $_v) {
-                //把auction_infos字段里的值和外面的值组合在一起进行处理入库
-                $v = array_merge($v, $_v);
-                //匹配从商品列表服务api查出来的混淆id 获取到该商品明文id
-                foreach($this->taobaoList as $taobaoList) {
-                    if($taobaoList['open_iid'] == $v['auction_id'] and 2 == $v['status']) {
-                        //减过邮费之后的价钱
-                        $v['paid_fee'] = abs($v['paid_fee']) - abs($taobaoList['post_fee']) < 0 ? 0 : abs($v['paid_fee']) - abs($taobaoList['post_fee']);
-                        //获取明文id
-                        $v['open_id']  = $taobaoList['open_id'];
+        if(!empty($data)) {
+            $sql = 'INSERT IGNORE INTO gw_order_status('.('`'.implode('`,`', array_keys($this->setFileds())).'`').') VALUES ';
+            foreach($data as $v) {
+                $v = $this->replaceField($v, [
+                    'tid'        => 'order_id',
+                    'refund_fee' => 'paid_fee'
+                ]);
+                !empty($v['auction_infos'])     OR $v['auction_infos'][] = $v;
+                foreach($v['auction_infos'] as $_v) {
+                    //把auction_infos字段里的值和外面的值组合在一起进行处理入库
+                    $v = array_merge($v, $_v);
+                    //匹配从商品列表服务api查出来的混淆id 获取到该商品明文id
+                    foreach($this->taobaoList as $taobaoList) {
+                        if($taobaoList['open_iid'] == $v['auction_id'] and 2 == $v['status']) {
+                            //减过邮费之后的价钱
+                            $v['paid_fee'] = abs($v['paid_fee']) - abs($taobaoList['post_fee']) < 0 ? 0 : abs($v['paid_fee']) - abs($taobaoList['post_fee']);
+                            //获取明文id
+                            $v['open_id']  = $taobaoList['open_id'];
+                        }
                     }
+                    //生成退单时间
+                    !empty($v['create_order_time']) OR $v['create_order_time'] = date('Y-m-d H:i:s');
+                    $sql .= '('.implode($this->setFileds($v), ',').'),';
                 }
-                //生成退单时间
-                !empty($v['create_order_time']) OR $v['create_order_time'] = date('Y-m-d H:i:s');
-                $sql .= '('.implode($this->setFileds($v, ['id', 'updatedAt', 'createdAt']), ',').'),';
             }
-        }
-        return M()->query(rtrim($sql, ','));
+            return M()->query(rtrim($sql, ','));
+        } else return;
     }
     //字段替换
     public function replaceField($data, $key) {
@@ -143,7 +150,7 @@ class TaoBaoKeController extends AppController {
         }
     }
     //设置表字段以及默认值
-    public function setFileds($value = [], $unsetFiled = [], $table = 'order_status') {
+    public function setFileds($value = [], $table = 'order_status', $unsetFiled = ['id', 'updatedAt', 'createdAt']) {
         //缓存表字段
         static $tables = null;
         static $filed = null;

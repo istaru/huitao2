@@ -70,7 +70,7 @@ class UserRecordController
 	 */
 	public function searchRecord($uid,$content,$system)
 	{
-		if(empty($uid) || empty($numid)) info('数据不完整',-1);
+		if(empty($uid) || empty($content)) info('数据不完整',-1);
 
 		$this->type = 'search';
 

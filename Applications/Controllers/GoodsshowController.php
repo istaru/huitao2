@@ -326,14 +326,15 @@ class GoodsShowController extends AppController
 			info('缺少参数', -1);
 
 		//记录用户搜索
-		(UserRecordController::getObj()) -> searchRecord($parmas['user_id'],$parmas['num_iid'],$parmas['system']);
-
+		// (UserRecordController::getObj())->searchRecord($parmas['user_id'],$parmas['title'],$parmas['system']);
+		$query = !empty($query) ? : false;
 		$type = !isset($parmas['type']) ? '0,1' : $parmas['type'];
+
 	   //优先展示自己的商品
 	   $sql = "SELECT num_iid,title,seller_name nick,pict_url,price,deal_price zk_final_price,item_url,reduce,volume FROM gw_goods_online WHERE status = 1 AND store_type IN('{$type}') AND title like '%".formattedData($parmas['title'])."%' LIMIT ";
-	   $self = M()->query($sql .= !empty($parmas['query']) ? (($parmas['page_no'] - 1) * $parmas['page_size']).','.$parmas['page_size'] : 3, 'all');
-		//淘宝客商品查询
-		if($parmas['query'] != 1 || count($self) < $parmas['page_size'])
+	   $self = M()->query($sql .= $query ? (($parmas['page_no'] - 1) * $parmas['page_size']).','.$parmas['page_size'] : 3, 'all');
+		//当query 为false 或 库里展示商品小于要查询的商品数量时 查询淘宝客商品
+		if(!$query || count($self) < $parmas['page_size'])
 			$data = (new TaoBaoApiController('23630111', 'd2a2eded0c22d6f69f8aae033f42cdce'))->tbkItemGetRequest($parmas);
 		info('ok', 1, [
 			'self'           => $self,
@@ -392,4 +393,13 @@ class GoodsShowController extends AppController
 			info('暂无数据',-1);
 		}
 	}
+
+	/**
+     * 获取分享的商品的详情
+     */
+    public function getShareDetail()
+    {
+        $data=A('Goods:getShareDetail',[I('num_iid')]);
+        info('请求成功',1,$data);
+    }
 }
