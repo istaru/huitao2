@@ -86,7 +86,7 @@ class UserRecordController
 
 	private function goodInfo($numid)
 	{
-		$sql = "SELECT title,seller_name nick,pict_url,price,deal_price zk_final_price,item_url,reduce,volume FROM gw_goods_online WHERE num_iid = {$numid}";
+		$sql = "SELECT title,seller_name nick,pict_url,price,deal_price zk_final_price,item_url,reduce,volume, 1 type FROM gw_goods_online WHERE num_iid = {$numid}";
 		$info = M()->query($sql,'single');
 		// D($info);die;
 		if(empty($info)) info('商品不存在!',-1);

@@ -360,10 +360,34 @@ class GoodsShowController extends AppController
 	 */
 	public function history()
 	{
-		if(R()->hashFeildExisit($this->dparam['user_id'],'click')){
-			$total = R()->getHashSingle($this->dparam['user_id'],'click');
+		if(R()->hashFeildExisit('history_'.$this->dparam['user_id'],'click')){
+			$total = array_filter(R()->getHashSingle('history_'.$this->dparam['user_id'],'click'),function($v){
+				if($v['type'] == 1) return $v;	//1表示用户没有删的历史记录
+			});
 			$page   = $this->page($total);
 			info(['status'=>1,'msg'=>'操作成功!','data'=>$page]);
+		}else{
+			info('暂无数据',-1);
+		}
+	}
+
+
+	//{"user_id":""}
+	/**
+	 * [clearHistory 清除历史记录]
+	 */
+	public function clearHistory()
+	{
+		if(R()->hashFeildExisit('history_'.$this->dparam['user_id'],'click')){
+
+			$info = array_map(function($v){
+				$v['type'] = 2;
+				return $v;
+			},R()->getHashSingle('history_'.$this->dparam['user_id'],'click'));
+
+			R()->addHashSingle('history_'.$this->dparam['user_id'],'click',$info);
+			info('操作成功',1);
+
 		}else{
 			info('暂无数据',-1);
 		}
