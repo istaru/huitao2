@@ -22,8 +22,8 @@ define('APP_DEBUG',true);
 /**
  * 网站根url
  */
-define('URL_SITE','http://es1.laizhuan.com');
-define('RES_SITE','http://es1.laizhuan.com/');
+define('URL_SITE','http://192.168.1.211/shopping_new');
+define('RES_SITE','http://192.168.1.211/shopping_new/');
 /**
  * 根文件名
  */

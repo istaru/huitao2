@@ -6,24 +6,16 @@ class IndexController extends AppController
 	 */
 	public function banners()
 	{
-		$banners = [
-				[
-					"icon_url" => RES_SITE.'shoppingResource/banners/banner01.png',
-					'link' => '',
-				],
-				[
-					'icon_url' => RES_SITE.'shoppingResource/banners/banner02.png',
-					'link' => '',
-				],
-				[
-					'icon_url' => RES_SITE.'shoppingResource/banners/banner03.png',
-					'link' => '',
-				],
-				[
-					'icon_url' => RES_SITE.'shoppingResource/banners/banner04.png',
-					'link' => './my.html#guide',
-				],
-		];
+		$files = scandir(DIR_RES.'img/banner');
+		$banners = [];
+
+		foreach ($files as $v) {
+			if(strlen($v) > 5 && (explode('.',$v))[1] == 'png'){
+				$banners[] =	['icon_url'	=> RES_SITE.'resource/img/banner/'.$v,
+									'link'	=> '',
+								];
+			}
+		}
 
 		info('请求成功',1,$banners);
 	}

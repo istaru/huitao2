@@ -14,7 +14,7 @@ class GoodsShowController extends AppController
 	public $goods       = [];
 	public $nodes       = [];
 	public $son_nodes   = [];
-	public $str         = " SELECT a.*,b.title,b.seller_name nick,b.store_type,b.pict_url,b.price,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume FROM %s a JOIN gw_goods_online b ON a.num_iid = b.num_iid ";
+	public $str         = " SELECT a.*,b.title,b.seller_name nick,b.store_type,b.pict_url,b.price,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM %s a JOIN gw_goods_online b ON a.num_iid = b.num_iid ";
 	public $ref_str     = " SELECT b.* FROM gw_goods_category_ref a JOIN gw_goods_info b ON a.num_iid = b.num_iid WHERE a.status = 1 AND a.category_id =  ";
 
 
@@ -181,12 +181,12 @@ class GoodsShowController extends AppController
 		//上架,淘宝联盟商品,不前置
 		$str = sprintf($this->str,'gw_goods_info');
 		$str = $str." WHERE a.is_show = 1 AND a.source = {$this->dparam['type']} AND a.status =1 AND b.category_id = ";
-
 		$this->goods['total'] = [];
 		foreach ($this->nodes as $k => $v) {
 			$fun = $this->status === true ? 'redisToGoods' : 'dbToGoods';
 
 			$sql = $str.$v['id'];
+
 			// $key = $this->dparam['type'] == 1 ? $v['name'] : 'ex_'.$v['name'];
 			$key = 'lm_'.$v['name'];
 			$this->goods[$v['name']]    = $this->$fun($key,$v['id'],$sql);

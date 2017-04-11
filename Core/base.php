@@ -22,6 +22,8 @@ defined('DIR_COMMON')     or define('DIR_COMMON',DIR_CORE.'common'.DS);
 //框架类库目录
 defined('DIR_CORE_FILE')  or define('DIR_CORE_FILE',DIR_CORE.'core'.DS);
 defined('EXT')            or define('EXT','.php');
+//资源目录
+defined('DIR_RES') or define('DIR_RES',DIR.DS.'resource'.DS);
 
 defined('DIR_MODULE')     or define('DIR_MODULE',DIR.DS.'module'.DS);
 defined('DIR_MODULE_COM')     or define('DIR_MODULE_COM',DIR_MODULE.'common'.DS);
