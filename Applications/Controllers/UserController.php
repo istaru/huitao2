@@ -32,7 +32,6 @@ class UserController extends AppController
 		$uidLog_list = M()->query("SELECT l.createdAt as date_time,u.nickname as friend_name,l.price,l.status,l.score_info FROM ngw_income_log l JOIN ngw_uid u ON l.score_source = u.objectId WHERE uid = '{$this->dparam['user_id']}'",'all');
 		foreach ($uidLog_list as $k => &$v) {
 			if($v['status'] == 3) $v['price'] = $v['price'] * -1;
-			$v['msg'] = $v['score_info'];
 			$v['date_time'] = substr($v['date_time'], 0, -3);
 			unset($v['status']);
 		}
