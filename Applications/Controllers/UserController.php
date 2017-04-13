@@ -29,9 +29,11 @@ class UserController extends AppController
 	public function incomesLog()
 	{
 		empty($this->dparam['user_id']) && info('数据不完整',-1);
-		$uidLog_list = M()->query("SELECT l.createdAt as date_time,u.nickname as friend_name,l.price,l.status,l.score_info FROM ngw_income_log l JOIN ngw_uid u ON l.score_source = u.objectId WHERE uid = '{$this->dparam['user_id']}'",'all');
+		$sql = "SELECT l.createdAt as date_time,u.nickname as friend_name,l.price,l.status,l.score_info,l.score_type FROM ngw_income_log l LEFT JOIN ngw_uid u ON l.score_source = u.objectId WHERE uid = '{$this->dparam['user_id']}'";
+		$uidLog_list = M()->query($sql,'all');
 		foreach ($uidLog_list as $k => &$v) {
 			if($v['status'] == 3) $v['price'] = $v['price'] * -1;
+			if($v['score_type'] > 4) unset($v['friend_name']);
 			$v['date_time'] = substr($v['date_time'], 0, -3);
 			unset($v['status']);
 		}

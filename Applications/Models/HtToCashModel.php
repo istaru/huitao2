@@ -5,9 +5,9 @@ class HtToCashModel{
      * [duiba_stime 没值 表示正在申请提现的用户  duiba_stime有值 表示正在申请中  duiba_success 有值 表示提现成功 duiba_end_errmsg 有值 表示提现失败]
      */
     public  function   getApplyCash($data = []){
-        //如果参数中传了ID,就按照id查询，不论什么状态(申请中，已提现，已拒绝。。。)
+        //如果参数中传了流水ID,就按照流水id查询，不论什么状态(申请中，已提现，已拒绝。。。)
         if(isset($data['id'])){
-            return M('pnow')->where(['id' => ['=',$data['id']]])->select();
+            return M('pnow')->where(['objectId' => ['=',$data['id']]])->order('createdAt')->select();
 
         }
         //查询处理中的提现列表，即duiba_stime不为null，且duiba_success和duiba_end_errmsg为空，传参为duiba_stime=true
@@ -44,7 +44,7 @@ class HtToCashModel{
         else{
             $page = !empty($data['page']) ? $data['page'] : 1;
             //如果没有传参数，那么就查询所有状态的
-            $data['data']= M("pnow")->page($page,50)->select();
+            $data['data']= M("pnow")->order('createdAt')->page($page,50)->select();
             $data['sum']=M("pnow")->field('id')->count();
             return $data;
         }
