@@ -24,6 +24,24 @@ class UserController extends AppController
 
 	//{"user_id":"NPfk0woYpJ"}
 	/**
+	 * [incomesList 收入明细]
+	 */
+	public function incomesLog()
+	{
+		empty($this->dparam['user_id']) && info('数据不完整',-1);
+		$uidLog_list = M()->query("SELECT l.createdAt as date_time,u.nickname as friend_name,l.price,l.status,l.score_info FROM ngw_income_log l JOIN ngw_uid u ON l.score_source = u.objectId WHERE uid = '{$this->dparam['user_id']}'",'all');
+		foreach ($uidLog_list as $k => &$v) {
+			if($v['status'] == 3) $v['price'] = $v['price'] * -1;
+			$v['msg'] = $v['score_info'];
+			$v['date_time'] = substr($v['date_time'], 0, -3);
+			unset($v['status']);
+		}
+		info('请求成功',1,$uidLog_list);
+	}
+
+
+	//{"user_id":"NPfk0woYpJ"}
+	/**
 	 * [pnowLog 提现明细]
 	 */
 	public function pnowLog()
@@ -249,9 +267,9 @@ class UserController extends AppController
 		//取出用户拆红包对应的所有账单
 		$sql = "select * from ngw_uid_bill_log where type = 1 and uid = '{$this->dparam['user_id']}' and id in ($bill_ids)";
 		$data = M()->query($sql,'all');
-
 		foreach ($data as $v)
 			(ShopincomeController::getObj())->getReward($v);
+		info('红包领取,请查收!',1);
 
 	}
 

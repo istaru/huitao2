@@ -24,19 +24,15 @@ class ShopincomeController extends getRewardController
 		if(empty($data)) return;
 		//检查此账单对应的订单是否退单
 		if(!$this->checkBillType($data)){
-			// D($this->sql);
 			$this->execSql();
 			return;
 		};
-
 		if($data['score_type'] == 8)		//用户下单 自己提成
 			$this->rewardRule($data);
 		else if($data['score_type'] == 1)	//好友下单 师傅提成
 			$this->rewardSwitch($data);
 
-		// D($this->sql);
 		$this->execSql();
-		info('红包领取,请查收!',1);
 	}
 
 

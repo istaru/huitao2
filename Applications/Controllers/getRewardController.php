@@ -26,7 +26,8 @@ abstract class getRewardController
 
 		//更新此条账单状态
 		$this->sql[] = "update ngw_uid_bill_log set status = 2 where id = {$data['id']}";
-		$this->execSql();
+		// D($this->sql);
+
 	}
 
 
