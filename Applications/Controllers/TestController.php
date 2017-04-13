@@ -8,7 +8,7 @@ class TestController extends AppController
         }
     }
     public function a() {
-
+        (SuccShopIncomeController::getObj())->incomeHandle(['2960718718611576','2946998613943222']);
     }
 
 }

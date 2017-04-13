@@ -34,7 +34,7 @@ class ShareReportController extends Controller{
            // $this->platform_type = $_REQUEST["platform_type"];
 
             $this->platform_type_con = ' and type = '.$_REQUEST["platform_type"];
-          
+
         }else $this->platform_type_con = ' and type = 2';
 
 
@@ -45,13 +45,13 @@ class ShareReportController extends Controller{
     }
     public function index(){
         //!!*缺用户徒弟数
-        $sql = "select uid,share_type,count(num_iid) shares from gw_share_log where report_date BETWEEN '2017-01-16' and '2017-02-10' GROUP BY uid,share_type";
+        $sql = "select uid,share_type,count(num_iid) shares from ngw_share_log where report_date BETWEEN '2017-01-16' and '2017-02-10' GROUP BY uid,share_type";
 
     }
 
     public function total_report_chart(){
 
-        $sql = "select report_date,new_user,order_num,order_sales,order_benifit,order_back,order_back_fee,active_user,share_num,share_rate,invited_user from gw_total_daily_report where report_date between '".$this->sdate."' and '".$this->edate."'".$this->platform_type_con.' order by report_date asc';
+        $sql = "select report_date,new_user,order_num,order_sales,order_benifit,order_back,order_back_fee,active_user,share_num,share_rate,invited_user from ngw_total_daily_report where report_date between '".$this->sdate."' and '".$this->edate."'".$this->platform_type_con.' order by report_date asc';
         //echo $sql;exit;
         $result = db_query($sql,"",array(),shoppingCon());
 

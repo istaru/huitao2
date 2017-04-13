@@ -1,6 +1,6 @@
 <?php
 date_default_timezone_set('Asia/Shanghai');
-class  HtToCashController extends HtController {
+class  HtToCashController {
     //查询提现申请
      function querycashapply(){
          $data = A('HtToCash:getApplyCash',[$_POST]);

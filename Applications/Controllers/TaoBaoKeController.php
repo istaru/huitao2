@@ -29,7 +29,6 @@ class TaoBaoKeController extends AppController {
         $order = (json_decode(file_get_contents('http://localhost/test/2.json'), true))['tmc_message'];
         //存储付款成功以及退款成功的单号
         $paymentSuccess = $refundSuccess = [];
-        $this->allAuctionId = '';
         foreach($order as $v) {
             $content = json_decode($v['content'], true);
             //映射对应的订单状态
@@ -79,7 +78,6 @@ class TaoBaoKeController extends AppController {
         if(!empty($results)) {
             $sql = 'INSERT INTO gw_goods_online('.('`'.implode('`,`', array_keys($this->setFileds([], 'goods_online'))).'`').') VALUES ';
             foreach($results as $v) {
-
                 $v['small_images']  = json_encode($v['small_images'], JSON_UNESCAPED_UNICODE);  //小图列表
                 $v['store_type']    = $v['mall'] ? 0 : 1;   //平台类型
                 $v['rating']        = $v['tk_rate'] / 100;  //淘宝客佣金比率
@@ -97,7 +95,7 @@ class TaoBaoKeController extends AppController {
     }
     private function addOrder($data) {
         if(!empty($data)) {
-            $sql = 'INSERT IGNORE INTO gw_order_status('.('`'.implode('`,`', array_keys($this->setFileds())).'`').') VALUES ';
+            $sql = 'INSERT IGNORE INTO ngw_order_status('.('`'.implode('`,`', array_keys($this->setFileds())).'`').') VALUES ';
             foreach($data as $v) {
                 $v = $this->replaceField($v, [
                     'tid'        => 'order_id',
@@ -122,7 +120,7 @@ class TaoBaoKeController extends AppController {
                 }
             }
             return M()->query(rtrim($sql, ','));
-        } else return;
+        }
     }
     //字段替换
     public function replaceField($data, $key) {

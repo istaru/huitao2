@@ -21,7 +21,7 @@ class TaskincomeController extends getRewardController
 	public function getRewardForTask($data)
 	{
 		//直接余额
-		$this->sql[] = " update gw_uid set price = price + {$data['cost']} where objectId = {$data['uid']} ";
+		$this->sql[] = " update ngw_uid set price = price + {$data['cost']} where objectId = {$data['uid']} ";
 		$this->createSql($data,2,$data['cost'],"恭喜您,获得任务红包{$data['cost']}元!");
 	}
 }

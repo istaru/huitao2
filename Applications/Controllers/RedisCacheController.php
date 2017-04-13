@@ -1,5 +1,5 @@
 <?php
-   
+
     class RedisCacheController{
 
         public $task_info_key = "task_info_";
@@ -23,7 +23,7 @@
 
 
 
-       
+
 
         public $click_data_key = "click_data_";
 
@@ -41,7 +41,7 @@
         public $date;
 
         function __construct(){
-           
+
 
             // echo 2;
             $this->expire_cyc = 3600 * 24 * 7;
@@ -53,7 +53,7 @@
                 system("/usr/bin/redis-server");
 
                 $this->redis = $this->connectRedis();
-            
+
             }//redis挂了
             if(!$this->redis)echo "redis down...";
 
@@ -64,7 +64,7 @@
 
 
             $n=3;
-            
+
             for($i=0;$i<$n;$i++){
                 //点击行为记录
                 $click_data = array("num_iid"=>23423443,"uid"=>"svldsjf".$i,"click"=>$i,"type"=>2,"report_date"=>$this->date);
@@ -93,9 +93,9 @@
 
             if($this->redis)return $this->redis;
 
-            $this->redis = new redis(); 
-            
-            $r = $this->redis->connect('127.0.0.1', 6379); 
+            $this->redis = new redis();
+
+            $r = $this->redis->connect('127.0.0.1', 6379);
 
             if(!$r)return null;
 
@@ -117,7 +117,7 @@
         //action:动作0-click 1-purchase
         public function readUidClickInfo($length=2000){
 
-             return $this->readRedisInfo($length,$this->click_data_key,"gw_click_log");
+             return $this->readRedisInfo($length,$this->click_data_key,"ngw_click_log");
         }
 
         //插入分享数据
@@ -129,7 +129,7 @@
          //记录用户分享数据
         public function readUidShareInfo($length=2000){
 
-             return $this->readRedisInfo($length,$this->share_data_key,"gw_share_log");
+             return $this->readRedisInfo($length,$this->share_data_key,"ngw_share_log");
         }
 
 
@@ -142,14 +142,14 @@
         //记录用户搜索信息
         public function readUidSearchInfo($length=2000){
 
-             return $this->readRedisInfo($length,$this->search_data_key,"gw_search_log");
+             return $this->readRedisInfo($length,$this->search_data_key,"ngw_search_log");
         }
 
         //存入redis数据
         //param : 每次取出的数据
         //date
         public function readRedisInfo($length=2000,$key,$insert_table){
-            
+
              $date =  $this->date;
 
              $redis_key = $key.$date;
@@ -159,22 +159,22 @@
              $loop = ceil( $total / $length );
              //echo "loop:".$loop."<br>.";
              for($index=0;$index<$loop;$index++){
-                   
+
                  $datas = $this->redis->lrange($redis_key,0,$length-1);
-                 
+
                  $start = count($datas);
-                 
+
                  if($start){
 
                     $deal_data = array();
-                    
+
                     foreach ($datas as $k => $v) {
                         //$v是空值
                         if($v!==null)
                             //解码存入
                             $deal_data[] = json_decode($v,true);
 
-                    }   
+                    }
                     //print_r($deal_data);exit;
                     //批量插入，不是二维
                     if(!is_array($deal_data[0])){
@@ -183,14 +183,14 @@
                         continue;
                     };
                     //批量插入
-                    list($sql,$insert_data) = fetchInsertMoreSql($insert_table,array_keys($deal_data[0]),$deal_data,false,$this->pdo);               
+                    list($sql,$insert_data) = fetchInsertMoreSql($insert_table,array_keys($deal_data[0]),$deal_data,false,$this->pdo);
                     //echo $sql;print_r($insert_data);//exit;
-                    $rt = db_execute($sql,$this->db,$insert_data,$this->pdo); 
+                    $rt = db_execute($sql,$this->db,$insert_data,$this->pdo);
                     //echo $rt;
-                    if($rt!==false){     
+                    if($rt!==false){
                         //清掉这部分内存
                         $r = $this->redis->ltrim($redis_key,$start,-1);
-                       
+
                         //if($r<=0)return $r;//xreturn("clear redis ".$this->click_data_key.date("Y-m-d")." unvalid.");
 
                         //else return $r;
@@ -205,7 +205,7 @@
             return 1;
         }
 
-        
+
 
         public function insertUidPurchaseData($data){
             //将用户数据存入LIst的末尾。
@@ -223,11 +223,11 @@
         }
 
 
-        
+
 
     }
 
-             
+
         //$RedisCache = new RedisCacheController();
         //$RedisCache->llen("list");exit;
         //$task->fetchIdfa(452186370);

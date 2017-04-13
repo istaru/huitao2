@@ -38,7 +38,7 @@ class TaoBaoAuthController extends AppController
             }
             M()->commit();
             //分享链接过来的用户如果还没绑定好友关系的 就去绑定
-            if($name = M()->query("SELECT * FROM gw_friend_log WHERE phone = (select phone from gw_uid where objectId='{$data['user_id']}') AND status=1", 'single'))
+            if($name = M()->query("SELECT * FROM ngw_friend_log WHERE phone = (select phone from ngw_uid where objectId='{$data['user_id']}') AND status=1", 'single'))
                 !(new UserController)->bindMasters(false, $data['user_id'], $name['sfuid']) OR M('friend_log')->where(['phone' => ['=', $name['phone']]])->save(['status' => 2]);
 
             info('授权成功',1);

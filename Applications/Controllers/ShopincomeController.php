@@ -60,7 +60,7 @@ class ShopincomeController extends getRewardController
 	*/
 	public function checkIncomesNum($uid,$score_source)
 	{
-		$sql = "select id from gw_uid_log where uid = '{$uid}' and score_source = '{$score_source}' and score_type = 3 ";
+		$sql = "select id from ngw_uid_log where uid = '{$uid}' and score_source = '{$score_source}' and score_type = 3 ";
 		// echo $sql;die;
 		$ids = M()->query($sql,'all');
 		return count($ids);
@@ -106,9 +106,9 @@ class ShopincomeController extends getRewardController
 	{
 
 		if($data['status'] == 3){   //退单导致此账单失效
-			$this->sql[] = "insert into gw_message (uid,bid,content,report_date) values ('{$data['uid']}',{$data['id']},'订单{$data['order_id']}退单,导致此红包失效!','".(date('Y-m-d',time()))."')";
+			$this->sql[] = "insert into ngw_message (uid,bid,content,report_date) values ('{$data['uid']}',{$data['id']},'订单{$data['order_id']}退单,导致此红包失效!','".(date('Y-m-d',time()))."')";
 
-			$this->sql[] = "update gw_message set status = 2 where uid = '{$data['uid']}' and status = 1 and type = 2 and bid = {$data['id']}";
+			$this->sql[] = "update ngw_message set status = 2 where uid = '{$data['uid']}' and status = 1 and type = 2 and bid = {$data['id']}";
 			return false;
 		}
 		return true;

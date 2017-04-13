@@ -24,7 +24,7 @@ class UidModel
 		$uid_data['nickname'] = $uid_data['objectId'];
 		$uid_data['report_date'] = date('Y-m-d',time());
 		$uid_data['head_img'] = RES_SITE."shoppingResource/head/".rand(1,2).".jpg";
-		$num = M()->query('select id from gw_uid order by id desc limit 1');
+		$num = M()->query('select id from ngw_uid order by id desc limit 1');
 		$uid_data['Invitation_code'] = generateInvitationCode($num['id']);
 		if(M('uid')->add($uid_data,$status))
 			return $uid_data['objectId'];
@@ -70,7 +70,7 @@ class UidModel
 			}else{
 				$output = randstr(10,'MIX');
 			}
-			$ck = M()->query("SELECT count(0) as count FROM gw_uid WHERE `objectId` = '".$output."'",'single');
+			$ck = M()->query("SELECT count(0) as count FROM ngw_uid WHERE `objectId` = '".$output."'",'single');
 			$i++;
 		} while ((int)$ck['count'] > 0);
 		return $output;

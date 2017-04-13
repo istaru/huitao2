@@ -1,11 +1,11 @@
 <?php
 class ScriptController extends Controller
 {
-	//SELECT * FROM gw_uid_log WHERE createdAt < date_sub(curdate(),interval 7 day)
+	//SELECT * FROM ngw_uid_log WHERE createdAt < date_sub(curdate(),interval 7 day)
 	public function Income()
 	{
 		//查出uid_log中所有 当前天数-7天内的 状态是预估的收入记录
-		$list = M()->query("SELECT id,uid,price,order_id,score_source,score_type,score_info FROM gw_uid_log WHERE createdAt < date_sub(curdate(),interval 10 day) AND status = 1",'all');
+		$list = M()->query("SELECT id,uid,price,order_id,score_source,score_type,score_info FROM ngw_uid_log WHERE createdAt < date_sub(curdate(),interval 10 day) AND status = 1",'all');
 		// D($list);die;
 		if(empty($list)) die;
 		//遍历结果
@@ -33,15 +33,15 @@ class ScriptController extends Controller
 		$str3 = rtrim($str3,',');
 		M()->startTrans();
 		try {
-			$sql = "UPDATE gw_uid_log SET status = 2 WHERE id IN ($id_lists)";
+			$sql = "UPDATE ngw_uid_log SET status = 2 WHERE id IN ($id_lists)";
 			//根据id,update 每个用户的price
-			$sql2 = "UPDATE gw_uid
+			$sql2 = "UPDATE ngw_uid
 						SET price = price + CASE objectId".
 							$str
 					."ELSE 0 END";
-			$sql3 = "INSERT INTO gw_message (uid,content)
+			$sql3 = "INSERT INTO ngw_message (uid,content)
 						VALUES $str2";
-			$sql4 = "INSERT INTO gw_income_log (order_id,uid,status,score_source,score_type,score_info,price)
+			$sql4 = "INSERT INTO ngw_income_log (order_id,uid,status,score_source,score_type,score_info,price)
 						VALUES $str3";
 			M()->query($sql);
 			M()->query($sql2);

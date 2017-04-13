@@ -70,9 +70,9 @@ class GoodsController extends Controller{
         return $this->inputGoodsTable();
 
     }
-    //热销商品 
+    //热销商品
     public function hot_sell_goods(){
-        $sql = "select num_iid,rating,price,top from gw_goods where created_date = '2017-01-11'";
+        $sql = "select num_iid,rating,price,top from ngw_goods where created_date = '2017-01-11'";
         $rt = db_query($sql,$this->db,array(),$this->pdo);
         //print_r($rt);
     }
@@ -87,7 +87,7 @@ class GoodsController extends Controller{
 
             $date =  $this->date;
 
-            $sql = "select count(0) from gw_goods where created_date = '".$date."'";
+            $sql = "select count(0) from ngw_goods where created_date = '".$date."'";
 
             $count = db_query_singal($sql,$this->db,array(),$this->pdo);
 
@@ -98,34 +98,34 @@ class GoodsController extends Controller{
 
             $sql_list = array();
 
-            $sql_list[] = "DELETE FROM gw_goods_ware WHERE created_date = '".$date."'";
+            $sql_list[] = "DELETE FROM ngw_goods_ware WHERE created_date = '".$date."'";
 
 
-            $insert_sql = "insert into gw_goods_ware(
+            $insert_sql = "insert into ngw_goods_ware(
 
                         num_iid,coupon_id,created_date,title,pict_url,item_url,category,promotion_url,price,volume,rating,
 
-                seller_id,seller_name,store_name,store_type,top,taobao_cid,gw_id,sum,num,val,
+                seller_id,seller_name,store_name,store_type,top,taobao_cid,ngw_id,sum,num,val,
 
                     limited,reduce,start_time,end_time,url,coupon_url,discount,deal_price)";
 
 
             $sql =  "SELECT a.num_iid,a.coupon_id,a.created_date,title,pict_url,item_url,category,promotion_url,price,volume,rating,
 
-                seller_id,seller_name,store_name,store_type,top,taobao_cid,gw_id,sum,num,val,
+                seller_id,seller_name,store_name,store_type,top,taobao_cid,ngw_id,sum,num,val,
 
                     limited,reduce,start_time,end_time,url,coupon_url,IF(price>reduce and price>=limited,(price-reduce)/price*100,0) discount,IF(price>reduce and price>=limited,price-reduce,0) deal_price from
 
-                (SELECT a.*,b.id gw_id,b.taobao_cid,b.name from
+                (SELECT a.*,b.id ngw_id,b.taobao_cid,b.name from
 
                     (
-                        select * from gw_goods where created_date = '".$date."'
+                        select * from ngw_goods where created_date = '".$date."'
 
-                    )a LEFT JOIN gw_category b on a.category = b.taobao_category_name
+                    )a LEFT JOIN ngw_category b on a.category = b.taobao_category_name
 
                 )a left JOIN (
 
-                    select * from gw_goods_coupon where created_date = '".$date."'
+                    select * from ngw_goods_coupon where created_date = '".$date."'
 
                 )b on a.num_iid = b.num_iid and a.coupon_id = b.coupon_id";
             //echo $sql;exit;
@@ -151,26 +151,26 @@ class GoodsController extends Controller{
     public function filterRuleFirst(){
 
         /*$sql = "select num_iid,coupon_id,title,pict_url,item_url,category,promotion_url,price,volume,rating,seller_id,seller_name,
-                store_name,store_type,top,created_date,taobao_cid,gw_id,sum,num,val,limited,reduce,discount,deal_price,
-                start_time,end_time,url,coupon_url from gw_goods_ware where created_date = '".$this->date."'";
+                store_name,store_type,top,created_date,taobao_cid,ngw_id,sum,num,val,limited,reduce,discount,deal_price,
+                start_time,end_time,url,coupon_url from ngw_goods_ware where created_date = '".$this->date."'";
         */
 
         $con_sql = "SELECT a.num_iid,a.coupon_id,a.created_date,title,pict_url,item_url,category,promotion_url,price,volume,rating,
 
-                seller_id,seller_name,store_name,store_type,top,taobao_cid,gw_id,gw_name,gw_pid,sum,num,val,
+                seller_id,seller_name,store_name,store_type,top,taobao_cid,ngw_id,ngw_name,ngw_pid,sum,num,val,
 
                     limited,reduce,start_time,end_time,url,coupon_url,IF(price>reduce and price>=limited,(price-reduce)/price*100,0) discount,IF(price>reduce and price>=limited,price-reduce,0) deal_price from
 
-                (SELECT a.*,b.id gw_id,b.taobao_cid,b.name gw_name,b.pid gw_pid from
+                (SELECT a.*,b.id ngw_id,b.taobao_cid,b.name ngw_name,b.pid ngw_pid from
 
                     (
-                        select * from gw_goods where created_date = '".$this->date."'
+                        select * from ngw_goods where created_date = '".$this->date."'
 
-                    )a LEFT JOIN gw_category b on a.category = b.taobao_category_name where pid > 0
+                    )a LEFT JOIN ngw_category b on a.category = b.taobao_category_name where pid > 0
 
                 )a left JOIN (
 
-                    select * from gw_goods_coupon where created_date = '".$this->date."'
+                    select * from ngw_goods_coupon where created_date = '".$this->date."'
 
                 )b on a.num_iid = b.num_iid and a.coupon_id = b.coupon_id";
 
@@ -178,7 +178,7 @@ class GoodsController extends Controller{
 
 
         $sql = "select num_iid,coupon_id,title,pict_url,item_url,category,promotion_url,price,volume,rating,seller_id,seller_name,
-                store_name,store_type,top,created_date,taobao_cid,gw_id,gw_name,gw_pid,sum,num,val,limited,reduce,discount,deal_price,
+                store_name,store_type,top,created_date,taobao_cid,ngw_id,ngw_name,ngw_pid,sum,num,val,limited,reduce,discount,deal_price,
                 start_time,end_time,url,coupon_url from "."(".$con_sql.")t"." where created_date = '".$this->date."'";
 
 
@@ -217,14 +217,14 @@ class GoodsController extends Controller{
 
            //$date =  $this->date;
 
-            $delete_sql = "DELETE FROM gw_goods_online WHERE created_date = '".$this->date."'";
+            $delete_sql = "DELETE FROM ngw_goods_online WHERE created_date = '".$this->date."'";
 
             $filter_sql = $this->filterRuleFirst();
             //echo $filter_sql;exit;
            // if(!$filter_sql)
-            $insert_sql = "insert into gw_goods_online(
+            $insert_sql = "insert into ngw_goods_online(
                 num_iid,coupon_id,title,pict_url,item_url,category,promotion_url,price,volume,rating,seller_id,seller_name,
-                store_name,store_type,top,created_date,taobao_cid,gw_id,gw_name,gw_pid,sum,num,val,limited,reduce,discount,deal_price,
+                store_name,store_type,top,created_date,taobao_cid,ngw_id,ngw_name,ngw_pid,sum,num,val,limited,reduce,discount,deal_price,
                 start_time,end_time,url,coupon_url)".$filter_sql;
            //echo $insert_sql;exit;
 
@@ -233,24 +233,24 @@ class GoodsController extends Controller{
             if($rt){
                 /*
                  //!!去掉已经存在的相同的商品,这些商品不再次作为新品展示
-                $sql = "select num_iid from gw_goods_online WHERE created_date = '".$this->date."' order by discount";
+                $sql = "select num_iid from ngw_goods_online WHERE created_date = '".$this->date."' order by discount";
                // echo $sql;
                 $num_iid = db_query_col($sql,$this->db,array(),$this->pdo);
                 //print_r($num_iid);exit;
                 if(count($num_iid)==0){ echo "no data";return;}
-                                
-                //$sql_list[] = "DELETE FROM  gw_goods_online where status = 1 and created_date <'".$this->date."' and num_iid in(".implode(",",$num_iid).")";
-                $sql_list[] = "UPDATE gw_goods_online SET status = 0 where status = 1 and created_date <'".$this->date."' and num_iid in(".implode(",",$num_iid).")";
+
+                //$sql_list[] = "DELETE FROM  ngw_goods_online where status = 1 and created_date <'".$this->date."' and num_iid in(".implode(",",$num_iid).")";
+                $sql_list[] = "UPDATE ngw_goods_online SET status = 0 where status = 1 and created_date <'".$this->date."' and num_iid in(".implode(",",$num_iid).")";
                 */
-               
-                $sql = "select distinct(num_iid) from gw_goods_online WHERE created_date = '".$this->date."'";
+
+                $sql = "select distinct(num_iid) from ngw_goods_online WHERE created_date = '".$this->date."'";
 
                 $all_num_iid = db_query_col($sql,$this->db,array(),$this->pdo);
                  //!!*去掉已经存在的相同的商品,这些商品不再次作为新品展示
                  //!取出了已经在货架的商品，
-                $sql = "select num_iid from gw_goods_online where status = 1 GROUP BY num_iid having count(0) > 1";
-                //$sql = "select num_iid from gw_goods_online where num_iid in (" . implode(",",$all_num_iid) . ") GROUP BY num_iid having count(0) > 1";
-                //$sql = "select distinct(num_iid) from gw_goods_online where GROUP BY num_iid having count(0) > 1";
+                $sql = "select num_iid from ngw_goods_online where status = 1 GROUP BY num_iid having count(0) > 1";
+                //$sql = "select num_iid from ngw_goods_online where num_iid in (" . implode(",",$all_num_iid) . ") GROUP BY num_iid having count(0) > 1";
+                //$sql = "select distinct(num_iid) from ngw_goods_online where GROUP BY num_iid having count(0) > 1";
                // echo $sql;
                 $repeat_num_iid = db_query_col($sql,$this->db,array(),$this->pdo);
 
@@ -258,9 +258,9 @@ class GoodsController extends Controller{
                 //echo $sql;exit;
                 //$rt = db_execute($sql,$this->db,array(),shoppingCon());
 
-                $sql_list[] = "delete from gw_goods_sort where type = 2";
+                $sql_list[] = "delete from ngw_goods_sort where type = 2";
 
-                $insert_sql = "insert into gw_goods_sort(num_iid,sort,type)values";
+                $insert_sql = "insert into ngw_goods_sort(num_iid,sort,type)values";
 
                 $insert_val = "";
 
@@ -280,7 +280,7 @@ class GoodsController extends Controller{
                 $sql_list[] = $temp_sql;
                // print_r($sql_list);exit;
                 $rt = db_transaction($this->pdo, $sql_list);
-               
+
                 if($rt)//return true;//echo date("Y-m-d H:i:s").":transcation goods success.\r\n";
                     $r = ssreturn(1,date("Y-m-d H:i:s").":transcation goods success.",1,1);
                 else //return false;//echo date("Y-m-d H:i:s").":transcation goods fail.\r\n";
@@ -289,14 +289,14 @@ class GoodsController extends Controller{
 
             }
             else {
-               
+
                 if($rt===0)//echo date("Y-m-d H:i:s").":transcation goods success.\r\n";
                     $r = ssreturn(1,date("Y-m-d H:i:s").":transcation goods success.",1,1);
 
                 else //echo date("Y-m-d H:i:s").":transcation goods fail.\r\n";
                     $r = ssreturn(0,date("Y-m-d H:i:s").":transcation goods fail.",1,1);
             }
-            
+
            return $r;
 
     }

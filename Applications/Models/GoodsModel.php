@@ -11,7 +11,7 @@ class GoodsModel
 			$goods_list = M()->query("SELECT sort,id,name,stock, price_pre,price_cut,price,icon_url,goods_url,vocher_url FROM
 (
 SELECT s.sort,o.num_iid as id,o.title as name,o.volume as stock,o.price as price_pre,o.reduce as price_cut,deal_price as price,o.pict_url as icon_url,o.item_url as goods_url,o.url as vocher_url FROM
- (SELECT num_iid,(sort % 1000) as sort FROM gw_goods_sort) s JOIN gw_goods_online o on s.num_iid = o.num_iid ".$this->notInGood()."
+ (SELECT num_iid,(sort % 1000) as sort FROM ngw_goods_sort) s JOIN ngw_goods_online o on s.num_iid = o.num_iid ".$this->notInGood()."
 )o GROUP BY o.icon_url  ORDER BY sort ASC",'all',$status);
 			$arr = [];
 			// D($goods_list);die;
@@ -45,11 +45,11 @@ SELECT s.sort,o.num_iid as id,o.title as name,o.volume as stock,o.price as price
 	public function getPageGoodsListSearch($page=0,$len=10,$where=1,$status=true)
 	{
 		$limit = " limit {$page} , {$len} ";
-		// $goods_list = M()->query("SELECT o.num_iid as id,o.title as name,o.volume as stock,o.price as price_pre,o.reduce as price_cut,deal_price as price,o.pict_url as icon_url,o.item_url as goods_url,o.url as vocher_url FROM (SELECT * FROM(SELECT num_iid,(sort % 1000) as sort FROM gw_goods_sort) s ORDER BY sort ASC) s JOIN gw_goods_online o on s.num_iid = o.num_iid where".$where.$limit,'all',$status);
+		// $goods_list = M()->query("SELECT o.num_iid as id,o.title as name,o.volume as stock,o.price as price_pre,o.reduce as price_cut,deal_price as price,o.pict_url as icon_url,o.item_url as goods_url,o.url as vocher_url FROM (SELECT * FROM(SELECT num_iid,(sort % 1000) as sort FROM ngw_goods_sort) s ORDER BY sort ASC) s JOIN ngw_goods_online o on s.num_iid = o.num_iid where".$where.$limit,'all',$status);
 		$sql = "SELECT sort,id,name,stock, price_pre,price_cut,price,icon_url,goods_url,vocher_url FROM
 (
 SELECT s.sort,o.num_iid as id,o.title as name,o.volume as stock,o.price as price_pre,o.reduce as price_cut,deal_price as price,o.pict_url as icon_url,o.item_url as goods_url,o.url as vocher_url FROM
- (SELECT num_iid,(sort % 1000) as sort FROM gw_goods_sort) s JOIN gw_goods_online o on s.num_iid = o.num_iid ".$this->notInGood().' and '.$where."
+ (SELECT num_iid,(sort % 1000) as sort FROM ngw_goods_sort) s JOIN ngw_goods_online o on s.num_iid = o.num_iid ".$this->notInGood().' and '.$where."
 
 )o GROUP BY o.icon_url  ORDER BY sort ASC";
 		$goods_list = M()->query($sql,'all',$status);
@@ -66,11 +66,11 @@ SELECT s.sort,o.num_iid as id,o.title as name,o.volume as stock,o.price as price
 	{
 		if(!R()->exisit('allGoodsLists'))
 		{
-			// $goods_list = M()->query("SELECT o.num_iid as id,o.title as name,o.volume as stock,o.price as price_pre,o.reduce as price_cut,deal_price as price,o.pict_url as icon_url,o.item_url as goods_url,o.url as vocher_url FROM (SELECT * FROM(SELECT num_iid,(sort % 1000) as sort FROM gw_goods_sort) s ORDER BY sort ASC) s JOIN gw_goods_online o on s.num_iid = o.num_iid",'all',$status);
+			// $goods_list = M()->query("SELECT o.num_iid as id,o.title as name,o.volume as stock,o.price as price_pre,o.reduce as price_cut,deal_price as price,o.pict_url as icon_url,o.item_url as goods_url,o.url as vocher_url FROM (SELECT * FROM(SELECT num_iid,(sort % 1000) as sort FROM ngw_goods_sort) s ORDER BY sort ASC) s JOIN ngw_goods_online o on s.num_iid = o.num_iid",'all',$status);
 			$goods_list = M()->query("SELECT sort,id,name,stock, price_pre,price_cut,price,icon_url,goods_url,vocher_url FROM
 (
 SELECT s.sort,o.num_iid as id,o.title as name,o.volume as stock,o.price as price_pre,o.reduce as price_cut,deal_price as price,o.pict_url as icon_url,o.item_url as goods_url,o.url as vocher_url FROM
- (SELECT num_iid,(sort % 1000) as sort FROM gw_goods_sort) s JOIN gw_goods_online o on s.num_iid = o.num_iid
+ (SELECT num_iid,(sort % 1000) as sort FROM ngw_goods_sort) s JOIN ngw_goods_online o on s.num_iid = o.num_iid
 ".$this->notInGood()."
 )o GROUP BY o.icon_url  ORDER BY sort ASC",'all',$status);
 
@@ -96,7 +96,7 @@ SELECT s.sort,o.num_iid as id,o.title as name,o.volume as stock,o.price as price
 			$goods_list = M()->query("SELECT sort,id,name,stock, price_pre,price_cut,price,icon_url,goods_url,vocher_url FROM
 (
 SELECT s.sort,o.num_iid as id,o.title as name,o.volume as stock,o.price as price_pre,o.reduce as price_cut,deal_price as price,o.pict_url as icon_url,o.item_url as goods_url,o.url as vocher_url FROM
- (SELECT num_iid,(sort % 1000) as sort FROM gw_goods_sort) s JOIN gw_goods_online o on s.num_iid = o.num_iid
+ (SELECT num_iid,(sort % 1000) as sort FROM ngw_goods_sort) s JOIN ngw_goods_online o on s.num_iid = o.num_iid
 ".$this->notInGood().' and '.$where."
 )o GROUP BY o.icon_url  ORDER BY sort ASC",'all',$status);
 			R()->addListAll($type,array_reverse($goods_list));
@@ -124,7 +124,7 @@ SELECT s.sort,o.num_iid as id,o.title as name,o.volume as stock,o.price as price
 
 		if(!R()->exisit('today'))
 		{
-			$goods_list = M()->query("SELECT sort,id,name,stock, price_pre,price_cut,price,icon_url,goods_url,vocher_url FROM ( SELECT s.sort,o.num_iid as id,o.title as name,o.volume as stock,o.price as price_pre,o.reduce as price_cut,deal_price as price,o.pict_url as icon_url,o.item_url as goods_url,o.url as vocher_url FROM (SELECT * FROM gw_goods_sort where sort > 1000 ORDER BY sort ASC) s JOIN (SELECT * FROM gw_goods_online ORDER BY top desc,created_date DESC )o on s.num_iid = o.num_iid ".$this->notInGood()."  ) o ORDER BY sort ASC",'all',$status);
+			$goods_list = M()->query("SELECT sort,id,name,stock, price_pre,price_cut,price,icon_url,goods_url,vocher_url FROM ( SELECT s.sort,o.num_iid as id,o.title as name,o.volume as stock,o.price as price_pre,o.reduce as price_cut,deal_price as price,o.pict_url as icon_url,o.item_url as goods_url,o.url as vocher_url FROM (SELECT * FROM ngw_goods_sort where sort > 1000 ORDER BY sort ASC) s JOIN (SELECT * FROM ngw_goods_online ORDER BY top desc,created_date DESC )o on s.num_iid = o.num_iid ".$this->notInGood()."  ) o ORDER BY sort ASC",'all',$status);
 
 			R()->addListAll('today',array_reverse($goods_list));
 			R()->setExpire('today',36000);
@@ -210,10 +210,10 @@ SELECT s.sort,o.num_iid as id,o.title as name,o.volume as stock,o.price as price
 	 */
 	private function notInGood()
 	{
-		$list = M()->query('SELECT o.num_iid FROM (SELECT * FROM gw_goods_sort ORDER BY sort ASC) s JOIN gw_goods_online o on s.num_iid = o.num_iid where  created_date = curdate()   GROUP BY o.title having count(0)>1
+		$list = M()->query('SELECT o.num_iid FROM (SELECT * FROM ngw_goods_sort ORDER BY sort ASC) s JOIN ngw_goods_online o on s.num_iid = o.num_iid where  created_date = curdate()   GROUP BY o.title having count(0)>1
 	UNION
 	SELECT o.num_iid FROM
-	(SELECT * FROM gw_goods_sort ORDER BY sort ASC) s JOIN gw_goods_online o on s.num_iid = o.num_iid
+	(SELECT * FROM ngw_goods_sort ORDER BY sort ASC) s JOIN ngw_goods_online o on s.num_iid = o.num_iid
 	where  created_date = curdate()   GROUP BY o.pict_url having  count(o.pict_url)>1','all');
 		if(!empty($list))
 		{
@@ -231,7 +231,7 @@ SELECT s.sort,o.num_iid as id,o.title as name,o.volume as stock,o.price as price
 	 */
 	public function getTypes()
 	{
-		return M()->query('select pid as id ,name from gw_category  where me is not null group by name order by pid asc','all');
+		return M()->query('select pid as id ,name from ngw_category  where me is not null group by name order by pid asc','all');
 	}
 
 	/**

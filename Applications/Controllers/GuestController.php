@@ -5,7 +5,7 @@ class GuestController {
         $start_time = $params['start_time'];
         $end_time   = $params['end_time'];
         //查出特邀用户人数
-        $sql = "SELECT count(0) sum FROM gw_uid WHERE power = 2 and createdAt BETWEEN '{$start_time}' AND '{$end_time}'";
+        $sql = "SELECT count(0) sum FROM ngw_uid WHERE power = 2 and createdAt BETWEEN '{$start_time}' AND '{$end_time}'";
         $sum = M('uid')->query($sql,'single');
         $sum['sum'] or info('还没有邀请人呢');
         $gather['sumGuest'] = $sum['sum'];
@@ -13,8 +13,8 @@ class GuestController {
          * 查询出特邀用户邀请的用户人
          */
         $sql = 'SELECT a.phone uid , c.nickname , c.phone,c.createdAt FROM(
-            SELECT * FROM gw_uid WHERE power = 2 '.(empty($params['uid']) ? '' : "AND phone = '{$params['uid']}'")."AND createdAt BETWEEN '{$start_time}' AND '{$end_time}'".') a
-            LEFT JOIN( SELECT uid , score_source FROM gw_uid_log WHERE score_type = 2) b ON b.uid = a.objectId LEFT JOIN( SELECT objectId , nickname , createdAt,phone FROM gw_uid) c ON c.objectId = b.score_source';
+            SELECT * FROM ngw_uid WHERE power = 2 '.(empty($params['uid']) ? '' : "AND phone = '{$params['uid']}'")."AND createdAt BETWEEN '{$start_time}' AND '{$end_time}'".') a
+            LEFT JOIN( SELECT uid , score_source FROM ngw_uid_log WHERE score_type = 2) b ON b.uid = a.objectId LEFT JOIN( SELECT objectId , nickname , createdAt,phone FROM ngw_uid) c ON c.objectId = b.score_source';
         $data = M()->query($sql, 'all');
         if(!$type)
             return $data;

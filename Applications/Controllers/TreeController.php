@@ -15,7 +15,7 @@ class TreeController
         if(empty($this->param['pid'])) info('参数不全',-1);
         //检查父节点
         if(!empty($this->param['pid'])){
-            $sql = "SELECT * FROM gw_category WHERE id = '{$this->param['pid']}'";
+            $sql = "SELECT * FROM ngw_category WHERE id = '{$this->param['pid']}'";
             $p_info = M()->query($sql,'single');
         }else{//模拟需要用到的父节点值
             $p_info = ['id'=>0,'depth'=>0,'right'=>1,'name'=>null];
@@ -24,13 +24,13 @@ class TreeController
         M()->startTrans();
         try {
             if(!empty($this->param['pid'])){
-                $sql = "UPDATE gw_category SET `right` = `right`+2 WHERE `right` >= {$p_info['right']}";
+                $sql = "UPDATE ngw_category SET `right` = `right`+2 WHERE `right` >= {$p_info['right']}";
                 M()->query($sql);
 
-                $sql = "UPDATE gw_category SET `left` = `left`+2 WHERE `left` >= {$p_info['right']}";
+                $sql = "UPDATE ngw_category SET `left` = `left`+2 WHERE `left` >= {$p_info['right']}";
                 M()->query($sql);
             }
-            $sql = "INSERT INTO gw_category (`pid`,`pname`,`name`,`depth`,`left`,`right`) VALUES ({$p_info['id']},'{$p_info['name']}','{$this->param['node']}',{$p_info['depth']}+1,{$p_info['right']},{$p_info['right']}+1)";
+            $sql = "INSERT INTO ngw_category (`pid`,`pname`,`name`,`depth`,`left`,`right`) VALUES ({$p_info['id']},'{$p_info['name']}','{$this->param['node']}',{$p_info['depth']}+1,{$p_info['right']},{$p_info['right']}+1)";
             M()->query($sql);
 
         } catch (Exception $e) {
@@ -47,23 +47,23 @@ class TreeController
     public function delnode()
     {
         if(empty($this->param['id'])) info('参数不全',-1);
-        $sql = "SELECT * FROM gw_category WHERE `id` = '{$this->param['id']}'";
+        $sql = "SELECT * FROM ngw_category WHERE `id` = '{$this->param['id']}'";
         $node = M()->query($sql,'single');
 
-        $sql = "SELECT count(id) count FROM gw_category WHERE `left` >= {$node['left']} AND `right` <= {$node['right']}";
+        $sql = "SELECT count(id) count FROM ngw_category WHERE `left` >= {$node['left']} AND `right` <= {$node['right']}";
         $count = M()->query($sql);
 
         $count = $count['count']*2;
 
         M()->startTrans();
         try {
-            $sql = "DELETE FROM gw_category WHERE `left` >= {$node['left']} AND `right` <= {$node['right']}";
+            $sql = "DELETE FROM ngw_category WHERE `left` >= {$node['left']} AND `right` <= {$node['right']}";
             M()->query($sql);
 
-            $sql = "UPDATE gw_category SET `left` = `left`-{$count}, `right` = `right`-{$count} WHERE `left` > {$node['left']}";
+            $sql = "UPDATE ngw_category SET `left` = `left`-{$count}, `right` = `right`-{$count} WHERE `left` > {$node['left']}";
             M()->query($sql);
 
-            $sql = "UPDATE gw_category SET `right` = `right`-{$count} WHERE `right` > {$node['right']} AND `left` < {$node['left']}";
+            $sql = "UPDATE ngw_category SET `right` = `right`-{$count} WHERE `right` > {$node['right']} AND `left` < {$node['left']}";
             M()->query($sql);
         } catch (Exception $e) {
             M()->rollback();
@@ -79,9 +79,9 @@ class TreeController
     public function getpnode()
     {
         if(empty($this->param['pid'])) info('参数不全',-1);
-        $sql = "SELECT * FROM gw_category WHERE `id` = {$this->param['id']}";
+        $sql = "SELECT * FROM ngw_category WHERE `id` = {$this->param['id']}";
         $node = M()->query($sql);
-        $sql = "SELECT `id`,`pid`,`name` node,`depth` dep FROM gw_category WHERE `left` < {$node['left']} AND `right` > {$node['right']} ORDER BY depth ASC";
+        $sql = "SELECT `id`,`pid`,`name` node,`depth` dep FROM ngw_category WHERE `left` < {$node['left']} AND `right` > {$node['right']} ORDER BY depth ASC";
         $pnodes = M()->query($sql,'all');
         info($pnodes);
     }
@@ -92,9 +92,9 @@ class TreeController
     public function getsnode()
     {
         if(empty($this->param['id'])) info('参数不全',-1);
-        $sql = "SELECT * FROM gw_category WHERE `id` = {$this->param['id']}";
+        $sql = "SELECT * FROM ngw_category WHERE `id` = {$this->param['id']}";
         $node = M()->query($sql);
-        $sql = "SELECT `id`,`pid`,`name` node,`depth` dep FROM gw_category WHERE `left` > {$node['left']} AND `right` < {$node['right']} ORDER BY depth ASC";
+        $sql = "SELECT `id`,`pid`,`name` node,`depth` dep FROM ngw_category WHERE `left` > {$node['left']} AND `right` < {$node['right']} ORDER BY depth ASC";
         $snodes = M()->query($sql,'all');
         info($snodes);
     }
@@ -104,8 +104,8 @@ class TreeController
      */
     public function shownode()
     {
-        // $sql = "SELECT `id` AS `key`,`pid` AS `parent`,`node` AS `name`,`lft`,`rgt`,dep FROM gw_tree";
-        $sql = "SELECT `id`,`pid`,`name` node FROM gw_category";
+        // $sql = "SELECT `id` AS `key`,`pid` AS `parent`,`node` AS `name`,`lft`,`rgt`,dep FROM ngw_tree";
+        $sql = "SELECT `id`,`pid`,`name` node FROM ngw_category";
 
         $list = M()->query($sql,'all');
         $list = $this->showtree($list);

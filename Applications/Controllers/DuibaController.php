@@ -12,20 +12,23 @@ class DuibaController extends AppController
 	{
 		//uid预扣款
 		if(!$this->dparam['user_id'] || !$this->dparam['price']) info('请求信息不完整',-1);
-		// //防作弊验证
-		// if(!$this->antiCheating())
-		// 	info('去找客服提现',-1);
-		//获取周提现总和
-		$p_info = M()->query("select sum(price) as totle from gw_pnow where uid = '{$this->dparam['user_id']}' and createdAt >date_sub(curdate(),interval WEEKDAY(curdate()) day) and status in (1,2,4)");
-		if(!empty($p_info) && $p_info['totle'] >= 500)  info('超过本周提现限额请您去找客服进行提现',-1);
-
-		$ck = M()->query("select id  from gw_pnow where uid = '{$this->dparam['user_id']}' and status  = 1");
-
-		if(!empty($ck)) info('您有笔提现申请还在审核中',-1);
 
 		$uid_where = "objectId = '{$this->dparam['user_id']}'";
 
 		$uid_info =  A('Uid:getInfo',[$uid_where,'*','single']);
+
+		if(empty($uid_info)) info('用户不存在!',-1);
+		// //防作弊验证
+		// if(!$this->antiCheating())
+		// 	info('去找客服提现',-1);
+		//获取周提现总和
+		$p_info = M()->query("select sum(price) as totle from ngw_pnow where uid = '{$this->dparam['user_id']}' and createdAt >date_sub(curdate(),interval WEEKDAY(curdate()) day) and status in (1,2,4)");
+		if(!empty($p_info) && $p_info['totle'] >= 500)  info('超过本周提现限额请您去找客服进行提现',-1);
+
+		$ck = M()->query("select id  from ngw_pnow where uid = '{$this->dparam['user_id']}' and status  = 1");
+
+		if(!empty($ck)) info('您有笔提现申请还在审核中',-1);
+
 
 		if($uid_info['price'] < $this->dparam['price']) info('余额不足',-1);
 		if(empty($this->dparam['alipay_num']) || empty($this->dparam['alipay_name']))  info('支付宝信息不完整',-1);
@@ -239,7 +242,7 @@ class DuibaController extends AppController
 		if(!empty($apprentice['price']) && $apprentice['price'] >= 50)
 			return;
 		return true;
-		// $p_info = M()->query("select sum(price) as totle from gw_pnow where uid = '{$uid}' and createdAt > DATE_SUB(curdate(),date_format(curdate(),'%w')-1) and duiba_success = '充值成功'");
+		// $p_info = M()->query("select sum(price) as totle from ngw_pnow where uid = '{$uid}' and createdAt > DATE_SUB(curdate(),date_format(curdate(),'%w')-1) and duiba_success = '充值成功'");
 
 		// if($p_info['totle'] >= 500)  info('超过本周提现限额',-1);
 	}

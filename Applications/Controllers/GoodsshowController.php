@@ -14,8 +14,8 @@ class GoodsShowController extends AppController
 	public $goods       = [];
 	public $nodes       = [];
 	public $son_nodes   = [];
-	public $str         = " SELECT a.*,b.title,b.seller_name nick,b.store_type,b.pict_url,b.price,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM %s a JOIN gw_goods_online b ON a.num_iid = b.num_iid ";
-	public $ref_str     = " SELECT b.* FROM gw_goods_category_ref a JOIN gw_goods_info b ON a.num_iid = b.num_iid WHERE a.status = 1 AND a.category_id =  ";
+	public $str         = " SELECT a.*,b.title,b.seller_name nick,b.store_type,b.pict_url,b.price,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM %s a JOIN ngw_goods_online b ON a.num_iid = b.num_iid ";
+	public $ref_str     = " SELECT b.* FROM ngw_goods_category_ref a JOIN ngw_goods_info b ON a.num_iid = b.num_iid WHERE a.status = 1 AND a.category_id =  ";
 
 
 
@@ -69,11 +69,11 @@ class GoodsShowController extends AppController
 
 		if(!R()->hashFeildExisit('detailLists',$this->dparam['num_iid'])){
 
-			$sql                = " SELECT * FROM gw_goods_online WHERE num_iid = '{$this->dparam['num_iid']}' ";
+			$sql                = " SELECT * FROM ngw_goods_online WHERE num_iid = '{$this->dparam['num_iid']}' ";
 			$info               = M()->query($sql,'single');
 			empty($info) && info('商品不存在',-1);
 			$info['share_url']  = parent::SHARE_URL.$this->dparam['num_iid'];
-			R()->hsetnx('detailLists',$this->dparam['num_iid'],$info,$this->$expire);
+			R()->hsetnx('detailLists',$this->dparam['num_iid'],$info,$this->expire);
 
 		}
 
@@ -163,7 +163,7 @@ class GoodsShowController extends AppController
 	 */
 	private function lftRgtToCid()
 	{
-		$sql = " SELECT id,name FROM gw_category WHERE `left` >= {$this->lft} AND `right` <= {$this->rgt} ";
+		$sql = " SELECT id,name FROM ngw_category WHERE `left` >= {$this->lft} AND `right` <= {$this->rgt} ";
 		$this->nodes = M()->query($sql,'all');
 
 		foreach ($this->nodes as $k => $v) {
@@ -179,7 +179,7 @@ class GoodsShowController extends AppController
 	private function cidToGoods()
 	{
 		//上架,淘宝联盟商品,不前置
-		$str = sprintf($this->str,'gw_goods_info');
+		$str = sprintf($this->str,'ngw_goods_info');
 		$str = $str." WHERE a.is_show = 1 AND a.source = {$this->dparam['type']} AND a.status =1 AND b.category_id = ";
 		$this->goods['total'] = [];
 		foreach ($this->nodes as $k => $v) {
@@ -199,7 +199,7 @@ class GoodsShowController extends AppController
 
 	private function cidToGoodsEx()
 	{
-		$str = sprintf($this->str,'gw_goods_info');
+		$str = sprintf($this->str,'ngw_goods_info');
 		$str = $str." WHERE a.is_show = 1 AND a.source = 0 AND a.status =1 ORDER BY score DESC LIMIT {$this->ex_len}";
 		$str = " SELECT  * FROM ({$str}) a WHERE a.category_id =";
 
@@ -276,7 +276,7 @@ class GoodsShowController extends AppController
 	 */
 	private function cidToLftRgt()
 	{
-		$sql = " SELECT `left`,`right` FROM gw_category WHERE id = {$this->dparam['cid']} ";
+		$sql = " SELECT `left`,`right` FROM ngw_category WHERE id = {$this->dparam['cid']} ";
 		$res = M()->query($sql,'single');
 
 		$this->lft = $res['left'];
@@ -293,7 +293,7 @@ class GoodsShowController extends AppController
 	 * 获取邀请页的三个商品详情
 	 */
 	public function getApplyGoods(){
-		$sql = "SELECT pict_url,price,reduce,price-reduce  as sell_price from gw_goods_online where top='1' and status ='1' order by reduce/price desc limit 30";
+		$sql = "SELECT pict_url,price,reduce,price-reduce  as sell_price from ngw_goods_online where top='1' and status ='1' order by reduce/price desc limit 30";
 		$data = M()->query($sql,'all');
 		if($data){
 		//随机产生0-29之间的三个数
@@ -315,7 +315,7 @@ class GoodsShowController extends AppController
 	public function goodsSwitch()
 	{
 		if(!empty($this->dparam['num_iid']) && !empty($this->dparam['status'])){
-			M()->query("update gw_goods_online set status = 2 where num_iid = {$this->dparam['num_iid']}");
+			M()->query("update ngw_goods_online set status = 2 where num_iid = {$this->dparam['num_iid']}");
 			A('Goods:delAllGoods');
 			info('请求成功',1,[]);
 		}
@@ -331,7 +331,7 @@ class GoodsShowController extends AppController
 		$type = !isset($parmas['type']) ? '0,1' : $parmas['type'];
 
 	   //优先展示自己的商品
-	   $sql = "SELECT num_iid,title,seller_name nick,pict_url,price,deal_price zk_final_price,item_url,reduce,volume FROM gw_goods_online WHERE status = 1 AND store_type IN('{$type}') AND title like '%".formattedData($parmas['title'])."%' LIMIT ";
+	   $sql = "SELECT num_iid,title,seller_name nick,pict_url,price,deal_price zk_final_price,item_url,reduce,volume FROM ngw_goods_online WHERE status = 1 AND store_type IN('{$type}') AND title like '%".formattedData($parmas['title'])."%' LIMIT ";
 	   $self = M()->query($sql .= $query ? (($parmas['page_no'] - 1) * $parmas['page_size']).','.$parmas['page_size'] : 3, 'all');
 		//当query 为false 或 库里展示商品小于要查询的商品数量时 查询淘宝客商品
 		if(!$query || count($self) < $parmas['page_size'])
@@ -349,7 +349,7 @@ class GoodsShowController extends AppController
 	 */
 	public function category()
 	{
-		$sql = "SELECT id cid,name FROM gw_category WHERE pid = 1";
+		$sql = "SELECT id cid,name FROM ngw_category WHERE pid = 1";
 		$cates = M()->query($sql,'all');
 		info('ok',1,$cates);
 	}

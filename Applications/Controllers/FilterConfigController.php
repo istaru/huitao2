@@ -1,6 +1,6 @@
 <?php
 
-header("Content-type: text/html; charset=utf-8");                
+header("Content-type: text/html; charset=utf-8");
 /*
 商品类
  */
@@ -15,23 +15,23 @@ class FilterConfigController extends Controller{
     public $db;
 
      public $isDebug = 0;
-    
+
     public function __construct(){
 
         $this->pdo = $this->isDebug?jpLaizhuanCon("shopping"):shoppingCon();
 
         $this->db = $this->isDebug?"shopping":"huitao";
 
-        $this->date = isset($_GET["date"])&&!empty($_GET["date"])?$_GET["date"]:date("Y-m-d");   
+        $this->date = isset($_GET["date"])&&!empty($_GET["date"])?$_GET["date"]:date("Y-m-d");
         //报表间隔计算
         $this->pastDate = 30;
-       
+
 
     }
 
     public function _create_filter_rule(){
 
-        $sql = "select * from gw_filter_config_detail where strategy_id = 1";
+        $sql = "select * from ngw_filter_config_detail where strategy_id = 1";
 
         $rt = db_query($sql,"gw",array(),$this->pdo);
         //print_r($rt);
@@ -40,14 +40,14 @@ class FilterConfigController extends Controller{
         foreach ($rt as $key => $value) {
 
             $type = $value["type"];
-           
+
             $rating = $value["rating"];
             //0 - 点击比 1 - 购买比 2 - top 3 - 佣金比
             switch ($type) {
-                
+
                 case 0:
                     $filter_key .= "$rating * click_rate+";
-                    
+
                 break;
 
                 case 1:
@@ -57,7 +57,7 @@ class FilterConfigController extends Controller{
                 case 2:
                     $filter_key .= "$rating * top+";
                 break;
-                
+
                 case 3:
                     $filter_key .= "$rating * (100 - rating)/100)+";
                 break;
@@ -74,7 +74,7 @@ class FilterConfigController extends Controller{
 
     public function fetchSum(){
 
-        $sql = "select sum(click) clicks,sum(purchase) purchases from gw_goods_daily_report
+        $sql = "select sum(click) clicks,sum(purchase) purchases from ngw_goods_daily_report
                     where report_date BETWEEN '".date("Y-m-d",strtotime($this->date) - $this->pastDate*3600*24)."' and '".$this->date."' and order_status = 2";
        // echo $sql;
         $sum = db_query_row($sql,"gw",array(),$this->pdo);
@@ -99,43 +99,43 @@ class FilterConfigController extends Controller{
         //if($filter_rule_sql)
 
         //按照份数排序 去掉过期的优惠券的
-        $temp_sql = "select num_iid from (     
+        $temp_sql = "select num_iid from (
 
         select a.num_iid,coupon_id,title,pict_url,item_url,category,promotion_url,price,volume,rating,seller_id,seller_name, store_name,store_type,top,created_date,
-        taobao_cid,gw_id,sum,num,val,limited,reduce,discount,deal_price, start_time,end_time,url,coupon_url,".$this->_create_filter_rule()." filter_rule from 
+        taobao_cid,ngw_id,sum,num,val,limited,reduce,discount,deal_price, start_time,end_time,url,coupon_url,".$this->_create_filter_rule()." filter_rule from
 
-        (SELECT * from gw_goods_online where status = 1 and created_date <'".$this->date."')a LEFT JOIN 
+        (SELECT * from ngw_goods_online where status = 1 and created_date <'".$this->date."')a LEFT JOIN
 
-        (select sum(click)/".$sum["clicks"]." click_rate,sum(purchase)/".$sum["purchases"]." purchases_rate,num_iid from gw_goods_daily_report 
+        (select sum(click)/".$sum["clicks"]." click_rate,sum(purchase)/".$sum["purchases"]." purchases_rate,num_iid from ngw_goods_daily_report
 
-            where report_date BETWEEN '".date("Y-m-d",strtotime($this->date) - $this->pastDate*3600*24)."' and '".$this->date."' 
+            where report_date BETWEEN '".date("Y-m-d",strtotime($this->date) - $this->pastDate*3600*24)."' and '".$this->date."'
 
-         and order_status = 2 GROUP BY num_iid)b on a.num_iid = b.num_iid 
+         and order_status = 2 GROUP BY num_iid)b on a.num_iid = b.num_iid
 
-            where (a.start_time <= '".$this->date."' and a.end_time >= '".$this->date."') 
+            where (a.start_time <= '".$this->date."' and a.end_time >= '".$this->date."')
 
                 ORDER BY filter_rule desc limit ".$this->limit_old_goods.")a";
-        
+
         $num_iid_list = db_query_col($temp_sql,"gw",array(),$this->pdo);
         //print_r($num_iid_list);exit;
             //echo $temp_sql;exit;
         if(count($num_iid_list)){
-            
+
             $this->refresh_sort($num_iid_list);
 
             //把排序外的商品下架 status=0 &　之前的 当天的不要
-            $sql_list[]  = "UPDATE gw_goods_online SET status = 0 where num_iid not in (" . implode(",",$num_iid_list) . ") and status = 1 and created_date <'".$this->date."'";
+            $sql_list[]  = "UPDATE ngw_goods_online SET status = 0 where num_iid not in (" . implode(",",$num_iid_list) . ") and status = 1 and created_date <'".$this->date."'";
 
             //把重复的数据，之前的更改了
-            $sql = "select num_iid from gw_goods_online where status = 1 GROUP BY num_iid having count(0) > 1";
-            //$sql = "select num_iid from gw_goods_online  where num_iid in (" . implode(",",$num_iid_list) . ")  GROUP BY num_iid having count(0) > 1";
+            $sql = "select num_iid from ngw_goods_online where status = 1 GROUP BY num_iid having count(0) > 1";
+            //$sql = "select num_iid from ngw_goods_online  where num_iid in (" . implode(",",$num_iid_list) . ")  GROUP BY num_iid having count(0) > 1";
                 //echo $sql;
                 $repeat_num_iid = db_query_col($sql,$this->db,array(),$this->pdo);
 
             if(!count($repeat_num_iid))$repeat_num_iid=array('0');
 
-            $sql_list[]  = "UPDATE gw_goods_online SET status = 0 where num_iid in (" . implode(",",$repeat_num_iid) . ") and status = 1 and created_date <'".$this->date."'";
-       
+            $sql_list[]  = "UPDATE ngw_goods_online SET status = 0 where num_iid in (" . implode(",",$repeat_num_iid) . ") and status = 1 and created_date <'".$this->date."'";
+
             //print_r($sql_list);exit();
 
             $rt = db_transaction($this->pdo, $sql_list);
@@ -155,14 +155,14 @@ class FilterConfigController extends Controller{
     //更新排序表
     public function refresh_sort($num_iid_list){
 
-        $sql_list[] = "delete from gw_goods_sort where type = 1";
+        $sql_list[] = "delete from ngw_goods_sort where type = 1";
 
-        $insert_sql = "insert into gw_goods_sort(num_iid,sort,type)values";  
+        $insert_sql = "insert into ngw_goods_sort(num_iid,sort,type)values";
 
         $insert_val = "";
 
         foreach ($num_iid_list as $key => $value) {
-            
+
             $insert_val .= "(".$value.",".($key+1).",1),";
 
         }
@@ -184,7 +184,7 @@ class FilterConfigController extends Controller{
         }
 
     }
-    
+
 }
 
 

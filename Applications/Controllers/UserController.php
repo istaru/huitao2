@@ -10,11 +10,11 @@ class UserController extends AppController
 		empty($this->dparam['user_id']) && info('数据不完整',-1);
 
 		//预估收入
-		$sql = " SELECT  sum(price) predict FROM gw_uid_log where status = 1 AND uid = '{$this->dparam['user_id']}' ";
+		$sql = " SELECT  sum(price) predict FROM ngw_uid_log where status = 1 AND uid = '{$this->dparam['user_id']}' ";
 		$predict = M()->query($sql);
 
 		//用户信息
-		$sql = " SELECT objectId uid,sfuid,nickname,head_img,price,pend,pnow,(price+pend+pnow) total FROM gw_uid WHERE objectId = '{$this->dparam['user_id']}' ";
+		$sql = " SELECT objectId uid,sfuid,nickname,head_img,price,pend,pnow,(price+pend+pnow) total FROM ngw_uid WHERE objectId = '{$this->dparam['user_id']}' ";
 		$info = M()->query($sql);
 		empty($info) && info('用户不存在',-1);
 
@@ -30,7 +30,7 @@ class UserController extends AppController
 	{
 		empty($this->dparam['user_id']) && info('数据不完整',-1);
 
-		$sql = " SELECT price,status,updatedAt date_time,if(status<4,errmsg,(CASE status WHEN 5 THEN duiba_success WHEN 6 THEN duiba_end_errmsg ELSE '请耐心等待' END)) msg FROM gw_pnow WHERE uid = '{$this->dparam['user_id']}'";
+		$sql = " SELECT price,status,updatedAt date_time,if(status<4,errmsg,(CASE status WHEN 5 THEN duiba_success WHEN 6 THEN duiba_end_errmsg ELSE '请耐心等待' END)) msg FROM ngw_pnow WHERE uid = '{$this->dparam['user_id']}'";
 
 		info('请求成功',1,M()->query($sql,'all'));
 	}
@@ -87,11 +87,11 @@ class UserController extends AppController
 				'score_type'	=> 2,
 				'status'		=> 2,
 			]) or E('绑定失败');
-			M()->exec("UPDATE gw_uid SET price = price + {$price},invitation_count = invitation_count + 1 WHERE objectId='{$sfuid}'") OR E('绑定失败');
-			M()->exec("UPDATE gw_uid SET sfuid = '{$sfuid}' WHERE objectId='{$objectId}'") OR E('绑定失败');
+			M()->exec("UPDATE ngw_uid SET price = price + {$price},invitation_count = invitation_count + 1 WHERE objectId='{$sfuid}'") OR E('绑定失败');
+			M()->exec("UPDATE ngw_uid SET sfuid = '{$sfuid}' WHERE objectId='{$objectId}'") OR E('绑定失败');
 			//给用户发送消息通知
 			(new MessageModel)->batchAddMsg([
-				[
+			[
 					'uid'		 => $sfuid,
 					'content'	 => $value['name'].'绑定了您为好友'
 				], [
@@ -125,8 +125,9 @@ class UserController extends AppController
 	 */
 	public function redMessage()
 	{
+		$rath = 1;
 		empty($this->dparam['user_id']) && info('数据不完整',-1);
-		$sql = " select createdAt as date_time , content as msg , bid ,status from gw_message where  uid = '{$this->dparam['user_id']}' and type = 2 order by createdAt DESC limit 100 ";
+		$sql = " select a.createdAt date_time , a.content msg , a.bid ,a.status , (b.cost * {$rath}) price from ngw_message a join ngw_uid_bill_log b on a.bid = b.id where  a.uid = '{$this->dparam['user_id']}' and a.type = 2 order by a.createdAt DESC limit 100 ";
 		$info = M()->query($sql,'all');
 
 		$msg_info = ['untake'=>[],'token'=>[],'all'=>$info];
@@ -134,11 +135,9 @@ class UserController extends AppController
 		foreach ($info as $k => $v) {
 
 			if($v['status'] == 1){
-				unset($v['status']);
 				$msg_info['untake'][] = $v;
 			}
 			else if($v['status'] == 2){
-				unset($v['status']);
 				$msg_info['token'][] = $v;
 			}
 
@@ -178,11 +177,11 @@ class UserController extends AppController
 	{
 		if(!$_REQUEST['phone'] || !$_REQUEST['user_id']) info('数据不完整',-1);
 	    if(!preg_match("/^1[34578]\d{9}$/",$_REQUEST['phone'])) info('非法手机号',-1);
-	    $exisit_tb = M()->query("select * from gw_taobao_log where uid = '{$_REQUEST['user_id']}'",'single');
+	    $exisit_tb = M()->query("select * from ngw_taobao_log where uid = '{$_REQUEST['user_id']}'",'single');
 	    if(empty($exisit_tb)) info('您的邀请人还未进行淘宝授权!',-1);
-		$is_new_user = M()->query("select id from gw_uid where phone ='{$_REQUEST['phone']}' ",'single',true);
+		$is_new_user = M()->query("select id from ngw_uid where phone ='{$_REQUEST['phone']}' ",'single',true);
 		if(!empty($is_new_user)) info('亲,你已经是惠淘会员了!',-1);
-		$friend_exisit = M()->query("select sfuid from gw_friend_log where phone = '{$_REQUEST['phone']}' ",'single',true);
+		$friend_exisit = M()->query("select sfuid from ngw_friend_log where phone = '{$_REQUEST['phone']}' ",'single',true);
 		if(!empty($friend_exisit)) info('亲,您已经被邀请过!',-1);
 		$add_data = ['phone'=>$_REQUEST['phone'],'sfuid'=>$_REQUEST['user_id']];
 		if(M('friend_log')->add($add_data,true)) info('您已成功被邀请!',1);
@@ -248,7 +247,7 @@ class UserController extends AppController
 			info(-1,'数据不完整');
 		$bill_ids = implode(',',$this->dparam['bid']);
 		//取出用户拆红包对应的所有账单
-		$sql = "select * from gw_uid_bill_log where type = 1 and uid = '{$this->dparam['user_id']}' and id in ($bill_ids)";
+		$sql = "select * from ngw_uid_bill_log where type = 1 and uid = '{$this->dparam['user_id']}' and id in ($bill_ids)";
 		$data = M()->query($sql,'all');
 
 		foreach ($data as $v)
@@ -265,10 +264,10 @@ class UserController extends AppController
 		$params = $this->dparam;
 		if(empty($params['task_id']) || empty($params['user_id']))
 			info(-1,'缺少参数');
-		$data = M()->query("select * from gw_uid_bill_log where type = 2 and uid = '{$params['user_id']}' and task_id = {$params['task_id']}",'all');
+		$data = M()->query("select * from ngw_uid_bill_log where type = 2 and uid = '{$params['user_id']}' and task_id = {$params['task_id']}",'all');
 		if(!empty($data)) {
 			foreach ($data as $v)
-				(TaskincomeController::getObj())->getReward($v);
+				(TaskincomeController::getObj())->getRewardForTask($v);
 		} else info('参数异常',-1);
 	}
 

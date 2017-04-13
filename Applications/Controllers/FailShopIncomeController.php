@@ -3,8 +3,8 @@ class FailShopIncomeController
 {
 	public static $obj;
 	public $sql = [];
-	public $msg = 'INSERT INTO gw_message (uid,content,lid,report_date) VALUES ';
-	public $income = 'INSERT INTO gw_income_log (order_id,uid,status,score_source,score_type,score_info,price) VALUES ';
+	public $msg = 'INSERT INTO ngw_message (uid,content,lid,report_date) VALUES ';
+	public $income = 'INSERT INTO ngw_income_log (order_id,uid,status,score_source,score_type,score_info,price) VALUES ';
 
 	private function __construct()
 	{
@@ -94,10 +94,10 @@ class FailShopIncomeController
 		$str = '';
 		foreach($uids as $kk => $vv)
 			$str .= " WHEN '{$vv['uid']}' THEN {$vv['price']} ";	//拼接所有用户扣余额的sql
-		$this->sql[] = "UPDATE gw_uid SET price = price - CASE objectId".$str."ELSE 0 END";
+		$this->sql[] = "UPDATE ngw_uid SET price = price - CASE objectId".$str."ELSE 0 END";
 
 		//修改用户日志的sql
-		$this->sql[] = "UPDATE gw_uid_log SET status = 4 , score_info = '退单扣除之前的奖励' WHERE status = 2 AND order_id IN ({$order_list})";
+		$this->sql[] = "UPDATE ngw_uid_log SET status = 4 , score_info = '退单扣除之前的奖励' WHERE status = 2 AND order_id IN ({$order_list})";
 	}
 
 
@@ -119,7 +119,7 @@ class FailShopIncomeController
 		}
 
 		//修改用户日志的sql
-		$this->sql[] = 	 "UPDATE gw_uid_log SET status = 3 , score_info = '退单扣除之前的奖励' WHERE status = 1 AND order_id IN ({$order_list})";
+		$this->sql[] = 	 "UPDATE ngw_uid_log SET status = 3 , score_info = '退单扣除之前的奖励' WHERE status = 1 AND order_id IN ({$order_list})";
 	}
 
 
@@ -129,7 +129,7 @@ class FailShopIncomeController
 	public function orderEstimate($order_list)
 	{
 		if(empty($order_list)) return;
-		$sql = "select id,uid,price,status,order_id,score_source,score_type,score_info from gw_uid_log where status = 1 and order_id in ({$order_list})";
+		$sql = "select id,uid,price,status,order_id,score_source,score_type,score_info from ngw_uid_log where status = 1 and order_id in ({$order_list})";
 		$info = M()->query($sql,'all');
 		// D($info);die;
 		return $info;
@@ -141,7 +141,7 @@ class FailShopIncomeController
 	public function orderCash($order_list)
 	{
 		if(empty($order_list)) return;
-		$sql = "select id,uid,price,status,order_id,score_source,score_type,score_info from gw_uid_log where status = 2 and order_id in ({$order_list})";
+		$sql = "select id,uid,price,status,order_id,score_source,score_type,score_info from ngw_uid_log where status = 2 and order_id in ({$order_list})";
 		$info = M()->query($sql,'all');
 		// D($info);die;
 		return $info;
@@ -155,7 +155,7 @@ class FailShopIncomeController
 		if(empty($order_list)) return;
 		$str = implode(',',$order_list);
 		//修改退单账单状态
-		$this->sql[] = "update gw_uid_bill_log set status = 3 where order_id in ({$str})";
+		$this->sql[] = "update ngw_uid_bill_log set status = 3 where order_id in ({$str})";
 		return $order_list;
 	}
 }

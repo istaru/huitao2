@@ -98,15 +98,15 @@ class GoodsExcelController {
         $field = $type == 2 ? ' SUM(fee) fee , SUM(benifit) benifit , a.order_status , COUNT(a.num_iid) purchase , sum(b.click) click , gw_name ' : ' * ';
         return M()->query("SELECT {$field} FROM
         (
-            SELECT SUM(fee) fee , SUM(benifit) benifit , order_status , order_id , num_iid , COUNT(num_iid) purchase , report_date FROM gw_shopping_log WHERE
+            SELECT SUM(fee) fee , SUM(benifit) benifit , order_status , order_id , num_iid , COUNT(num_iid) purchase , report_date FROM ngw_shopping_log WHERE
                 ( report_date BETWEEN '{$params['start_time']}' AND '{$params['end_time']}' AND order_status = 2 )
             OR
                 ( report_date >= '{$params['start_time']}' AND order_status = 5 AND order_id IN (
-                        SELECT order_id FROM gw_shopping_log WHERE report_date BETWEEN '{$params['start_time']}' AND '{$params['end_time']}' AND order_status = 2
+                        SELECT order_id FROM ngw_shopping_log WHERE report_date BETWEEN '{$params['start_time']}' AND '{$params['end_time']}' AND order_status = 2
                     )
                 ) GROUP BY num_iid , order_status
-        ) a LEFT JOIN( SELECT sum(click) click , num_iid FROM gw_goods_daily_report GROUP BY num_iid) b ON b.num_iid = a.num_iid AND a.order_status = 2
-            LEFT JOIN( SELECT num_iid , gw_name , title FROM gw_goods_online GROUP BY num_iid) c ON c.num_iid = a.num_iid ".($type ==2 ? 'GROUP BY gw_name ,order_status' : ''), 'all');
+        ) a LEFT JOIN( SELECT sum(click) click , num_iid FROM ngw_goods_daily_report GROUP BY num_iid) b ON b.num_iid = a.num_iid AND a.order_status = 2
+            LEFT JOIN( SELECT num_iid , gw_name , title FROM ngw_goods_online GROUP BY num_iid) c ON c.num_iid = a.num_iid ".($type ==2 ? 'GROUP BY gw_name ,order_status' : ''), 'all');
    }
 
 }

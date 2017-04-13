@@ -24,7 +24,7 @@ class HtUserController {
    public function  dologin(){
         if(I('username') && I('password')) {
 //            $user = A('HtUser:getLoginInfo',[I('username'),I('password')]);
-            $user=M()->query("select id,username,password from gw_htuser where `username`='".I('username')."' and password='".I('password')."'");
+            $user=M()->query("select id,username,password from ngw_htuser where `username`='".I('username')."' and password='".I('password')."'");
             if($user) {
                 session_unset();
                 $_SESSION['user'] = $user;

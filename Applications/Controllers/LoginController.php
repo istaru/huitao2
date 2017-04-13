@@ -66,7 +66,7 @@ class LoginController extends AppController
 	public function optInfo($data)
 	{
 
-		$sql = " SELECT objectId AS user_id,nickname,Invitation_code AS invite ". (empty($this->dparam['id_code']) ? '' : ',token ') ." FROM gw_uid WHERE phone = '{$this->dparam['phone']}'";
+		$sql = " SELECT objectId AS user_id,nickname,Invitation_code AS invite ". (empty($this->dparam['id_code']) ? '' : ',token ') ." FROM ngw_uid WHERE phone = '{$this->dparam['phone']}'";
 		$info = M()->query($sql,'single');
 		info($data+$info);
 	}
@@ -78,7 +78,7 @@ class LoginController extends AppController
 	public function checkUid($type)
 	{
 		//检查是否老用户
-		$sql = " SELECT * FROM gw_uid WHERE phone = {$this->dparam['phone']} ";
+		$sql = " SELECT * FROM ngw_uid WHERE phone = {$this->dparam['phone']} ";
 		$this->uid_info = M()->query($sql,'single');
 		if(empty($this->uid_info) && $type == 2) info('请先注册!',-1);
 		if(!empty($this->uid_info) && $type == 1) info('您已是惠淘会员,请登入!',-1);
@@ -132,7 +132,7 @@ class LoginController extends AppController
 	 */
 	public function uidRegister()
 	{
-		$num = M()->query('select id from gw_uid order by id desc limit 1');
+		$num = M()->query('select id from ngw_uid order by id desc limit 1');
 		$this->dparam['did_list']		=	$this->dparam['did'];
 		$this->dparam['logintime']		=	time();
 		$this->dparam['objectId']		=	$this->createRandomOnlyStr();
@@ -186,7 +186,7 @@ class LoginController extends AppController
 	{
 		empty($this->dparam['id_code']) && info('请输入验证码!',-1);
 		//查询6分钟内的该手机号对应验证码
-		$sql	=	" SELECT * FROM gw_vaild_log WHERE type = {$type} AND phone = '{$this->dparam['phone']}' AND expire > ".(time()-600);
+		$sql	=	" SELECT * FROM ngw_vaild_log WHERE type = {$type} AND phone = '{$this->dparam['phone']}' AND expire > ".(time()-600);
 		$info	=	M()->query($sql,'single');
 		if(empty($info['vaild_code']) || $info['vaild_code'] != $this->dparam['id_code']) info('验证码不正确!',-1);
 
@@ -204,7 +204,7 @@ class LoginController extends AppController
 		$bdid	= !empty($this->dparam['bdid']) ? $this->dparam['bdid'] : '';
 		$imei	= !empty($this->dparam['imei']) ? $this->dparam['imei'] : '';
 
-		$sql	= " SELECT * FROM gw_did WHERE (uuid = '{$uuid}' AND idfa = '{$idfa}')
+		$sql	= " SELECT * FROM ngw_did WHERE (uuid = '{$uuid}' AND idfa = '{$idfa}')
 											OR (bdid = '{$bdid}')
 											OR (imei = '{$imei}')";
 
@@ -249,7 +249,7 @@ class LoginController extends AppController
 			else
 				$output = randstr(10,'MIX');
 
-			$ck = M()->query("SELECT count(0) as count FROM gw_uid WHERE `objectId` = '".$output."'",'single');
+			$ck = M()->query("SELECT count(0) as count FROM ngw_uid WHERE `objectId` = '".$output."'",'single');
 			$i++;
 		} while ((int)$ck['count'] > 0);
 		return $output;

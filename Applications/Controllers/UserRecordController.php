@@ -34,7 +34,7 @@ class UserRecordController
 		if(!$this->status) return;
 
 		$key = "history_{$uid}";
-		if(R()->hashFeildExisit($uid,$this->type))
+		if(R()->hashFeildExisit($key,$this->type))
 			$data = $this->update($key,$numid);
 		else
 			R()->hsetnx($key,$this->type,[$numid => $this->goodInfo($numid)],$this->expire);
@@ -57,7 +57,7 @@ class UserRecordController
 
 
 		$key = "history_{$uid}";
-		if(R()->hashFeildExisit($uid,$this->type))
+		if(R()->hashFeildExisit($key,$this->type))
 			$data = $this->update($key,$numid,$this->type);
 		else
 			R()->hsetnx($key,$this->type,[$numid => $this->goodInfo($numid)],$this->expire);
@@ -86,8 +86,8 @@ class UserRecordController
 
 	private function goodInfo($numid)
 	{
-		$sql = "SELECT title,seller_name nick,pict_url,price,deal_price zk_final_price,item_url,reduce,volume, 1 type FROM gw_goods_online WHERE num_iid = {$numid}";
-		$info = M()->query($sql,'single');
+		$sql	= "SELECT title,seller_name nick,pict_url,price,deal_price zk_final_price,item_url,reduce,volume, 1 type FROM ngw_goods_online WHERE num_iid = {$numid}";
+		$info 	= M()->query($sql,'single');
 		// D($info);die;
 		if(empty($info)) info('商品不存在!',-1);
 		return $info;
@@ -97,6 +97,7 @@ class UserRecordController
 	private function update($uid,$numid)
 	{
 		$info = $this->ckGoodsCount(R()->getHashSingle($uid,$this->type));
+		$info[$numid] = $this->goodInfo($numid);
 		R()->addHashSingle($uid,$this->type,$info);
 	}
 

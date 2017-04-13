@@ -20,7 +20,7 @@ class GoodsClassifyController {
         foreach($data as $v) {
             if(!$v['is_parent'])
                 $v['is_parent'] = 0;
-            $sql = "INSERT INTO gw_classify(name , cid , parent_cid , is_parent) VALUES('{$v['name']}',{$v['cid']},{$v['parent_cid']},{$v['is_parent']})";
+            $sql = "INSERT INTO ngw_classify(name , cid , parent_cid , is_parent) VALUES('{$v['name']}',{$v['cid']},{$v['parent_cid']},{$v['is_parent']})";
             M()->query($sql);
             if($v['is_parent'] == 1) {
                 $classify = $obj->itemcatsGetRequest('', (string)$v['cid']);
@@ -49,7 +49,7 @@ class GoodsClassifyController {
     public function deleteClassify($parent_cid) {
         $data = $this->querySon($parent_cid);
         foreach($data as $v) {
-            M()->query("DELETE FROM gw_classify WHERE cid={$v['cid']}");
+            M()->query("DELETE FROM ngw_classify WHERE cid={$v['cid']}");
             if($v['is_parent'])
                 $this->deleteClassify($v['cid']);
         }
@@ -59,13 +59,13 @@ class GoodsClassifyController {
         $params = $_REQUEST;
         //获取该节点下面所有节点类目
         $parent = M('sort')->where(['id' => ['=', $params['id']]])->select('single') or info('暂无该分类');
-        $data   = M()->query("SELECT * FROM gw_sort WHERE lft >= {$parent['lft']} AND rht <= {$parent['rht']}", 'all');
+        $data   = M()->query("SELECT * FROM ngw_sort WHERE lft >= {$parent['lft']} AND rht <= {$parent['rht']}", 'all');
         M('sort')->where("lft >= {$parent['lft']} and rht <= {$parent['rht']}")->save();
         $sum = count($data) * 2;
         //重新整理已存在库里的左值右值
-        $sql = "UPDATE gw_sort SET `lft` = `lft` - {$sum} WHERE `lft` > ".$parent['rht'];
+        $sql = "UPDATE ngw_sort SET `lft` = `lft` - {$sum} WHERE `lft` > ".$parent['rht'];
         M()->query($sql);
-        $sql = "UPDATE gw_sort SET `rht` = `rht` - {$sum} WHERE `rht` > ".$parent['rht'];
+        $sql = "UPDATE ngw_sort SET `rht` = `rht` - {$sum} WHERE `rht` > ".$parent['rht'];
         M()->query($sql);
         info('删除成功', 1);
     }
@@ -87,9 +87,9 @@ class GoodsClassifyController {
             M()->startTrans();
             $data =  M('sort')->where(['id' => ['=', $params['pid']]])->select('single') or E('没有该父级分类');
             // 把左值和右值大于父节点左值的节点的左右值加上2
-            $sql = 'UPDATE gw_sort SET `lft` = `lft` + 2 WHERE `lft` >= '.$data['rht'];
+            $sql = 'UPDATE ngw_sort SET `lft` = `lft` + 2 WHERE `lft` >= '.$data['rht'];
             M()->query($sql);
-            $sql = 'UPDATE gw_sort SET `rht` = `rht` + 2 WHERE `rht` >= '.$data['rht'];
+            $sql = 'UPDATE ngw_sort SET `rht` = `rht` + 2 WHERE `rht` >= '.$data['rht'];
             M()->query($sql);
             //当前节点的左值是父节点的右值 而右值则是+1
             $params['lft'] = $data['rht'];
