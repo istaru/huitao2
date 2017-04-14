@@ -33,7 +33,7 @@ class GoodsShowController extends AppController
 			$this->cidToGoods($this->lftRgtToCid());
 		else
 			$this->cidToGoodsEx($this->lftRgtToCid());
-
+		// D($this->goods);die;
 		$total  = $this->sortGoods($this->goods['total']);  //排序后的多节点商品
 		$total  = $this->poll($total);
 		$count  = count($total);
@@ -174,19 +174,28 @@ class GoodsShowController extends AppController
 
 
 	/**
-	 * [cidToGoods 节点商品]
+	 * [favToCate description]
+	 */
+	private function favToCate()
+	{
+
+	}
+
+
+	/**
+	 * [cidToGoods 节点淘宝联盟商品]
 	 */
 	private function cidToGoods()
 	{
 		//上架,淘宝联盟商品,不前置
 		$str = sprintf($this->str,'ngw_goods_info');
-		$str = $str." WHERE a.is_show = 1 AND a.source = {$this->dparam['type']} AND a.status =1 AND b.category_id = ";
+		$str = $str." WHERE a.is_show = 1 AND a.source = 1 AND a.status =1 AND b.category_id = ";
 		$this->goods['total'] = [];
 		foreach ($this->nodes as $k => $v) {
 			$fun = $this->status === true ? 'redisToGoods' : 'dbToGoods';
 
 			$sql = $str.$v['id'];
-
+			// D($sql);die;
 			// $key = $this->dparam['type'] == 1 ? $v['name'] : 'ex_'.$v['name'];
 			$key = 'lm_'.$v['name'];
 			$this->goods[$v['name']]    = $this->$fun($key,$v['id'],$sql);
@@ -197,6 +206,9 @@ class GoodsShowController extends AppController
 	}
 
 
+	/**
+	 * [cidToGoodsEx Excel商品]
+	 */
 	private function cidToGoodsEx()
 	{
 		$str = sprintf($this->str,'ngw_goods_info');
@@ -228,6 +240,7 @@ class GoodsShowController extends AppController
 			$sort[$k]   = $v['score'];
 			$front[$k]  = $v['is_front'];
 		}
+		// D($arr);die;
 		array_multisort($front,SORT_DESC,$sort,SORT_DESC,$arr);
 		return $arr;
 	}
@@ -349,9 +362,32 @@ class GoodsShowController extends AppController
 	 */
 	public function category()
 	{
-		$sql = "SELECT id cid,name FROM ngw_category WHERE pid = 1";
-		$cates = M()->query($sql,'all');
+		$cates = [
+					['name'=>'女装','cid'=>'133','icon_url'=>RES_SITE.'resource/img/category/img_sort_01.png'],
+					['name'=>'鞋包','cid'=>'134','icon_url'=>RES_SITE.'resource/img/category/img_sort_02.png'],
+					['name'=>'美妆个护','cid'=>'145','icon_url'=>RES_SITE.'resource/img/category/img_sort_03.png'],
+					['name'=>'内衣','cid'=>'154','icon_url'=>RES_SITE.'resource/img/category/img_sort_04.png'],
+					['name'=>'男装','cid'=>'','icon_url'=>RES_SITE.'resource/img/category/img_sort_05.png'],
+					['name'=>'衣饰配件','cid'=>'161','icon_url'=>RES_SITE.'resource/img/category/img_sort_06.png'],
+					['name'=>'母婴亲子','cid'=>'166','icon_url'=>RES_SITE.'resource/img/category/img_sort_07.png'],
+					['name'=>'家电','cid'=>'172','icon_url'=>RES_SITE.'resource/img/category/img_sort_08.png'],
+					['name'=>'数码','cid'=>'178','icon_url'=>RES_SITE.'resource/img/category/img_sort_09.png'],
+					['name'=>'运动','cid'=>'198','icon_url'=>RES_SITE.'resource/img/category/img_sort_10.png'],
+					['name'=>'游戏动漫','cid'=>'203','icon_url'=>RES_SITE.'resource/img/category/img_sort_11.png'],
+					['name'=>'美食','cid'=>'210','icon_url'=>RES_SITE.'resource/img/category/img_sort_12.png'],
+					['name'=>'日常家具','cid'=>'221','icon_url'=>RES_SITE.'resource/img/category/img_sort_13.png'],
+					['name'=>'办公学习','cid'=>'230','icon_url'=>RES_SITE.'resource/img/category/img_sort_14.png'],
+		];
 		info('ok',1,$cates);
+	}
+
+
+	/**
+	 * [topCategory 顶部首页分类]
+	 */
+	public function topCategory()
+	{
+
 	}
 
 

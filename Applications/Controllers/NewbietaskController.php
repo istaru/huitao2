@@ -94,7 +94,7 @@ class NewbietaskController extends AppController {
 			2 => 'taobaoMandateTask',
 			3 => 'aFriendInvitationTask',
 			4 => 'oneSinglePurchaseTask',
-			5 => false,
+			5 => 'friendsGetARedEnvelopeTask',
 			6 => 'successInviteaFriendTask',
 			7 => 'friendsAccumulatedTwoSingleTask',
 			8 => 'friendConfirmTheDeliveryOfTwoTimesTask'

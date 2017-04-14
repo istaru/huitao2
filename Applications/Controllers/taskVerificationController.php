@@ -17,7 +17,7 @@ class taskVerificationController {
     public static function oneSinglePurchaseTask($uid) {
         return M('shopping_log')->where("uid = '{$uid}'")->select('single');
     }
-    //成功邀请一个好友任务
+    //成功邀请一名好友任务
     public static function successInviteaFriendTask($uid) {
         return M('uid_log')->where("uid = '{$uid}' AND score_type = 2")->select('single');
     }
@@ -30,6 +30,10 @@ class taskVerificationController {
     public static function friendConfirmTheDeliveryOfTwoTimesTask($uid) {
         $data = M()->query("SELECT count(c.id) num FROM(SELECT score_source FROM ngw_uid_log WHERE score_type = 2 AND uid = '{$uid}') a JOIN(SELECT uid , order_id FROM ngw_order) b ON b.uid = a.score_source JOIN(SELECT id , order_id FROM ngw_order_status WHERE status = 3) c ON c.order_id = b.order_id");
         return $data ? $data['num'] > 1 ? 1 : 0 : 0;
+    }
+    //好友获得一个红包任务
+    public static function friendsGetARedEnvelopeTask($uid) {
+        return;
     }
 
 }
