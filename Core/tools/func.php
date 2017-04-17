@@ -113,7 +113,7 @@ function db_transaction($pdo,$insert_sql,$delete_sql){
 }
 */
 
-function db_transaction($pdo,$sql_list){    
+function db_transaction($pdo,$sql_list,$bind_param=array()){    
 
     if(!is_array($sql_list)||count($sql_list)==0)return -1;
 
@@ -130,17 +130,34 @@ function db_transaction($pdo,$sql_list){
             $pdo->beginTransaction(); 
             
             foreach ($sql_list as $key => $sql) {
-                //echo $sql;
-                if(false===$pdo->exec($sql)){
 
-                    print_r($pdo->errorInfo());
-                    print_r($pdo->errorCode());
-                    //echo $insert_sql;
-                    $isBad =1;
+                if(count($bind_param)>0){
+
+                    $stmt = $pdo->prepare($sql);
+                    //echo $sql;
+                    //$stmt->bindParam();
+                    //print_r($bind_param[$key]);
+                    if(false===$stmt->execute($bind_param[$key])){
+
+                        print_r($pdo->errorInfo());
+                        print_r($pdo->errorCode());
+                        //echo $insert_sql;
+                        $isBad =1;
+                    };
+
+
+                }else{
+                    //echo $sql;
+                    if(false===$pdo->exec($sql)){
+
+                        print_r($pdo->errorInfo());
+                        print_r($pdo->errorCode());
+                        //echo $insert_sql;
+                        $isBad =1;
+                    }
                 }
-
                 if($isBad)return false;
-
+                //exit;
             }
 
             $pdo->commit(); 
@@ -835,8 +852,9 @@ function load_module_instance($class,$module='',$base_path='new',$agr=array()){
 
 function load_module($module){
 	
-    $m = new Module("goods");
-    return $m->load_module("goods");
+    $m = new Module($module);
+    
+    return $m->load_module($module);
 }
 
 /**

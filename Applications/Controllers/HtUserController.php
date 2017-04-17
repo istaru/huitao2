@@ -24,7 +24,7 @@ class HtUserController {
    public function  dologin(){
         if(I('username') && I('password')) {
 //            $user = A('HtUser:getLoginInfo',[I('username'),I('password')]);
-            $user=M()->query("select id,username,password from ngw_htuser where `username`='".I('username')."' and password='".I('password')."'");
+            $user=M()->query("select id,username,password from gw_htuser where `username`='".I('username')."' and password='".I('password')."'");
             if($user) {
                 session_unset();
                 $_SESSION['user'] = $user;
@@ -52,14 +52,6 @@ class HtUserController {
     /**
      * [upUserInfo 用户个人中心修改]
      */
-    public function upuserinfo()
-    {
-        I('id') or info('缺少唯一标识',-1);
-        $id = I('id');
-        unset($_POST['id']);
-        $res = A('HtUser:upUserInfo',[$_POST]);
-        $res ? info('修改成功',1) : info('修改失败',-1);
-    }
 
     //升级为特邀用户
     public function updata() {

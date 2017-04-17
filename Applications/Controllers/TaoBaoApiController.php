@@ -82,9 +82,9 @@ class TaoBaoApiController {
 
     public function ibkUatmFavorites(){
 
-          self::__setas('23550152',"d27bdb2a9dba59cc20d7099f371d03d3");
+          //self::__setas('23550152',"d27bdb2a9dba59cc20d7099f371d03d3");
 
-          $rsp  = TaoBaoController::send([
+          $rsp  = $this->taoBao->send([
             'fields'    => "favorites_title,favorites_id,type",
             'method'    => 'taobao.tbk.uatm.favorites.get',
             'page_no'       => 1,
@@ -99,9 +99,9 @@ class TaoBaoApiController {
     public function tbkUatmFavoritesItem($param=null){
   
 
-        self::__setas('23550152',"d27bdb2a9dba59cc20d7099f371d03d3");
+       // self::__setas('23550152',"d27bdb2a9dba59cc20d7099f371d03d3");
 
-        $rsp = TaoBaoController::send([
+        $rsp = $this->taoBao->send([
             'fields'    => isset($param['fields'])  ? $param['fields'] : "num_iid,title,pict_url,small_images,reserve_price,zk_final_price,user_type,provcity,item_url,seller_id,volume,nick,shop_title,zk_final_price_wap,event_start_time,event_end_time,tk_rate,status,type",
             'method'    => 'taobao.tbk.uatm.favorites.item.get',
             'page_no'       => isset($param['page_no'])  ? $param['page_no']   : 1,

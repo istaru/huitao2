@@ -24,8 +24,8 @@
             //载入模块common文件
             $this->_load_module_dir(DIR_MODULE_COM);
 
-            $module_path = DIR_MODULE.DS.strtolower($module).DS;
-
+            $module_path = DIR_MODULE.DS.lcfirst($module).DS;
+            //echo $module_path;exit;
             if(is_dir($module_path)){
                 //载入模块类
                 $instance = $this->_load_module_instance($module_path,$module);
@@ -39,7 +39,7 @@
                 $this->_load_module_dir($models_module_path);
 
             }
-
+           
 
             return $instance ? $instance : null;
 

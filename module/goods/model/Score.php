@@ -30,7 +30,7 @@ class Score extends GoodsModule {
 	* 转化率(1%) * 实际支付/100块 = 1分
 	* 单次评分最多+10分 x>10?10:x
 	*/
-	public function addPurchaseRate(){
+	public function addPurchaseRateScore(){
 		//商品转化率
 		$goods_conver_rate = $this->_getGoodsConverRate($this->pdo->fetchGoodsIdLastHour());
 			//print_r($goods_conver_rate);exit;
@@ -129,12 +129,28 @@ class Score extends GoodsModule {
 
 	}
 
+	//填充商品分数的数据(小时内的点击销售情况).
+	public function updateGoodsScoreInfo(){
+		
+		$data = $this->pdo->fetchGoodsPurchaseInfoLastHour();
+	
+		foreach ($data as $key => $value) {
+			
+			if($value["num_iid"]){
+
+				$this->pdo->updateGoodsScoreInfo($value["num_iid"],$value["click"],$value["purchase"]);
+			}
+
+		}
+
+	}
+
 }
 
 
 	class ScorePdo extends GoodsModule{
 
-		public $table_pre = "gw_";
+		public $table_pre = "ngw_";
 	//	public $pdo;
 
    // public $db;
@@ -166,21 +182,29 @@ class Score extends GoodsModule {
 		public function fetchGoodsPurchaseInfoLastHour(){
 			
 
-			//$sql = "select sum(fee) fee,sum(click) click,sum(purchase) purchase,num_iid from ".$this->table_pre."goods_daily_report where createdAt > '". date('Y-m-d H:i',strtotime(date('Y-m-d H:i:s')." -1 hour"))."' group by num_iid";
-			
-			//不能用report，这表是聚合代表了全部数据，要小时数据
-			//$sql = "select sum(fee) fee,sum(click) click,sum(purchase) purchase,num_iid from ".$this->table_pre."goods_daily_report where createdAt > '2016-12-15 14:09:17' group by num_iid";
-			$sql = "select b.num_iid,fee,purchase,click from 
+			/*$sql = "select b.num_iid,fee,purchase,click from 
 				(select sum(fee) fee,count(0) purchase,num_iid from ".$this->table_pre."shopping_log where createdAt > '2017-01-02 14:09:17' group by num_iid)a 
 			right JOIN
 				(select sum(click) click,num_iid from ".$this->table_pre."click_log where createdAt > '2017-01-02 14:09:17' group by num_iid)b 
 			on a.num_iid = b.num_iid";
-			/*$sql = "select b.num_iid,fee,purchase,click from 
-				(select sum(fee) fee,count(0) purchase,num_iid from ".$this->table_pre."shopping_log where createdAt > '".date('Y-m-d H:i',strtotime(date('Y-m-d H:i:s')." -1 hour"))."' group by num_iid)a 
-			right JOIN
-				(select sum(click) click,num_iid from ".$this->table_pre."click_log where createdAt > '". date('Y-m-d H:i',strtotime(date('Y-m-d H:i:s')." -1 hour"))."' group by num_iid)b 
-			on a.num_iid = b.num_iid";
 			*/
+			/**/
+			$sql = "select b.num_iid,fee,count(0) purchase,click from ngw_shopping_log a JOIN 
+				
+				(select sum(click) click,num_iid from ngw_click_log where createdAt >= '".date('Y-m-d H',strtotime(date('Y-m-d H:i:s')." -1 hour"))."' group by num_iid)b 
+			
+					on a.num_iid = b.num_iid
+	
+	 		where a.createdAt >= '".date('Y-m-d H',strtotime(date('Y-m-d H:i:s')." -1 hour"))."' group by a.num_iid";
+			//echo $sql;exit;
+	 		$sql = "select b.num_iid,fee,count(0) purchase,click from ngw_shopping_log a JOIN 
+				
+				(select sum(click) click,num_iid from ngw_click_log where createdAt >= '2017-01-02 14:09:17' group by num_iid)b 
+			
+					on a.num_iid = b.num_iid
+	
+	 		where a.createdAt >= '2017-01-02 14:09:17' group by a.num_iid";
+			
 			//echo $sql;exit;
 			return db_query($sql,$this->db,array(),$this->pdo);
 
@@ -190,7 +214,7 @@ class Score extends GoodsModule {
 		//上一小时的下单的商品id
 		public function fetchGoodsIdLastHour(){
 			/*
-			 $sql = "select distinct(num_iid) from ".$this->table_pre."shopping_log where createdAt > '". date('Y-m-d H:i',strtotime(date('Y-m-d H:i:s')." -1 hour"))."' and num_iid > 0";
+			 $sql = "select distinct(num_iid) from ".$this->table_pre."shopping_log where createdAt > '". date('Y-m-d H',strtotime(date('Y-m-d H:i:s')." -1 hour"))."' and num_iid > 0";
 			*/
 			
 
@@ -220,5 +244,16 @@ class Score extends GoodsModule {
 	        return $r;
 
 		}
+		//更新上架商品的点击销售情况
+		public function updateGoodsScoreInfo($num_iid,$click=0,$purchase=0){
+
+			$sql = "update ".$this->table_pre."goods_info set click = score + $click,purchase = purchase + $purchase  where num_iid in ($num_iid)"; 
+			//echo $sql;exit;
+			$r = db_execute($sql,$this->db,array(),$this->pdo);
+
+	        return $r;
+
+		}
+
 
 	}

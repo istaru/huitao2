@@ -94,6 +94,8 @@ class redisModel
 		return $_list;
 	}
 
+
+
 	/**
 	 * [exisit 检查是否存在]
 	 */
@@ -136,6 +138,21 @@ class redisModel
 	public function delFeild($field)
 	{
 		self::$handle->del($field);
+	}
+
+
+	/**
+	 * [delMh 模糊删除]
+	 */
+	public function delLike($pre)
+	{
+		self::$handle->delete($this->keys($pre));
+	}
+
+	public function keys($pre,$type=1)
+	{
+		$str = $type == 1 ? $pre.'*' : '*'.$pre;
+		return self::$handle->keys($str);
 	}
 
 	public function setKV($field,$value)

@@ -1,12 +1,14 @@
 <?php
 
-class GoodsPdo extends GoodsModule{
+abstract class GoodsPdo extends GoodsModule{
 
     public $pdo;
 
     public $db;
+
+    protected $source;
    
-    public $table_pre = "gw_";
+    public $table_pre = "ngw_";
 
     public function __construct($isDebug){
 
@@ -21,11 +23,33 @@ class GoodsPdo extends GoodsModule{
 
 
         }
+        //得到公共在线的商品
+    public function fetchComOnlineGoods($num_iid){
+
+        if(!count($num_iid))return array();
+
+        $sql = "select distinct(num_iid) from ".$this->table_pre."goods_info where status = 1 and num_iid in (".implode(",",$num_iid).") and source = ".$this->source;
+        //echo $sql;
+        $r = db_query_col($sql,$this->db,array(),$this->pdo);
+        
+        return $r;
     }
+    //更改公共商品新品状态
+    public function updateComGoodsStatusNew($num_iid,$date,$new=0){
+
+        $sql = "update ".$this->table_pre."goods_info set is_new = $new where source = ".$this->source." and num_iid in (".implode(",",$num_iid).") and created_date between '".date('Y-m-d',strtotime($date." -7 day"))."' and '".date('Y-m-d',strtotime($date." -1 day"))."'";
+        //echo $sql;exit;
+        $r = db_execute($sql,$this->db,array(),$this->pdo);
+
+        return $r;
+    }
+}
 //优惠券导入
 class ExcelGoodsPdo extends GoodsPdo{
 
     public $temp_table = "page1";
+
+    protected $source = 0;
 
     public $attrs = array('num_iid','title','pict_url','pict_detail_url','category','tbk_url','price','volumn',
         'rating','rating_fee','seller_name','seller_id','store_name',
@@ -74,8 +98,8 @@ class ExcelGoodsPdo extends GoodsPdo{
 
         $t_sql = $this->fetchData($attrs,$limit,$offset);
 
-        $sql = "select a.*,b.id as cid,b.name as cname from (".$t_sql.")a join gw_category b on a.category = b.taobao_category_name where name is not null";
-        echo $sql;
+        $sql = "select a.*,b.id as cid,b.name as cname from (".$t_sql.")a join ".$this->table_pre."category b on a.category = b.taobao_category_name where name is not null";
+        //echo $sql;exit;
         return db_query($sql,$this->db,array(),$this->pdo);
 
     }
@@ -100,7 +124,7 @@ class ExcelGoodsPdo extends GoodsPdo{
             //12 ?
             $c1.= "(?,?,?,?,?,?,?,?,?,?,?,?),";
             
-            $t = array(0,
+            $t = array($this->source,
                 setVaildParam($v,"num_iid"),
                 setVaildParam($v,'title',''),
                 setVaildParam($v,'pict_url',''),
@@ -113,7 +137,7 @@ class ExcelGoodsPdo extends GoodsPdo{
                 setVaildParam($v,'favorite_id',''),
                 
                 setVaildParam($v,"price"),
-                setVaildParam($v,"volume"),
+                setVaildParam($v,"volumn"),
                 setVaildParam($v,"rating"),
                 setVaildParam($v,"seller_id"),
                 setVaildParam($v,"seller_name",''),
@@ -157,12 +181,137 @@ class ExcelGoodsPdo extends GoodsPdo{
         //echo $insert_coupon_sql;exit;
         $r = db_transaction($this->pdo,array($insert_goods_sql),array($bindParam,$bindParam1));
     }
+
+     //取出当日数据所有商品num_iid
+    public function fetchNewGoodsNumId(){
+
+        $favorite_id = " and favorite_id = 0";
+
+        $sql = "select num_iid from ".$this->table_pre."goods where source = ".$this->source." and created_date = '".$this->date."' $favorite_id order by createdAt desc";
+
+        $result = db_query_col($sql,$this->db,array(),$this->pdo);
+
+        return $result;  
+
+    }
+
+     //取出现在上架/手动下架的所有商品num_iid
+    public function fetchOnlineGoodsNumId(){
+
+        $favorite_id = "and favorite_id = 0";
+
+        $sql = "select num_iid from ".$this->table_pre."goods_online where source = ".$this->source." and status in(".implode(",",GW_FAV_GOODS).") $favorite_id";
+        //echo $sql;
+        $result = db_query_col($sql,$this->db,array(),$this->pdo);
+
+        return $result;  
+
+    }  
+    //失效商品
+    public function fetchOffGoods($t_incr_online_goods_list){
+
+        if(count($t_incr_online_goods_list)==0)return array();
+
+        $favorite_id = "and favorite_id = 0";
+
+        $sql = "select num_iid from ".$this->table_pre."goods_online where source = ".$this->source." and status = 2 $favorite_id and num_iid in (".implode(",",$t_incr_online_goods_list).")";
+        //echo $sql;
+        $result = db_query_col($sql,$this->db,array(),$this->pdo);   
+
+        return $result;  
+    }
+
+    //插入新增的商品信息
+    //新增 = 新入 - 线上（上架+手工下架）
+    //以前失效下架的，又有新的添加为新品（先删除这些numid数据在增加，以免2个同num_iid）
+    public function insertOnlineIncrGoods($incr_online_goods_list){
+
+        if(!count($incr_online_goods_list))return;
+        
+        $sql_list = array();
+        //先删除这些numid数据在增加，以免2个同num_iid 
+        $sql_list[] = "replace into ".$this->table_pre."goods_online(status,source,num_iid,title,pict_url,category,category_id,favorite,favorite_id,price,volume,rating,seller_id,seller_name,store_name,store_type,coupon_id,sum,num,val,limited,reduce,discount,deal_price,created_date,coupon_start_time,coupon_end_time,url,coupon_url) select 1,source,a.num_iid,title,pict_url,category,category_id,favorite,favorite_id,price,volume,rating,seller_id,seller_name,store_name,store_type,b.coupon_id,sum,num,val,limited,reduce,discount,deal_price,a.created_date,start_time,end_time,url,coupon_url from (select * from ".$this->table_pre."goods where num_iid in (".implode(",",$incr_online_goods_list).") and source = ".$this->source.") a LEFT JOIN ".$this->table_pre."goods_coupon b on a.num_iid = b.num_iid and a.coupon_id = b.coupon_id";
+
+        //$r = db_insert($sql,$this->db,array(),$this->pdo);
+        //先删除这些numid数据在增加，以免2个同num_iid
+        //默认新增商品50分评分
+        $sql_list[] = "replace into ".$this->table_pre."goods_info(status,source,is_coupon,is_new,is_sold,is_front,is_board,click,purchase,score,top,created_date,category_id,favorite_id,num_iid)select 1,".$this->source.",1,1,0,0,0,0,0,50,0,created_date,category_id,favorite_id,num_iid from ".$this->table_pre."goods where num_iid in (".implode(",",$incr_online_goods_list).")";
+
+        //print_r($sql_list);
+        //$r = db_insert($sql,$this->db,array(),$this->pdo);
+        $r = db_transaction($this->pdo,$sql_list);
+        
+        return $r;
+    }
+
+    //下架失效的商品
+    
+    public function updateOnlineOffGoods($off_online_goods_list){
+
+         if(!count($off_online_goods_list))return;
+
+         $list_con = implode(",",$off_online_goods_list);
+
+         $sql_list = array();
+         //!!*下架商品 需要同时更新2张表的status
+         $sql_list[] = "update ".$this->table_pre."goods_online set status = 2  where source = ".$this->source." and num_iid in ($list_con)";  
+
+         $sql_list[] = "update ".$this->table_pre."goods_info set status = 2 where source = ".$this->source." and num_iid in ($list_con)"; 
+
+         $r = db_transaction($this->pdo,$sql_list);
+
+         return $r;
+
+    }
+
+    //两者共同部分的更新,更新原来内容
+    public function updateOnlineComGoods($com_online_goods_list){
+
+         if(!count($com_online_goods_list))return;
+
+         $list_con = implode(",",$com_online_goods_list);
+
+         //!!*下架商品 需要同时更新2张表的status
+         /*$sql = "replace into ".$this->table_pre."goods_online(status,source,num_iid,title,pict_url,small_images,item_url,category,category_id,favorite,favorite_id,price,volume,rating,seller_id,store_name,store_type,discount,deal_price,created_date,event_start_time,event_end_time) select 1,source,num_iid,title,pict_url,small_images,item_url,category,category_id,favorite,favorite_id,price,volume,rating,seller_id,store_name,store_type,discount,deal_price,created_date,event_start_time,event_end_time from ".$this->table_pre."goods where num_iid in ($list_con) and source = ".$this->source;
+         */
+         $sql = "replace into ".$this->table_pre."goods_online(status,source,num_iid,title,pict_url,category,category_id,favorite,favorite_id,price,volume,rating,seller_id,seller_name,store_name,store_type,coupon_id,sum,num,val,limited,reduce,discount,deal_price,created_date,coupon_start_time,coupon_end_time,url,coupon_url) select 1,source,a.num_iid,title,pict_url,category,category_id,favorite,favorite_id,price,volume,rating,seller_id,seller_name,store_name,store_type,b.coupon_id,sum,num,val,limited,reduce,discount,deal_price,a.created_date,start_time,end_time,url,coupon_url from (select * from ".$this->table_pre."goods where num_iid in ($list_con) and source = ".$this->source.") a LEFT JOIN ".$this->table_pre."goods_coupon b on a.num_iid = b.num_iid and a.coupon_id = b.coupon_id";
+         //echo $sql;
+         $r = db_execute($sql,$this->db,array(),$this->pdo);
+
+         return $r;
+
+     } 
+     //按分数排序只保留前1w条数据，后面的都直接下架
+     public function fetchGoodsSortByScore($limit=10000){
+
+        $sql = "select num_iid from ".$this->table_pre."goods_info where source = ".$this->source." and status = 1 ORDER BY score desc limit $limit offset $limit";
+        
+        $result = db_query_col($sql,$this->db,array(),$this->pdo);
+
+        return $result;  
+
+
+     }
+
+     //优惠券信息缺失或者优惠券过期的直接下架
+     public function fetchGoodsCouponInvaild(){
+        //没有优惠券的时候，
+        $sql = "select num_iid from ".$this->table_pre."goods_online where (coupon_start_time>'".date("Y-m-d")."' or coupon_end_time<'".date("Y-m-d")."' or sum < 0) and source = 0";
+        
+        $result = db_query_col($sql,$this->db,array(),$this->pdo);
+
+        return $result;  
+
+
+     }
 }
 
     //选品库
 class FavoriteGoodsPdo extends GoodsPdo{
 
      public $adzone_id;
+
+     protected $source = 1;
 
      public function __construct($isDebug,$adzone_id){
 
@@ -209,7 +358,7 @@ class FavoriteGoodsPdo extends GoodsPdo{
 
             $c .= "(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?),";
             
-            $t = array(1,
+            $t = array($this->source,
                     setVaildParam($v,"num_iid"),
                     setVaildParam($v,'title',''),
                     setVaildParam($v,'pict_url',''),
@@ -249,10 +398,12 @@ class FavoriteGoodsPdo extends GoodsPdo{
         
     }
 
+
+
     //取出某个分类下现在上架的所有商品
     public function fetchOnlineNumIdByFavorites($favorite_id){
         
-        $sql = "select num_iid from ".$this->table_pre."goods_info where source = 1 and status = 1 and favorite_id = $favorite_id";
+        $sql = "select num_iid from ".$this->table_pre."goods_info where source = ".$this->source." and status = 1 and favorite_id = $favorite_id";
         
         $result = db_query_col($sql,$this->db,array(),$this->pdo);
 
@@ -265,7 +416,7 @@ class FavoriteGoodsPdo extends GoodsPdo{
 
         if($favorite_id)$favorite_id = " and favorite_id = $favorite_id";
 
-        $sql = "select num_iid from ".$this->table_pre."goods where source = 1 and created_date = '".$this->date."' $favorite_id order by createdAt desc".$limit;
+        $sql = "select num_iid from ".$this->table_pre."goods where source = ".$this->source." and created_date = '".$this->date."' $favorite_id order by createdAt desc".$limit;
 
         $result = db_query_col($sql,$this->db,array(),$this->pdo);
 
@@ -278,7 +429,7 @@ class FavoriteGoodsPdo extends GoodsPdo{
         if($favorite_id)$favorite_id = "and favorite_id = $favorite_id";
 
         //$sql = "select num_iid from ".$this->table_pre."goods_online where source = 1 and (status = 1 or status = 5) $favorite_id";
-        $sql = "select num_iid from ".$this->table_pre."goods_online where source = 1 and status in(".implode(",",GW_FAV_GOODS).") $favorite_id";
+        $sql = "select num_iid from ".$this->table_pre."goods_online where source = ".$this->source." and status in(".implode(",",GW_FAV_GOODS).") $favorite_id";
         //echo $sql;
         $result = db_query_col($sql,$this->db,array(),$this->pdo);
 
@@ -294,12 +445,12 @@ class FavoriteGoodsPdo extends GoodsPdo{
         
         $sql_list = array();
         //先删除这些numid数据在增加，以免2个同num_iid 
-        $sql_list[] = "replace into ".$this->table_pre."goods_online(status,source,num_iid,title,pict_url,small_images,item_url,category,category_id,favorite,favorite_id,price,volume,rating,seller_id,store_name,store_type,discount,deal_price,created_date,event_start_time,event_end_time) select 1,source,num_iid,title,pict_url,small_images,item_url,category,category_id,favorite,favorite_id,price,volume,rating,seller_id,store_name,store_type,discount,deal_price,created_date,event_start_time,event_end_time from ".$this->table_pre."goods where num_iid in (".implode(",",$incr_online_goods_list).")";
+        $sql_list[] = "replace into ".$this->table_pre."goods_online(status,source,num_iid,title,pict_url,small_images,item_url,category,category_id,favorite,favorite_id,price,volume,rating,seller_id,store_name,store_type,discount,deal_price,created_date,event_start_time,event_end_time) select 1,source,num_iid,title,pict_url,small_images,item_url,category,category_id,favorite,favorite_id,price,volume,rating,seller_id,store_name,store_type,discount,deal_price,created_date,event_start_time,event_end_time from ".$this->table_pre."goods where num_iid in (".implode(",",$incr_online_goods_list).") and source = ".$this->source;
 
         //$r = db_insert($sql,$this->db,array(),$this->pdo);
         //先删除这些numid数据在增加，以免2个同num_iid
         //默认新增商品50分评分
-        $sql_list[] = "replace into ".$this->table_pre."goods_info(status,source,is_coupon,is_new,is_sold,is_front,is_board,click,purchase,score,top,created_date,category_id,favorite_id,num_iid)select 1,1,0,1,0,0,0,0,0,50,0,created_date,category_id,favorite_id,num_iid from ".$this->table_pre."goods where num_iid in (".implode(",",$incr_online_goods_list).")";
+        $sql_list[] = "replace into ".$this->table_pre."goods_info(status,source,is_coupon,is_new,is_sold,is_front,is_board,click,purchase,score,top,created_date,category_id,favorite_id,num_iid)select 1,".$this->source.",0,1,0,0,0,0,0,50,0,created_date,category_id,favorite_id,num_iid from ".$this->table_pre."goods where num_iid in (".implode(",",$incr_online_goods_list).") and source = ".$this->source;
 
         //$r = db_insert($sql,$this->db,array(),$this->pdo);
         $r = db_transaction($this->pdo,$sql_list);
@@ -316,9 +467,9 @@ class FavoriteGoodsPdo extends GoodsPdo{
 
     	 $sql_list = array();
     	 //!!*下架商品 需要同时更新2张表的status
-    	 $sql_list[] = "update ".$this->table_pre."goods_online set status = 2  where source = 1 and num_iid in ($list_con)";  
+    	 $sql_list[] = "update ".$this->table_pre."goods_online set status = 2  where source = ".$this->source." and num_iid in ($list_con)";  
 
-    	 $sql_list[] = "update ".$this->table_pre."goods_info set status = 2 where source = 1 and num_iid in ($list_con)"; 
+    	 $sql_list[] = "update ".$this->table_pre."goods_info set status = 2 where source = ".$this->source." and num_iid in ($list_con)"; 
 
          $r = db_transaction($this->pdo,$sql_list);
 
@@ -334,7 +485,7 @@ class FavoriteGoodsPdo extends GoodsPdo{
          $list_con = implode(",",$com_online_goods_list);
 
          //!!*下架商品 需要同时更新2张表的status
-         $sql = "replace into ".$this->table_pre."goods_online(status,source,num_iid,title,pict_url,small_images,item_url,category,category_id,favorite,favorite_id,price,volume,rating,seller_id,store_name,store_type,discount,deal_price,created_date,event_start_time,event_end_time) select 1,source,num_iid,title,pict_url,small_images,item_url,category,category_id,favorite,favorite_id,price,volume,rating,seller_id,store_name,store_type,discount,deal_price,created_date,event_start_time,event_end_time from ".$this->table_pre."goods where num_iid in ($list_con)";
+         $sql = "replace into ".$this->table_pre."goods_online(status,source,num_iid,title,pict_url,small_images,item_url,category,category_id,favorite,favorite_id,price,volume,rating,seller_id,store_name,store_type,discount,deal_price,created_date,event_start_time,event_end_time) select 1,source,num_iid,title,pict_url,small_images,item_url,category,category_id,favorite,favorite_id,price,volume,rating,seller_id,store_name,store_type,discount,deal_price,created_date,event_start_time,event_end_time from ".$this->table_pre."goods where num_iid in ($list_con) and source = ".$this->source;
 
          $r = db_execute($sql,$this->db,array(),$this->pdo);
 

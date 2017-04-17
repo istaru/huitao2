@@ -15,7 +15,7 @@ class FilterScore extends NewGoods{
         
     }   
     
-    public function inputGoods(){
+    public function onlineGoods(){
 
     }
     //根据策略号计算当前商品的评分

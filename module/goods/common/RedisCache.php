@@ -23,6 +23,8 @@ class RedisCache extends GoodsModule{
 
         public $redis;
 
+        public $table_pre = "ngw_";
+
         function __construct(){
            // echo 1;
             //$this->pdo = jpLaizhuanCon("shopping");
@@ -117,7 +119,7 @@ class RedisCache extends GoodsModule{
         //action:动作0-click 1-purchase
         public function readUidClickInfo($length=2000){
 
-             return $this->readRedisInfo($length,$this->click_data_key,"gw_click_log");
+             return $this->readRedisInfo($length,$this->click_data_key,$this->table_pre."click_log");
         }
 
         //插入分享数据
@@ -129,7 +131,7 @@ class RedisCache extends GoodsModule{
          //记录用户分享数据
         public function readUidShareInfo($length=2000){
 
-             return $this->readRedisInfo($length,$this->share_data_key,"gw_share_log");
+             return $this->readRedisInfo($length,$this->share_data_key,$this->table_pre."share_log");
         }
 
 
@@ -142,7 +144,7 @@ class RedisCache extends GoodsModule{
         //记录用户搜索信息
         public function readUidSearchInfo($length=2000){
 
-             return $this->readRedisInfo($length,$this->search_data_key,"gw_search_log");
+             return $this->readRedisInfo($length,$this->search_data_key,$this->table_pre."search_log");
         }
 
         //存入redis数据

@@ -65,10 +65,13 @@ class LoginController extends AppController
 	 */
 	public function optInfo($data)
 	{
-
-		$sql = " SELECT objectId AS user_id,nickname,Invitation_code AS invite ". (empty($this->dparam['id_code']) ? '' : ',token ') ." FROM ngw_uid WHERE phone = '{$this->dparam['phone']}'";
+		$sql = " SELECT objectId AS user_id,sfuid,nickname,head_img,price,pend,pnow,(price+pend+pnow) total ,Invitation_code AS invite ". (empty($this->dparam['id_code']) ? '' : ',token ') ." FROM ngw_uid WHERE phone = '{$this->dparam['phone']}'";
 		$info = M()->query($sql,'single');
-		info($data+$info);
+
+		//预估收入
+		$sql = " SELECT  sum(price) predict FROM ngw_uid_log where status = 1 AND uid = '{$info['user_id']}' ";
+		$predict = M()->query($sql);
+		info($data+$info+($predict['predict']==null?['predict'=>0]:$predict));
 	}
 
 
@@ -102,13 +105,16 @@ class LoginController extends AppController
 			$data['logintime']	=	time();
 			unset($data['phone']);
 			unset($data['password']);
-			//修改密码 重置token
-			if(!empty($this->dparam['id_code'])){
-				$data['token']		= md5($this->dparam['phone'].time());
-				$data['password']	= md5($this->dparam['password']);
-			}
+
 			M('uid')->where(" objectId = '{$this->uid_info['objectId']}' ")->save($data);
 		}
+		//修改密码 重置token
+		if(!empty($this->dparam['id_code'])){
+			$data['token']		= md5($this->dparam['phone'].time());
+			$data['password']	= md5($this->dparam['password']);
+		}
+		if(!empty($data))
+			M('uid')->where(" objectId = '{$this->uid_info['objectId']}' ")->save($data);
 	}
 
 

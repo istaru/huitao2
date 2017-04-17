@@ -4,6 +4,7 @@ app交互公共控制器
  */
 class AppController extends Controller
 {
+    const PRE = 'ngw_';
 	const DUIBA_AUTO_URL = 'http://www.duiba.com.cn/autoLogin/autologin?';
 	const DUIBA_KEY = '3JaYVqyA2yXdvTKD14ybisvjzcT9';
 	const DUIBA_SECRET = 'FTfdo5BFrq9Svto1KKb3Lzdsmvo';

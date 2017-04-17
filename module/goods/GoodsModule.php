@@ -12,7 +12,7 @@ define("GW_OFF_STS",2);
 //每小时最多增加评分
 define("GW_HOUR_ADD_SCORE_LIMIT",4);
 
-define("TALBE_PRE","gw_");
+//define("TALBE_PRE","gw_");
 
 class GoodsModule extends Module{
 

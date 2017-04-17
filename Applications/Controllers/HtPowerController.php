@@ -40,7 +40,7 @@ class HtPowerController extends HtController
         else{
             if(!empty($_POST['username'])&&!empty($_POST['password'])){
                 if(M('htuser')->where(['username' => ['=',$_POST['username']]])->select()) {
-                    info("用户名已存在，请重新设置用户名",-1);
+                    info("用户名已存在，请重新设置",-1);
             }else{
                    $id= M('htuser')->add(['username' => $_POST['username'], 'password' => $_POST['password']]);
                     M('htrole')->add(['htUser_id' => $id, 'htNode_id' => '40']);
@@ -51,7 +51,7 @@ class HtPowerController extends HtController
                         $myarr2[$i]['htNode_id']=$arr2[$i];
                     }
                     $data2=M('htrole')->batchAdd($myarr2);
-                    $data2?info("用户及用户权限添加成功,用户id为".$id,1):info("用户或用户权限添加失败",-3);
+                    $data2?info("用户添加成功,用户id为".$id,1):info("用户或用户权限添加失败",-3);
 
                 }
 

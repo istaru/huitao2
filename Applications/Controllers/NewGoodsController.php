@@ -30,10 +30,18 @@ class NewGoodsController extends AppController
         }
     }*/
 
+    public function index1(){
+
+        load_module("goods");
+        $f = new ExcelGoods();
+        $r = $f->getGoodsData(3);
+
+    }
+
     public function index()
     {
-        $m = new Module("goods");
-        //$m->load_module("goods");
+        //$m = new Module("goods");
+        load_module("goods");
 
         /*$s = new Score();
         $s->addPurchaseRate();exit;

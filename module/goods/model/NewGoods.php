@@ -32,6 +32,8 @@ abstract class NewGoods extends GoodsModule
 
 //Excel导入商品
 class ExcelGoods extends NewGoods{
+    //3000个商品
+    public $limit = 3000;
 
     public function __construct(){
         //定义了日期
@@ -42,15 +44,17 @@ class ExcelGoods extends NewGoods{
     }
 
     public function getGoodsData(){
-
+        //$this->pdo->updateOnlineOffGoods($this->pdo->fetchGoodsSortByScore(100));exit;
         //$this->_dealCoupon();exit;
 
         $attrs = $this->_getTempTableAttrs();
 
+        $limit = 2000;
+
         for($i=0;$i<5;$i++){
             //一次取2000条数据
             //直接去掉无法提取的分类
-            $datas = $this->pdo->fetchCategoryInfo($attrs,20,$i*2000);
+            $datas = $this->pdo->fetchCategoryInfo($attrs,$limit,$i*$limit);
             
             //print_r($datas);//exit;
             //$this->_dealCategory();
@@ -77,9 +81,52 @@ class ExcelGoods extends NewGoods{
 
             }
             //print_r($datas);exit;
-            $this->pdo->InsertEffortsToGoods($datas);exit;
+            //添加当日数据
+            $this->pdo->InsertEffortsToGoods($datas);//exit;
 
         }
+        //有效新入 = 新入
+        $valid_goods_list = $this->pdo->fetchNewGoodsNumId();  
+
+            if($this->isRecord){echo "新入：".count($valid_goods_list);echo "条数据<br>";}    
+        //----②添加新增商品start----//
+        //线上
+        $online_goods_list = $this->pdo->fetchOnlineGoodsNumId();
+            //以前失效下架的，又有新的添加为新品（先删除这些numid数据在增加，以免2个同num_iid）
+            if($this->isRecord){echo "线上：".count($online_goods_list);echo "条数据<br>";}
+        //新增 = 新入 - 线上（上架+手工下架）- 失效商品（昨天下架了，今天导入又有了,选品库不存在这种：添加新的，就又有了）
+        //!!*把上架和手工下架统计在一起，是为了更方便统计
+        $t_incr_online_goods_list = array_diff($valid_goods_list,$online_goods_list);
+        //其中已经失效商品
+        $offed_goods_list = $this->pdo->fetchOffGoods($t_incr_online_goods_list);
+        //print_r($offed_goods_list);exit;
+        $incr_online_goods_list = array_diff($t_incr_online_goods_list,$offed_goods_list);
+        //print_r($incr_online_goods_list);   
+            if($this->isRecord){echo "新增：".count($incr_online_goods_list)."条数据，忽略<下架>".count($offed_goods_list)."条数据";}
+
+        $r = $this->pdo->insertOnlineIncrGoods($incr_online_goods_list);
+            
+            if($this->isRecord){echo $r ? "成功。<br>" : "失败。<br>";}
+        //exit;
+        //④更新 = 新入 && 线上() - 手工下线(status=5)
+        $t_com_online_goods_list = array_intersect($valid_goods_list,$online_goods_list);
+            
+        //去掉手工下架的数据
+        $com_online_goods_list = $this->pdo->fetchComOnlineGoods($t_com_online_goods_list);
+
+            if($this->isRecord){echo "更新信息：".count($com_online_goods_list)."条数据，忽略<手动下架>".(count($t_com_online_goods_list)-count($com_online_goods_list))."条数据";}
+
+        if(count($com_online_goods_list))$r = $this->pdo->updateOnlineComGoods($com_online_goods_list);
+            
+            if($this->isRecord){echo $r ? "成功。<br>" : "失败。<br>";}
+
+        //更改新品属性,标记is_new=1
+        if(count($t_com_online_goods_list))$r = $this->pdo->updateComGoodsStatusNew($t_com_online_goods_list,$this->date);
+        //①按评分排序，将1w以后的数据下架，保留1w个商品，每次展示3000个
+        //fetchGoodsSortByScore(10000) 取出1w个之后的商品num_iid
+        //②优惠券过期的下架||优惠券找不到的下架
+        $this->pdo->updateOnlineOffGoods($this->pdo->fetchGoodsSortByScore(10000));
+
 
     } 
 
@@ -161,7 +208,7 @@ class ExcelGoods extends NewGoods{
             }
         }
         //echo $limit.",".$reduce;
-       
+        
         $deal_price = $value['price'] - $reduce;
 
         $discount = number_format($deal_price/$value['price']*100,2);
@@ -207,8 +254,8 @@ class FavoriteGoods extends NewGoods{
         do{
 
             $this->api = new TaoBaoApiController('23550152',"d27bdb2a9dba59cc20d7099f371d03d3");
-            $temp = "d".$cur_retry."7bdb2a9dba59cc20d7099f371d03d3";
-            $this->api = new TaoBaoApiController('23550152',$temp);
+           // $temp = "d".$cur_retry."7bdb2a9dba59cc20d7099f371d03d3";
+           // $this->api = new TaoBaoApiController('23550152',$temp);
             $r = $this->api->ibkUatmFavorites();
             //print_r($r);exit;
             $favorites = array();
@@ -406,13 +453,19 @@ class FavoriteGoods extends NewGoods{
             $r = $this->pdo->updateOnlineOffGoods($off_online_goods_list);
                 if($this->isRecord){echo $r ? "成功。<br>" : "失败。<br>";}
             //exit;
-            //④更新 = 新入 && 线上
-            $com_online_goods_list = array_intersect($valid_goods_list,$online_goods_list);
-                if($this->isRecord){echo "更新信息：".count($com_online_goods_list)."条数据";}
-            $r = $this->pdo->updateOnlineComGoods($com_online_goods_list);
+            //④更新 = 新入 && 线上 - 手工下架
+            $t_com_online_goods_list = array_intersect($valid_goods_list,$online_goods_list);
+            
+            //echo "t:".count($t_com_online_goods_list)."<br>";
+            //去掉手工下架的数据
+            $com_online_goods_list = $this->pdo->fetchComOnlineGoods($t_com_online_goods_list);
+                if($this->isRecord){echo "更新信息：".count($com_online_goods_list)."条数据,
+                    忽略".(count($t_com_online_goods_list)-count($com_online_goods_list))."条数据";}
+            if(count($com_online_goods_list))$r = $this->pdo->updateOnlineComGoods($com_online_goods_list);
                 if($this->isRecord){echo $r ? "成功。<br>" : "失败。<br>";}
 
-           
+            //更改新品属性
+            if(count($t_com_online_goods_list))$r = $this->pdo->updateComGoodsStatusNew($t_com_online_goods_list,$this->date);
             
         }
         return ssreturn(1,'操作成功',1,1) ;
