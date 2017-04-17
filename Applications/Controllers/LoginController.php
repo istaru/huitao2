@@ -65,7 +65,7 @@ class LoginController extends AppController
 	 */
 	public function optInfo($data)
 	{
-		$sql = " SELECT objectId AS user_id,sfuid,nickname,head_img,price,pend,pnow,(price+pend+pnow) total ,Invitation_code AS invite ". (empty($this->dparam['id_code']) ? '' : ',token ') ." FROM ngw_uid WHERE phone = '{$this->dparam['phone']}'";
+		$sql = " SELECT objectId AS user_id,sfuid,nickname,head_img,token,price,pend,pnow,(price+pend+pnow) total ,Invitation_code AS invite ". (empty($this->dparam['id_code']) ? '' : ',token ') ." FROM ngw_uid WHERE phone = '{$this->dparam['phone']}'";
 		$info = M()->query($sql,'single');
 
 		//预估收入

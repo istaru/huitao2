@@ -6,7 +6,7 @@ class GoodsShowController extends AppController
 {
 	public $lft;
 	public $rgt;
-	public $status      = true; 	//启用 redis
+	public $status      = false; 	//启用 redis
 	public $expire 		= 60*60*24;	//过期时间
 	public $step        = 20;   	//轮播成员数量
 	public $time        = 3;    	//轮播频次
@@ -17,7 +17,7 @@ class GoodsShowController extends AppController
 	public $son_nodes   = [];
 	public $diff		= [];		//与 redis 的差集
 	public $intersect 	= [];		//与 redis 的交集
-	public $str         = " SELECT a.*,b.title,b.seller_name nick,b.store_type,b.pict_url,b.price,b.category_id cid,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM %s a JOIN ngw_goods_online b ON a.num_iid = b.num_iid ";
+	public $str         = " SELECT a.*,b.title,b.seller_name nick,b.store_type,b.pict_url,b.price,b.category_id cid,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM %s a JOIN ngw_goods_online b ON a.num_iid = b.num_iid AND a.favorite_id = b.favorite_id";
 	public $ref_str     = " SELECT b.* FROM ngw_goods_category_ref a JOIN ngw_goods_info b ON a.num_iid = b.num_iid WHERE a.status = 1 AND a.category_id =  ";
 
 
@@ -29,6 +29,7 @@ class GoodsShowController extends AppController
 	 */
 	public function showGoods()
 	{
+		// R()->delLIke('lm');die;
 		if(empty($this->dparam['cid']) || empty($this->dparam['page_no']) || empty($this->dparam['page_size'])) info('数据不全',-1);
 		$this->cidToLftRgt();
 
@@ -121,9 +122,6 @@ class GoodsShowController extends AppController
 	}
 
 
-	/**
-	 * [range 轮询排列处理]
-	 */
 	private function range($polls)
 	{
 		//测试
@@ -132,7 +130,6 @@ class GoodsShowController extends AppController
 		//  $temp[] = $i;
 		// $polls = $temp;
 
-		//根据时间戳步长取余
 		$index      = time() % (ceil(count($polls) / $this->step) * $this->time);
 		$index      = ceil($index/$this->time);
 		// echo $index;
@@ -211,7 +208,8 @@ class GoodsShowController extends AppController
 		$str = $str." WHERE a.is_show = 1 AND a.source = 1 AND a.status =1 AND b.category_id in ";
 		//查询差集相关的商品
 		$sql = $str.$this->strNodes();
-		$temp = M()->query($sql,'all');
+		$temp = M()->query($sql." and b.created_date = '2017-04-17'",'all');
+		// D(count($temp));
 		$cidarr = [];
 		foreach ($this->nodes as $v)
 			$cidarr[$v['id']] = $v['name'];
@@ -220,6 +218,7 @@ class GoodsShowController extends AppController
 			$this->cate_goods["lm_{$v['cid']}_{$cidarr[$v['cid']]}"][] = $v;
 			$this->goods[] = $v;
 		}
+		// D(count($this->goods));die;
 		//将redis 中没有的商品分类写入 redis
 		if($this->status === true && !empty($this->cate_goods)){
 			foreach ($this->cate_goods as $k => $v)
@@ -228,9 +227,9 @@ class GoodsShowController extends AppController
 		//合并商品数据库+ redis
 		if(!empty($this->intersect))
 			$this->mergeGoods();
-		$this->cateFavRef();
+		// D(count($this->goods));
+		// $this->cateFavRef();
 		$this->goods = unique_multidim_array($this->goods,'num_iid');
-
 	}
 
 
@@ -288,7 +287,7 @@ class GoodsShowController extends AppController
 	private function checkRedisK()
 	{
 		$pre = $this->dparam['type'] == 1 ? 'lm' : 'ex';
-		$rkeys = R()->keys($pre);
+		$rkeys = R()->keys('ex');
 		foreach ($rkeys as &$v)
 			$v = explode('_',$v)[1];
 		return $rkeys;
