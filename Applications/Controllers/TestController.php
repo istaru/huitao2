@@ -1,11 +1,9 @@
 <?php
-class TestController extends AppController
-{
+class TestController extends AppController {
     public function test() {
-        $data = M('order_status')->getTableFields();
-        foreach($data as $k => $v) {
-            D($v);
-        }
+        $arr = json_decode(file_get_contents('http://127.0.0.1/test/2.json'), true);
+        ++$arr['test'];
+        file_put_contents('../test/2.json', json_encode($arr));
     }
     public function a() {
         $sql = 'select id , name from ngw_category';

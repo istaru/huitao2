@@ -76,7 +76,7 @@ class TaoBaoKeController extends AppController {
             }
         }
         if(!empty($results)) {
-            $sql = 'INSERT INTO gw_goods_online('.('`'.implode('`,`', array_keys($this->setFileds([], 'goods_online'))).'`').') VALUES ';
+            $sql = 'INSERT INTO ngw_goods_online('.('`'.implode('`,`', array_keys($this->setFileds([], 'goods_online'))).'`').') VALUES ';
             foreach($results as $v) {
                 $v['small_images']  = json_encode($v['small_images'], JSON_UNESCAPED_UNICODE);  //小图列表
                 $v['store_type']    = $v['mall'] ? 0 : 1;   //平台类型
@@ -112,6 +112,8 @@ class TaoBaoKeController extends AppController {
                             $v['paid_fee'] = abs($v['paid_fee']) - abs($taobaoList['post_fee']) < 0 ? 0 : abs($v['paid_fee']) - abs($taobaoList['post_fee']);
                             //获取明文id
                             $v['open_id']  = $taobaoList['open_id'];
+                            //补全order表中明文id
+                            M('order')->where(['order_id' => ['=', $v['order_id']]])->save(['num_iid' => $v['open_id']]);
                         }
                     }
                     //生成退单时间

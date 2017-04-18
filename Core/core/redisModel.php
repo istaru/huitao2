@@ -24,6 +24,11 @@ class redisModel
 		return self::$handle->discard();
 	}
 
+	public function size($key)
+	{
+		return self::$handle->lSize($key);
+	}
+
 	public function commit()
 	{
 		return self::$handle->exec();

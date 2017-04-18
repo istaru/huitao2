@@ -64,10 +64,12 @@ class UserController extends AppController
 			$uid != $sfuid OR E('不允许绑定自己');
 			//验证该用户是否存在表中
 			$user = M('uid')->field('sfuid,nickname,taobao_id')->where(['objectId'=> ['=',$uid]])->select('single');
-			empty($user) ? E('您赶紧去注册登录吧') : empty($user['sfuid']) ? : E('您已经填写过邀请人了');
+			!empty($user)  OR E('您赶紧去注册登录吧');
+			empty($sfuid)  OR E('您已经填写过邀请人了');
 			//验证该用户是否已经淘宝授权过 且该淘宝账号只被授权过一次
 			$taobaoInfo = M('taobao_log')->where(['taobao_id' => ['=', $user['taobao_id']]])->select('all');
-			count($taobaoInfo) > 1 ? E('您已经不是新用户啦') : !count($taobaoInfo) < 1 ? : E('请您先淘宝授权');
+			if(count($taobaoInfo) > 1) E('您已经不是新用户啦');
+			if(count($taobaoInfo) < 1) E('请您先淘宝授权');
 			//该用户设备号只有一次记录的才允许绑定好友
 			count((new DidModel)->getUserDid($uid)) == 1 OR E('您已经不是新用户啦');
 			//徒弟 师傅如果是一个淘宝授权账号  禁止绑定关系
@@ -91,7 +93,7 @@ class UserController extends AppController
 	 * @param  string  $sfuid    [师傅uid]
 	 * @return [type]            [description]
 	 */
-	public function bindMasters($type = true, $objectId = '123', $sfuid = 'name') {
+	public function bindMasters($type = true, $objectId, $sfuid) {
 		try {
 			M()->startTrans();
 			//好友绑定规则验证

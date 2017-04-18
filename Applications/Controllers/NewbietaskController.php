@@ -83,7 +83,9 @@ class NewbietaskController extends AppController {
 	}
 
 	private function checkuid($uid = '') {
-		$uid = $uid ? : empty($this->dparam['user_id']) ? info('请您赶快去注册登录吧', -1) : $this->dparam['user_id'];
+		if(empty($uid) && empty($this->dparam['user_id']))
+			info('请您赶快去注册登录吧!');
+		$uid = $uid ? : $this->dparam['user_id'];
 		$uid_info = M('uid')->where(['objectId' => ['=', $uid]])->select('single');
 		return $uid_info ?  : info('请您赶快去注册登录吧',-1);
 	}

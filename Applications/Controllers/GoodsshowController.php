@@ -6,7 +6,7 @@ class GoodsShowController extends AppController
 {
 	public $lft;
 	public $rgt;
-	public $status      = false; 	//启用 redis
+	public $status      = true; 	//启用 redis
 	public $expire 		= 60*60*24;	//过期时间
 	public $step        = 20;   	//轮播成员数量
 	public $time        = 3;    	//轮播频次
@@ -17,74 +17,125 @@ class GoodsShowController extends AppController
 	public $son_nodes   = [];
 	public $diff		= [];		//与 redis 的差集
 	public $intersect 	= [];		//与 redis 的交集
-	public $str         = " SELECT a.*,b.title,b.seller_name nick,b.store_type,b.pict_url,b.price,b.category_id cid,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM %s a JOIN ngw_goods_online b ON a.num_iid = b.num_iid AND a.favorite_id = b.favorite_id";
+	public $str         = " SELECT a.*,b.title,b.seller_name nick,b.store_type,b.pict_url,b.price,b.category_id cid,b.category,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM %s a JOIN ngw_goods_online b ON a.num_iid = b.num_iid AND a.favorite_id = b.favorite_id";
 	public $ref_str     = " SELECT b.* FROM ngw_goods_category_ref a JOIN ngw_goods_info b ON a.num_iid = b.num_iid WHERE a.status = 1 AND a.category_id =  ";
 
 
 
 
-	//{"cid":"","page_no":"","page_size":"","system":"","user_id":"","type":""}
+	//{"cid":"","page_no":"","page_size":"","system":"","user_id":"","type":"","stype":""}
 	/**
 	 * [show 展示商品]
 	 */
 	public function showGoods()
 	{
-		// R()->delLIke('lm');die;
+		$this->gtype = 1;	//区分淘宝联盟还是 excel
+		set_time_limit(0);
+		// R()->delLike('lm');
+		$this->stypeHandle();
 		if(empty($this->dparam['cid']) || empty($this->dparam['page_no']) || empty($this->dparam['page_size'])) info('数据不全',-1);
 		$this->cidToLftRgt();
+		$this->cidToGoods($this->lftRgtToCid());
 
-		//type=1:淘宝联盟
-		if($this->dparam['type'] == 1)
-			$this->cidToGoods($this->lftRgtToCid());
-		else
-			$this->cidToGoodsEx($this->lftRgtToCid());
-		// D($this->goods);die;
 		$total  = $this->sortGoods($this->goods);  //排序后的多节点商品
-		$total  = $this->poll($total);
+		// $total  = $this->poll($total);
 		$count  = count($total);
 		$page   = $this->page($total);
+		//特殊商品 存入 redis
+		$this->stypeAdd($total);
 		info(['status'=>1,'msg'=>'操作成功!','data'=>$page,'son_cate'=>$this->son_nodes,'total'=>$count]);
 	}
 
 
-	//{"user_id":"Nuwd8XEsBs","num_iid":"525103323591"}
 	/**
-	 * [share 分享成功]
+	 * [showGoodsEx 展示excel商品]
 	 */
-	public function share()
+	public function showGoodsEx()
 	{
-		if(empty($this->dparam['user_id']) || empty($this->dparam['num_iid'] || empty($this->dparam['type']))) info('参数不全',-1);
+		$this->gtype = 2;	//区分淘宝联盟还是 excel
+		// R()->delLike('ex');die;
+		set_time_limit(0);
+		$this->stypeHandle();
+		if(empty($this->dparam['cname']) || empty($this->dparam['page_no']) || empty($this->dparam['page_size'])) info('数据不全',-1);
+		$this->cidToGoodsEx($this->refToCid());
+		$total  = $this->sortGoods($this->goods);  //排序后的多节点商品
+		// $total  = $this->poll($total);
+		$count  = count($total);
+		$page   = $this->page($total);
+		//特殊商品 存入 redis
+		$this->stypeAddEx($total);
+		info(['status'=>1,'msg'=>'操作成功!','data'=>$page,'son_cate'=>$this->son_nodes,'total'=>$count]);
 
-		(UserRecordController::getObj()) -> shareRecord($this->dparam['user_id'],$this->dparam['num_iid'],$this->dparam['type']);
-		info('ok',1);
 	}
 
 
-	//{"user_id":"Nuwd8XEsBs","num_iid":"525103323591","type":"1"}
 	/**
-	 * [detail 商品详情]
+	 * [stypeAdd 大类板块单独存 redis]
 	 */
-	public function detail()
+	private function stypeAdd($total)
 	{
-		if(empty($this->dparam['user_id']) || empty($this->dparam['num_iid'] || empty($this->dparam['type']))) info('参数不全',-1);
+		if($this->status == false) return;
 
-		//记录用户点击
-		(UserRecordController::getObj()) -> clickRecord($this->dparam['user_id'],$this->dparam['num_iid'],$this->dparam['type']);
+		//没有特殊类型返回
+		if(empty($this->dparam['stype'])) return;
+
+		switch ($this->dparam['stype']) {
+			case 1:
+				$this->redisToGoods('lm_all',$total);
+				break;
+			case 2:
+				$this->redisToGoods('lm_99',$total);
+				break;
+		}
+	}
+
+	/**
+	 * [stypeAdd 大类板块单独存 redis]
+	 */
+	private function stypeAddEx($total)
+	{
+		if($this->status == false) return;
+
+		//没有特殊类型返回
+		if(empty($this->dparam['stype'])) return;
+
+		switch ($this->dparam['stype']) {
+			case 1:
+				$this->redisToGoods('ex_all',$total);
+				break;
+			case 2:
+				$this->redisToGoods('ex_99',$total);
+				break;
+		}
+	}
 
 
-		if(!R()->hashFeildExisit('detailLists',$this->dparam['num_iid'])){
+	/**
+	 * [stypeHandle 特殊类型处理]
+	 */
+	private function stypeHandle()
+	{
+		if($this->status == false) return;
+		//没有特殊类型返回
+		if(empty($this->dparam['stype'])) return;
 
-			$sql                = " SELECT * FROM ngw_goods_online WHERE num_iid = '{$this->dparam['num_iid']}' ";
-			$info               = M()->query($sql,'single');
-			empty($info) && info('商品不存在',-1);
-			$info['share_url']  = parent::SHARE_URL.$this->dparam['num_iid'];
-			R()->hsetnx('detailLists',$this->dparam['num_iid'],$info,$this->expire);
+		switch ($this->dparam['stype']) {
+			case 1://全部商品
+				$str = $this->gtype == 1? 'lm_all' : 'ex_all';
+				$page = R()->getListPage($str,$this->dparam['page_no'],$this->dparam['page_size']);
+				$count = R()->size('lm_all');
+				break;
 
+			case 2://9.9
+				$str = $this->gtype == 1? 'lm_99' : 'ex_99';
+				$page = R()->getListPage($str,$this->dparam['page_no'],$this->dparam['page_size']);
+				$count = R()->size($str);
+				break;
+		}
+		if(!empty($page)){
+			info(['status'=>1,'msg'=>'操作成功!','data'=>$page,'son_cate'=>$this->son_nodes,'total'=>$count]);
 		}
 
-		$info = R()->getHashSingle('detailLists',(string)$this->dparam['num_iid']);
-		// D($info);die;
-		info('请求成功',1,$info);
 	}
 
 
@@ -110,7 +161,7 @@ class GoodsShowController extends AppController
 									else $arr['poll'] = 0;
 									return $arr;
 								},$total);
-
+		// D($total);die;
 		$key        = array_search(1,array_column($total,'poll'));
 		$polls      = array_slice($total,$key);
 		array_splice($total,$key);
@@ -154,13 +205,13 @@ class GoodsShowController extends AppController
 	/**
 	 * [specGoods 特殊的商品]
 	 */
-	private function specGoods($where)
-	{
-		if(!$where) return false;
-		$sql = $this->str.$where;
-		$spec = M()->query($sql,'all');
-		return $spec;
-	}
+	// private function specGoods($where)
+	// {
+	// 	if(!$where) return false;
+	// 	$sql = $this->str.$where;
+	// 	$spec = M()->query($sql,'all');
+	// 	return $spec;
+	// }
 
 
 	/**
@@ -179,7 +230,22 @@ class GoodsShowController extends AppController
 
 
 	/**
-	 * [strNodes 用于拼接的分类idid]
+	 * [refToCid excel分类方式]
+	 */
+	private function refToCid()
+	{
+		if(empty($this->dparam['cname'])) info('参数不全',-1);
+		if($this->dparam['cname'] == '全部'){
+			$sql = " SELECT DISTINCT name FROM ngw_category WHERE taobao_cid IS NOT NULL";
+			$this->nodes = M()->query($sql,'all');
+		}
+
+
+	}
+
+
+	/**
+	 * [strNodes 用于拼接的分类cid]
 	 */
 	private function strNodes()
 	{
@@ -199,6 +265,42 @@ class GoodsShowController extends AppController
 
 
 	/**
+	 * [strNodesEx 用于拼接的分类cname]
+	 */
+	private function strNodesEx()
+	{
+		$cnames = array_column($this->nodes,'name');
+		//走redis
+		if($this->status === true){
+			//查出内存中已有的商品
+			$rcids = $this->checkRedisK();
+			$this->intersect = array_intersect($cnames,$rcids);	// 取出交集
+			$this->diff 	= array_diff($cnames,$rcids);	// 差集
+			$cnames = "('".implode("','",$this->diff)."')";
+		}else{
+			$cnames = "('".implode("','",$this->diff)."')";
+		}
+		// D($this->intersect);
+		// D($this->diff);
+		// echo $cnames;die;
+		return $cnames;
+	}
+
+
+	/**
+	 * [checkRedisK 获取 redis已有商品]
+	 */
+	private function checkRedisK()
+	{
+		$pre = $this->gtype == 1 ? 'lm' : 'ex';
+		$rkeys = R()->keys('ex');
+		foreach ($rkeys as &$v)
+			$v = explode('_',$v)[1];
+		return $rkeys;
+	}
+
+
+	/**
 	 * [cidToGoods 节点淘宝联盟商品]
 	 */
 	private function cidToGoods()
@@ -208,8 +310,13 @@ class GoodsShowController extends AppController
 		$str = $str." WHERE a.is_show = 1 AND a.source = 1 AND a.status =1 AND b.category_id in ";
 		//查询差集相关的商品
 		$sql = $str.$this->strNodes();
-		$temp = M()->query($sql." and b.created_date = '2017-04-17'",'all');
-		// D(count($temp));
+
+		//9.9商品增加价格条件
+		if(!empty($this->dparam['stype']) && $this->dparam['stype'] == 2){
+			$sql = $sql." AND b.price <19.9 ";
+		}
+
+		$temp = M()->query($sql,'all');
 		$cidarr = [];
 		foreach ($this->nodes as $v)
 			$cidarr[$v['id']] = $v['name'];
@@ -227,8 +334,7 @@ class GoodsShowController extends AppController
 		//合并商品数据库+ redis
 		if(!empty($this->intersect))
 			$this->mergeGoods();
-		// D(count($this->goods));
-		// $this->cateFavRef();
+		$this->cateFavRef();
 		$this->goods = unique_multidim_array($this->goods,'num_iid');
 	}
 
@@ -241,15 +347,15 @@ class GoodsShowController extends AppController
 		//分数高的前3000
 		$str = sprintf($this->str,'ngw_goods_info');
 		$str = $str." WHERE a.is_show = 1 AND a.source = 0 AND a.status =1 ORDER BY score DESC LIMIT {$this->ex_len}";
-		$str = " SELECT  * FROM ({$str}) a WHERE a.category_id in ";
-		$sql = $str.$this->strNodes();
-		$temp = M()->query($sql,'all');
-		$cidarr = [];
-		foreach ($this->nodes as $v)
-			$cidarr[$v['id']] = $v['name'];
+		$str = " SELECT  * FROM ({$str}) a WHERE a.category in ";
 
+		$sql = $str.$this->strNodesEx();
+		$temp = M()->query($sql,'all');
+
+		//定义excel 存 redis 的名字
+		// goods 用于展示
 		foreach ($temp as $v){
-			$this->cate_goods["ex_{$v['cid']}_{$cidarr[$v['cid']]}"][] = $v;
+			$this->cate_goods["ex_{$v['category']}"][] = $v;
 			$this->goods[] = $v;
 		}
 		//将redis 中没有的商品分类写入 redis
@@ -259,10 +365,8 @@ class GoodsShowController extends AppController
 		}
 		//合并商品数据库+ redis
 		if(!empty($this->intersect))
-			$this->mergeGoods();
-		$this->cateFavRef();
+			$this->mergeGoodsEx();
 		$this->goods = unique_multidim_array($this->goods,'num_iid');
-
 	}
 
 
@@ -282,15 +386,14 @@ class GoodsShowController extends AppController
 
 
 	/**
-	 * [checkRedisK 获取 redis已有商品]
+	 * [mergeGoods 合并 redis中交集的商品]
 	 */
-	private function checkRedisK()
+	private function mergeGoodsEx()
 	{
-		$pre = $this->dparam['type'] == 1 ? 'lm' : 'ex';
-		$rkeys = R()->keys('ex');
-		foreach ($rkeys as &$v)
-			$v = explode('_',$v)[1];
-		return $rkeys;
+		foreach ($this->intersect as $v) {
+			$rngoods = R()->getListPage("ex_{$v}",0,-1);
+			$this->goods = array_merge($this->goods,$rngoods);
+		}
 	}
 
 
@@ -303,7 +406,6 @@ class GoodsShowController extends AppController
 			$sort[$k]   = $v['score'];
 			$front[$k]  = $v['is_front'];
 		}
-		// D($arr);die;
 		array_multisort($front,SORT_DESC,$sort,SORT_DESC,$arr);
 		return $arr;
 	}
@@ -346,7 +448,45 @@ class GoodsShowController extends AppController
 
 
 
+	//{"user_id":"Nuwd8XEsBs","num_iid":"525103323591"}
+	/**
+	 * [share 分享成功]
+	 */
+	public function share()
+	{
+		if(empty($this->dparam['user_id']) || empty($this->dparam['num_iid'] || empty($this->dparam['type']))) info('参数不全',-1);
 
+		(UserRecordController::getObj()) -> shareRecord($this->dparam['user_id'],$this->dparam['num_iid'],$this->dparam['type']);
+		info('ok',1);
+	}
+
+
+	//{"user_id":"Nuwd8XEsBs","num_iid":"525103323591","type":"1"}
+	/**
+	 * [detail 商品详情]
+	 */
+	public function detail()
+	{
+		if(empty($this->dparam['user_id']) || empty($this->dparam['num_iid'] || empty($this->dparam['type']))) info('参数不全',-1);
+
+		//记录用户点击
+		(UserRecordController::getObj()) -> clickRecord($this->dparam['user_id'],$this->dparam['num_iid'],$this->dparam['type']);
+
+
+		if(!R()->hashFeildExisit('detailLists',$this->dparam['num_iid'])){
+
+			$sql                = " SELECT * FROM ngw_goods_online WHERE num_iid = '{$this->dparam['num_iid']}' ";
+			$info               = M()->query($sql,'single');
+			empty($info) && info('商品不存在',-1);
+			$info['share_url']  = parent::SHARE_URL.$this->dparam['num_iid'];
+			R()->hsetnx('detailLists',$this->dparam['num_iid'],$info,$this->expire);
+
+		}
+
+		$info = R()->getHashSingle('detailLists',(string)$this->dparam['num_iid']);
+		// D($info);die;
+		info('请求成功',1,$info);
+	}
 
 
 
@@ -431,11 +571,23 @@ class GoodsShowController extends AppController
 
 
 	/**
+	 * [exCategory Excel分类]
+	 */
+	public function exCategory()
+	{
+		$sql = "SELECT DISTINCT name cname FROM ngw_category WHERE taobao_cid IS NOT NULL ";
+		$cates = M()->query($sql,'all');
+		info('ok',1,[['cname'=>'全部']]+$cates);
+	}
+
+
+	/**
 	 * [topCategory 顶部首页分类]
 	 */
 	public function topCategory()
 	{
-
+		$sql = "SELECT id cid,name FROM ngw_category WHERE pid = 1";
+		$cate = M()->query($sql,'all');
 	}
 
 
