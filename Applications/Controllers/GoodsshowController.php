@@ -21,6 +21,17 @@ class GoodsShowController extends AppController
 	public $ref_str     = " SELECT b.* FROM ngw_goods_category_ref a JOIN ngw_goods_info b ON a.num_iid = b.num_iid WHERE a.status = 1 AND a.category_id =  ";
 
 
+	/**
+	 * [cateGoods 同级子分类商品]
+	 */
+	public function cateGoods()
+	{
+		$sql = "SELECT * FROM ngw_category WHERE pid = {$this->dparam['cid']}";
+		$soncate = M()->query($sql,'all');
+		D($soncate);
+
+
+	}
 
 
 	//{"cid":"","page_no":"","page_size":"","system":"","user_id":"","type":"","stype":""}
