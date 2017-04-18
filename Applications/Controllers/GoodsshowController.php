@@ -551,20 +551,20 @@ class GoodsShowController extends AppController
 	public function category()
 	{
 		$cates = [
-					['name'=>'女装','cid'=>'133','icon_url'=>RES_SITE.'resource/img/category/img_sort_01.png'],
-					['name'=>'鞋包','cid'=>'134','icon_url'=>RES_SITE.'resource/img/category/img_sort_02.png'],
-					['name'=>'美妆个护','cid'=>'145','icon_url'=>RES_SITE.'resource/img/category/img_sort_03.png'],
-					['name'=>'内衣','cid'=>'154','icon_url'=>RES_SITE.'resource/img/category/img_sort_04.png'],
-					['name'=>'男装','cid'=>'','icon_url'=>RES_SITE.'resource/img/category/img_sort_05.png'],
-					['name'=>'衣饰配件','cid'=>'161','icon_url'=>RES_SITE.'resource/img/category/img_sort_06.png'],
-					['name'=>'母婴亲子','cid'=>'166','icon_url'=>RES_SITE.'resource/img/category/img_sort_07.png'],
-					['name'=>'家电','cid'=>'172','icon_url'=>RES_SITE.'resource/img/category/img_sort_08.png'],
-					['name'=>'数码','cid'=>'178','icon_url'=>RES_SITE.'resource/img/category/img_sort_09.png'],
-					['name'=>'运动','cid'=>'198','icon_url'=>RES_SITE.'resource/img/category/img_sort_10.png'],
-					['name'=>'游戏动漫','cid'=>'203','icon_url'=>RES_SITE.'resource/img/category/img_sort_11.png'],
-					['name'=>'美食','cid'=>'210','icon_url'=>RES_SITE.'resource/img/category/img_sort_12.png'],
-					['name'=>'日常家具','cid'=>'221','icon_url'=>RES_SITE.'resource/img/category/img_sort_13.png'],
-					['name'=>'办公学习','cid'=>'230','icon_url'=>RES_SITE.'resource/img/category/img_sort_14.png'],
+					['name'=>'女装','cid'=>'133','icon_url'=>RES_SITE.'resource/img/category/img_sort_01.png','content'=>'T恤、衬衫、连衣裙'],
+					['name'=>'鞋包','cid'=>'134','icon_url'=>RES_SITE.'resource/img/category/img_sort_02.png','content'=>'凉鞋、拖鞋、单鞋'],
+					['name'=>'美妆个护','cid'=>'145','icon_url'=>RES_SITE.'resource/img/category/img_sort_03.png','content'=>'保养、护肤'],
+					['name'=>'内衣','cid'=>'154','icon_url'=>RES_SITE.'resource/img/category/img_sort_04.png','content'=>'文胸、保暖内衣'],
+					['name'=>'男装','cid'=>'','icon_url'=>RES_SITE.'resource/img/category/img_sort_05.png','content'=>'外套、休闲裤、衬衫'],
+					['name'=>'衣饰配件','cid'=>'161','icon_url'=>RES_SITE.'resource/img/category/img_sort_06.png','content'=>'裤装、卫衣'],
+					['name'=>'母婴亲子','cid'=>'166','icon_url'=>RES_SITE.'resource/img/category/img_sort_07.png','content'=>'婴儿车、奶瓶'],
+					['name'=>'家电','cid'=>'172','icon_url'=>RES_SITE.'resource/img/category/img_sort_08.png','content'=>'家电、厨房电器'],
+					['name'=>'数码','cid'=>'178','icon_url'=>RES_SITE.'resource/img/category/img_sort_09.png','content'=>'手机、平板电脑'],
+					['name'=>'运动','cid'=>'198','icon_url'=>RES_SITE.'resource/img/category/img_sort_10.png','content'=>'健身、户外'],
+					['name'=>'游戏动漫','cid'=>'203','icon_url'=>RES_SITE.'resource/img/category/img_sort_11.png','content'=>'桌游、手办'],
+					['name'=>'美食','cid'=>'210','icon_url'=>RES_SITE.'resource/img/category/img_sort_12.png','content'=>'休闲零食、茶水饮料'],
+					['name'=>'日常家具','cid'=>'221','icon_url'=>RES_SITE.'resource/img/category/img_sort_13.png','content'=>'床上用品、卧室家具'],
+					['name'=>'办公学习','cid'=>'230','icon_url'=>RES_SITE.'resource/img/category/img_sort_14.png','content'=>'办公用品、文具'],
 		];
 		info('ok',1,$cates);
 	}
@@ -573,7 +573,7 @@ class GoodsShowController extends AppController
 	/**
 	 * [exCategory Excel分类]
 	 */
-	public function exCategory()
+	public function categoryEx()
 	{
 		$sql = "SELECT DISTINCT name cname FROM ngw_category WHERE taobao_cid IS NOT NULL ";
 		$cates = M()->query($sql,'all');
