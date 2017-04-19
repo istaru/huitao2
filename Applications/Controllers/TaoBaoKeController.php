@@ -1,5 +1,5 @@
 <?php
-class TaoBaoKeController extends AppController {
+class TaoBaoKeController {
     //存储商品列表服务api查询到的数据
     private $taobaoList = [];
     //淘宝api实例类
@@ -18,19 +18,22 @@ class TaoBaoKeController extends AppController {
             $this->taoBaoApi = new TaoBaoApiController($v['appkey'], $v['secret']);
             $this->message();
         }
-        echo '处理完成';
+        echo '处理完成<br/>';
     }
     // 订单信息
     public function message() {
-        $this->taoBaoApi = new TaoBaoApiController(123, 456);
+        $this->taoBaoApi = new TaoBaoApiController(23597987, '035bff81056833b5a95ee1145eae7620');
         //获取所有订单信息
         // $resp = $this->taoBaoApi->tmcMessagesConsumeRequest();
-        // if(empty($resp['messages']['tmc_message']) || !$order = $resp['messages']['tmc_message']) return;
-        $order = (json_decode(file_get_contents('http://localhost/test/2.json'), true))['tmc_message'];
+        // file_put_contents('order.txt', json_encode($resp, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), FILE_APPEND);
+        $resp = (json_decode(file_get_contents('order.json'), true));
+        if(empty($resp['messages']['tmc_message'])) return;
+            $order = $resp['messages']['tmc_message'];
         //存储付款成功以及退款成功的单号
         $paymentSuccess = $refundSuccess = [];
         foreach($order as $v) {
-            $content = json_decode($v['content'], true);
+            $content = $v['content'];
+            // $content = json_decode($v['content'], true);
             //映射对应的订单状态
             list($content['msg'], $content['status']) = isset(self::$option[$v['topic']]) ? self::$option[$v['topic']] : [$v['topic'], 0];
             //获取全部付款成功的商品混淆id 以及退款成功 付款成功的订单号
@@ -43,55 +46,57 @@ class TaoBaoKeController extends AppController {
             $data[] = $content;
         }
         //批量进行请求api拿到明文id 以及邮费
-        // empty($auctionId) OR $this->taobaoList = $this->taoBaoApi->taeItemsListRequest([], array_unique($auctionId));
+        $this->taobaoList = $this->taoBaoApi->taeItemsListRequest([], array_unique($auctionId));
         //批量补全商品表中没有的商品
-        $this->complementGoodsOnline($this->taobaoList);
+        $this->complementGoodsOnline(!empty($this->taobaoList) ? array_column($this->taobaoList, 'open_id') : []);
         //订单批量入库
-        $this->addOrder($data);
-        return;
+        echo $this->addOrder($data);
         //批量确认消息
         $this->taoBaoApi->tmcMessagesConfirmRequest(array_column($order,'id'));
         //批量处理付款成功的订单id
         empty($paymentSuccess) OR $this->notice(2, array_diff($paymentSuccess, $refundSuccess));
         //批量处理退款成功的订单id
         empty($refundSuccess) OR $this->notice(5, array_diff($refundSuccess, $paymentSuccess));
+        return;
     }
-    private function complementGoodsOnline($goods) {
-        if(!empty($goods)) {
-            $selfGoods = M('goods_online')->where('num_iid in('.(implode(array_column($goods, 'open_id'), ',')).')')->field('num_iid')->select('all');
-            $numIids = array_column($selfGoods, 'num_iid');
-            foreach($goods as $k => $v)
-                if(in_array($v['open_id'], $numIids)) unset($goods[$k]);
-            if(!$goods) return;
-        } else return;
-        //批量获取商品详情(简版)
-        $commodityDetails = $this->taoBaoApi->tbkItemInfoGetRequest(array_column($goods, 'open_id'));
-        //合并多个api请求获得的数据
-        $results = [];
-        foreach($commodityDetails as $v) {
-            foreach($goods as $val) {
+    //通过传入商品明文id 查询相关api数据入库
+    public function complementGoodsOnline($numIid = []) {
+        if(empty($numIid) && empty($_POST['num_iid'])) return;
+        $numIid  = $numIid ? : explode(',', $_POST['num_iid']);
+        $pendingTreatment = array_diff($numIid, array_column(M('goods_online')->where('num_iid in('.(connectionArray($numIid)).')')->field('num_iid')->select('all'), 'num_iid'));
+        if(!$pendingTreatment) return;
+        if(!$this->taoBaoApi) {
+            foreach((include DIR_CORE.'baiChuanConfig.php')['order'] as $v) {
+                $this->taoBaoApi  = new TaoBaoApiController($v['appkey'], $v['secret']);
+                $this->taobaoList = $this->taoBaoApi->taeItemsListRequest($pendingTreatment);
+                if($this->taobaoList) break;
+            }
+        }
+        $sql = 'INSERT INTO ngw_goods_online('.('`'.implode('`,`', array_keys($this->setFileds([], 'goods_online'))).'`').') VALUES ';
+        foreach($this->taoBaoApi->tbkItemInfoGetRequest($pendingTreatment) as $v) {
+            foreach($this->taobaoList as $val) {
                 if($v['num_iid'] == $val['open_id']) {
-                    $results[] = array_merge($val, $v);
+                    $v = array_merge($val, $v);
+                    $v['small_images']  = json_encode($v['small_images'], JSON_UNESCAPED_UNICODE);  //小图列表
+                    $v['store_type']    = $v['mall'] ? 0 : 1;   //平台类型
+                    $v['rating']        = $v['tk_rate'] / 100;  //淘宝客佣金比率
+                    $v['source']        = 10;
+                    $v['status']        = 2;
+                    $v['created_date']  = date('Y-m-d');
+                    $sql .= '('.implode($this->setFileds($this->replaceField($v, [
+                        'pic_url'       => 'pict_url',      //主图链接
+                        'shop_name'     => 'store_name',    //店铺名称
+                        'reserve_price' => 'price',         //商品一口价
+                        'nick'          => 'seller_name'    //卖家旺旺
+                    ]), 'goods_online'), ',').'),';
                 }
             }
         }
-        if(!empty($results)) {
-            $sql = 'INSERT INTO ngw_goods_online('.('`'.implode('`,`', array_keys($this->setFileds([], 'goods_online'))).'`').') VALUES ';
-            foreach($results as $v) {
-                $v['small_images']  = json_encode($v['small_images'], JSON_UNESCAPED_UNICODE);  //小图列表
-                $v['store_type']    = $v['mall'] ? 0 : 1;   //平台类型
-                $v['rating']        = $v['tk_rate'] / 100;  //淘宝客佣金比率
-                $v['status']        = 10;
-
-                $sql .= '('.implode($this->setFileds($this->replaceField($v, [
-                    'pic_url'       => 'pict_url',      //主图链接
-                    'shop_name'     => 'store_name',    //店铺名称
-                    'reserve_price' => 'price',         //商品一口价
-                    'nick'          => 'seller_name'    //卖家旺旺
-                ]), 'goods_online'), ',').'),';
-            }
-            return M()->query(rtrim($sql, ','));
-        }
+        $this->exec($sql);
+        echo 'ngw_online_goods表已处理完成...<br/>';
+    }
+    public function exec($sql) {
+        return substr($sql, -1) == ',' ? M()->exec(rtrim($sql, ',')) : '';
     }
     private function addOrder($data) {
         if(!empty($data)) {
@@ -121,7 +126,8 @@ class TaoBaoKeController extends AppController {
                     $sql .= '('.implode($this->setFileds($v), ',').'),';
                 }
             }
-            return M()->query(rtrim($sql, ','));
+            $this->exec($sql);
+            return '订单添加完成...<br/>';
         }
     }
     //字段替换
@@ -140,12 +146,12 @@ class TaoBaoKeController extends AppController {
         switch($status) {
             case 2:
                 $record->updateOrderInfo($data);
-                (SuccShopIncomeController::getObj())->incomeHandle($data);
+                // (SuccShopIncomeController::getObj())->incomeHandle($data);
                 break;
             case 5:
                 $record->purchaseRecord($data, 5);
                 $record->updateOrderBack($data);
-                (FailShopIncomeController::getObj())->incomeHandle($data);
+                // (FailShopIncomeController::getObj())->incomeHandle($data);
                 break;
         }
     }

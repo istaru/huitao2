@@ -112,7 +112,7 @@ class UserController extends AppController
 			M()->exec("UPDATE ngw_uid SET sfuid = '{$sfuid}' WHERE objectId='{$objectId}'") OR E('绑定失败');
 			//给用户发送消息通知
 			(new MessageModel)->batchAddMsg([
-			[
+				[
 					'uid'		 => $sfuid,
 					'content'	 => $value['name'].'绑定了您为好友'
 				], [

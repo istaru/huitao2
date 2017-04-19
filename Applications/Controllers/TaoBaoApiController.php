@@ -13,6 +13,7 @@ class TaoBaoApiController {
    * @return [type]            [description]
    */
     public function taeItemsListRequest($num_iids = [], $open_iids = []) {
+        if(empty($num_iids) && empty($open_iids)) return;
         $this->goodsId = $result = [];
         $data = $num_iids ? array_chunk($num_iids, 50) : $this->arrayLengthSegmentation($open_iids, 70);
         foreach($data as $v) {
@@ -91,13 +92,13 @@ class TaoBaoApiController {
             'page_size'     => 200
 
          ]);
-       
+
          if(isset($rsp["tbk_uatm_favorites_get_response"]))return $rsp["tbk_uatm_favorites_get_response"];
 
     }
 
     public function tbkUatmFavoritesItem($param=null){
-  
+
 
        // self::__setas('23550152',"d27bdb2a9dba59cc20d7099f371d03d3");
 
@@ -109,7 +110,7 @@ class TaoBaoApiController {
             'favorites_id'=>isset($param['favorites_id'])  ? $param['favorites_id']   : 3519044,
             'adzone_id'=>isset($param['adzone_id'])  ? $param['adzone_id']   : 67202476,
             'platform'=>isset($param['platform'])  ? $param['platform']   : 1,
-            
+
          ]);
 
          if(isset($rsp["tbk_uatm_favorites_item_get_response"]))return $rsp["tbk_uatm_favorites_item_get_response"];
@@ -118,7 +119,7 @@ class TaoBaoApiController {
 
 
 
-   
+
 
 
 
@@ -145,5 +146,4 @@ class TaoBaoApiController {
         }
         return $res;
     }
-
 }
