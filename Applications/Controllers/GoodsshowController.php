@@ -13,12 +13,10 @@ class GoodsShowController extends AppController
     public $ex_len      = 3000;     //excel商品数量
     public $nodes       = [];
     public $son_nodes   = [];
-    public $diff        = [];       //与 redis 的差集
-    public $intersect   = [];       //与 redis 的交集
     public $silent      = null;     // 静默
 
     /**
-     * [cateGoods 同级子分类商品]
+     * [cateGoods 同级子分类商品各n条]
      */
     public function cateGoods()
     {
