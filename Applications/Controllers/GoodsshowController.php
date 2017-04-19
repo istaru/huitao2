@@ -106,7 +106,7 @@ class GoodsShowController extends AppController
     {
         // D($this->nodes);die;
         if($this->gtype==1){
-            $sql= "SELECT a.*,(b.rating*b.price*".parent::PERCENT.") as rating,b.title,b.seller_name nick,b.store_type,b.pict_url,b.price,b.category_id cid,b.category,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM ngw_goods_info a JOIN ngw_goods_online b ON a.num_iid = b.num_iid AND a.favorite_id = b.favorite_id WHERE a.is_show = 1 AND a.source = 1 AND a.status =1 AND b.category_id IN (".implode(',',$this->nodes).") OR a.num_iid in (SELECT a.num_iid FROM ngw_goods_category_ref a JOIN ngw_goods_info b ON a.num_iid = b.num_iid WHERE b.is_show = 1 AND b.source = 1 AND b.status =1 AND a.category_id IN(".implode(',',$this->nodes).")) ORDER BY a.is_front DESC ,score DESC";
+            $sql= "SELECT a.*,FORMAT((b.rating/100*b.price*".parent::PERCENT."),2) as rating,b.title,b.seller_name nick,b.store_type,b.pict_url,b.price,b.category_id cid,b.category,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM ngw_goods_info a JOIN ngw_goods_online b ON a.num_iid = b.num_iid AND a.favorite_id = b.favorite_id WHERE a.is_show = 1 AND a.source = 1 AND a.status =1 AND b.category_id IN (".implode(',',$this->nodes).") OR a.num_iid in (SELECT a.num_iid FROM ngw_goods_category_ref a JOIN ngw_goods_info b ON a.num_iid = b.num_iid WHERE b.is_show = 1 AND b.source = 1 AND b.status =1 AND a.category_id IN(".implode(',',$this->nodes).")) ORDER BY a.is_front DESC ,score DESC";
         }
 
         if($this->gtype==2){
@@ -114,7 +114,7 @@ class GoodsShowController extends AppController
         }
 
         if($this->gtype==3){
-            $sql= "SELECT a.*,(b.rating*b.price*".parent::PERCENT.") as rating,b.title,b.seller_name nick,b.store_type,b.pict_url,b.price,b.category_id cid,b.category,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM ngw_goods_info a JOIN ngw_goods_online b ON a.num_iid = b.num_iid AND a.favorite_id = b.favorite_id WHERE a.is_show = 1 AND a.source = 1 AND a.status =1 AND b.category_id IN (".implode(',',$this->nodes).") OR a.num_iid in (SELECT a.num_iid FROM ngw_goods_category_ref a JOIN ngw_goods_info b ON a.num_iid = b.num_iid WHERE b.is_show = 1 AND b.source = 1 AND b.status =1 AND a.category_id IN(".implode(',',$this->nodes).")) AND b.price <= 19.9 ORDER BY a.is_front DESC ,score DESC";
+            $sql= "SELECT a.*,FORMAT((b.rating/100*b.price*".parent::PERCENT."),2) as rating,b.title,b.seller_name nick,b.store_type,b.pict_url,b.price,b.category_id cid,b.category,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM ngw_goods_info a JOIN ngw_goods_online b ON a.num_iid = b.num_iid AND a.favorite_id = b.favorite_id WHERE a.is_show = 1 AND a.source = 1 AND a.status =1 AND b.category_id IN (".implode(',',$this->nodes).") OR a.num_iid in (SELECT a.num_iid FROM ngw_goods_category_ref a JOIN ngw_goods_info b ON a.num_iid = b.num_iid WHERE b.is_show = 1 AND b.source = 1 AND b.status =1 AND a.category_id IN(".implode(',',$this->nodes).")) AND b.price <= 19.9 ORDER BY a.is_front DESC ,score DESC";
         }
 
         if($this->gtype==4){
