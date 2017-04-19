@@ -117,7 +117,7 @@ class RecordController extends Controller{
     //
     //购物消息队列后的补全ngw_order表的数据（外部调用）
 
-    public function updateOrderInfo($order_list=array()){
+    public function updateOrderInfo($order_list=array('7145541093113222')){
         //$order_list = array(3029595814303222);
         $sql = "select distinct(order_id) from (
                 SELECT a.order_id,b.auction_title,b.open_id from ngw_order a LEFT JOIN ngw_order_status b on a.order_id = b.order_id

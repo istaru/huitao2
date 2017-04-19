@@ -4,6 +4,10 @@ class TaoBaoKeController {
     private $taobaoList = [];
     //淘宝api实例类
     public $taoBaoApi = null;
+    //对应的model类实例
+    public $taoBaoKeModel = null;
+    //存储百川appkey 以及secret
+    private static $baiChuanConfig = [];
     //订单状态
     private static $option = [
         'taobao_tae_BaichuanTradeCreated'       => ['创建订单', 1],
@@ -13,8 +17,12 @@ class TaoBaoKeController {
         'taobao_tae_BaichuanTradeRefundSuccess' => ['退款成功', 5],
         'taobao_tae_BaichuanTradeClosed'        => ['交易关闭', 6]
     ];
+    public function __construct() {
+        $this->taoBaoKeModel = new TaoBaoKeModel;
+        self::$baiChuanConfig = (include DIR_CORE.'baiChuanConfig.php')['order'];
+    }
     public function run() {
-        foreach((include DIR_CORE.'baiChuanConfig.php')['order'] as $v) {
+        foreach(self::$baiChuanConfig as $v) {
             $this->taoBaoApi = new TaoBaoApiController($v['appkey'], $v['secret']);
             $this->message();
         }
@@ -61,46 +69,39 @@ class TaoBaoKeController {
     }
     //通过传入商品明文id 查询相关api数据入库
     public function complementGoodsOnline($numIid = []) {
-        if(empty($numIid) && empty($_POST['num_iid'])) return;
+        //支持前端 post批量入库
         $numIid  = $numIid ? : explode(',', $_POST['num_iid']);
+        //如果库里存在则就不在需要查询api入库了
         $pendingTreatment = array_diff($numIid, array_column(M('goods_online')->where('num_iid in('.(connectionArray($numIid)).')')->field('num_iid')->select('all'), 'num_iid'));
         if(!$pendingTreatment) return;
+
         if(!$this->taoBaoApi) {
-            foreach((include DIR_CORE.'baiChuanConfig.php')['order'] as $v) {
+            foreach(self::$baiChuanConfig as $v) {
                 $this->taoBaoApi  = new TaoBaoApiController($v['appkey'], $v['secret']);
                 $this->taobaoList = $this->taoBaoApi->taeItemsListRequest($pendingTreatment);
                 if($this->taobaoList) break;
             }
         }
-        $sql = 'INSERT INTO ngw_goods_online('.('`'.implode('`,`', array_keys($this->setFileds([], 'goods_online'))).'`').') VALUES ';
+        $res = [];
         foreach($this->taoBaoApi->tbkItemInfoGetRequest($pendingTreatment) as $v) {
             foreach($this->taobaoList as $val) {
                 if($v['num_iid'] == $val['open_id']) {
-                    $v = array_merge($val, $v);
-                    $v['small_images']  = json_encode($v['small_images'], JSON_UNESCAPED_UNICODE);  //小图列表
-                    $v['store_type']    = $v['mall'] ? 0 : 1;   //平台类型
-                    $v['rating']        = $v['tk_rate'] / 100;  //淘宝客佣金比率
-                    $v['source']        = 10;
-                    $v['status']        = 2;
-                    $v['created_date']  = date('Y-m-d');
-                    $sql .= '('.implode($this->setFileds($this->replaceField($v, [
+                    $res[] = $this->replaceField(array_merge($val, $v), [
                         'pic_url'       => 'pict_url',      //主图链接
                         'shop_name'     => 'store_name',    //店铺名称
                         'reserve_price' => 'price',         //商品一口价
-                        'nick'          => 'seller_name'    //卖家旺旺
-                    ]), 'goods_online'), ',').'),';
+                        'nick'          => 'seller_name',   //卖家旺旺
+                        'tk_rate'       => 'rating',        //佣金比
+                        'mall'          => 'store_type'     //商品类型
+                    ]);
                 }
             }
         }
-        $this->exec($sql);
-        echo 'ngw_online_goods表已处理完成...<br/>';
-    }
-    public function exec($sql) {
-        return substr($sql, -1) == ',' ? M()->exec(rtrim($sql, ',')) : '';
+        echo $this->taoBaoKeModel->addOnlineGoods($res).'ngw_online_goods表已处理完成...<br/>';
     }
     private function addOrder($data) {
         if(!empty($data)) {
-            $sql = 'INSERT IGNORE INTO ngw_order_status('.('`'.implode('`,`', array_keys($this->setFileds())).'`').') VALUES ';
+            $sql = 'INSERT IGNORE INTO ngw_order_status('.('`'.implode('`,`', array_keys($this->taoBaoKeModel->setFileds())).'`').') VALUES ';
             foreach($data as $v) {
                 $v = $this->replaceField($v, [
                     'tid'        => 'order_id',
@@ -123,10 +124,10 @@ class TaoBaoKeController {
                     }
                     //生成退单时间
                     !empty($v['create_order_time']) OR $v['create_order_time'] = date('Y-m-d H:i:s');
-                    $sql .= '('.implode($this->setFileds($v), ',').'),';
+                    $sql .= '('.implode($this->taoBaoKeModel->setFileds($v), ',').'),';
                 }
             }
-            $this->exec($sql);
+            $this->taoBaoKeModel->exec($sql);
             return '订单添加完成...<br/>';
         }
     }
@@ -155,21 +156,6 @@ class TaoBaoKeController {
                 break;
         }
     }
-    //设置表字段以及默认值
-    public function setFileds($value = [], $table = 'order_status', $unsetFiled = ['id', 'updatedAt', 'createdAt']) {
-        //缓存表字段
-        static $tables = null;
-        static $filed = null;
-        if($table != $tables) {
-            $tables = $table;
-            $filed = M($tables)->getTableFields();
-        }
-        foreach($filed as $v)
-            $fileds[$v] = isset($value[$v]) ? is_string($value[$v]) && !empty($value[$v]) ? "'{$value[$v]}'" : $value[$v] : 'NULL';
-        foreach($unsetFiled as $v)
-            unset($fileds[$v]);
-        return $fileds;
-    }
     //用户付款成功时存储订单号以及用户信息
     public function addOrderId() {
         if(empty($this->dparam['uid']) || empty($this->dparam['order_id']) || empty($this->dparam['taobao_nick']))
@@ -185,28 +171,5 @@ class TaoBaoKeController {
         } else {
             info('类型格式不对',-1);
         }
-    }
-    public function deviceVer() {
-        $params = $this->dparam;
-        $type = !empty($params['type']) ? 1 : 0;
-        $data = '缺少参数';
-        if(!empty($params['device']) && !empty($params['status'])) {
-            switch ($params['status']) {
-                //查库
-                case 1:
-                    $data = M('device')->where(['deviceVer' => ['=', $params['device']]])->field('type')->select('single');
-                    $data = isset($data['type']) ? $data['type'] : info('库里可能还没存在',-1);
-                    break;
-                //修改
-                case 2:
-                    $data = M('device')->where(['deviceVer' => ['=',$params['device']]])->save(['type' => $type]);
-                    break;
-                //添加
-                case 3:
-                    $data = M('device')->add(['deviceVer' => $params['device'], 'type' => $type]);
-                    break;
-            }
-        }
-        info('',(int)$data);
     }
 }

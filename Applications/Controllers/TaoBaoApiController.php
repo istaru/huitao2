@@ -71,7 +71,7 @@ class TaoBaoApiController {
         ];
         //以商品价格进行筛选
         empty($paramster['start_price']) or $data['start_price'] = $paramster['start_price'];
-        empty($paramster['end_price'])   or $data['end_price']   = $paramster['start_price'];
+        empty($paramster['maxPrice'])   or $data['end_price']   = $paramster['maxPrice'];
         $taobaoGoods = $this->taoBao->send($data);
         $res['sum']         = !empty($taobaoGoods['tbk_item_get_response']['total_results']) ? $taobaoGoods['tbk_item_get_response']['total_results'] : 0;
         $res['taobaoGoods'] = !empty($taobaoGoods['tbk_item_get_response']['results']['n_tbk_item']) ? $taobaoGoods['tbk_item_get_response']['results']['n_tbk_item'] : [];
