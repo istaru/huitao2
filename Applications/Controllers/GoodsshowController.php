@@ -15,6 +15,7 @@ class GoodsShowController extends AppController
     public $son_nodes   = [];
     public $diff        = [];       //与 redis 的差集
     public $intersect   = [];       //与 redis 的交集
+    public $silent      = null;     // 静默
 
     /**
      * [cateGoods 同级子分类商品]
@@ -27,10 +28,15 @@ class GoodsShowController extends AppController
         $rkeys = R()->keys('lm_');
         foreach ($rkeys as &$v) $v = explode('_',$v)[1];
 
-        $this->intersect = array_intersect($cnames,$rcids); // 取出交集
-        $this->diff     = array_diff($cnames,$rcids);   // 差集
-        D($this->diff);
-        D($this->intersect);die;
+        $this->intersect = array_intersect($soncate,$rkeys); // 取出交集
+        $this->diff     = array_diff($soncate,$rkeys);   // 差集
+
+        foreach ($this->diff as $v) {
+            $this->dparam['page_no'] = 1;
+            $this->dparam['page_no'] = 1;
+            $this->goods[$v] = $this->showGoods();
+        }
+
     }
 
 
@@ -46,13 +52,24 @@ class GoodsShowController extends AppController
         if($this->dparam['stype'] == 2) $this->gtype = 3;
         $this->getNodes();
         $goods = R()->getListPage($this->cate,$this->dparam['page_no'],$this->dparam['page_size']);
-        if(count($goods)>1)
-            info(['status'=>1,'msg'=>'操作成功!','data'=>$goods,'son_cate'=>$this->son_nodes,'total'=>R()->size($this->cate)]);
+        if(count($goods)>1){
+            if(!$this->silent){
+                info(['status'=>1,'msg'=>'操作成功!','data'=>$goods,'son_cate'=>$this->son_nodes,'total'=>R()->size($this->cate)]);
+            }else{
+                return $goods;
+            }
+
+        }
         $sql = $this->getSQL();
         // echo $sql;die;
         $goods = M()->query($sql,'all');
         $this->redisToGoods($this->cate,$goods);
-        info(['status'=>1,'msg'=>'操作成功!','data'=>$goods,'son_cate'=>$this->son_nodes,'total'=>R()->size($this->cate)]);
+        $goods = $this->page($goods);
+        if(!$this->silent){
+            info(['status'=>1,'msg'=>'操作成功!','data'=>$goods,'son_cate'=>$this->son_nodes,'total'=>R()->size($this->cate)]);
+        }else{
+            return $goods;
+        }
     }
 
 
@@ -72,6 +89,7 @@ class GoodsShowController extends AppController
         // echo $this->cate;die;
         $goods = M()->query($sql,'all');
         $this->redisToGoods($this->cate,$goods);
+        $goods = $this->page($goods);
         info(['status'=>1,'msg'=>'操作成功!','data'=>$goods,'son_cate'=>$this->son_nodes,'total'=>R()->size($this->cate)]);
     }
 
@@ -196,6 +214,16 @@ class GoodsShowController extends AppController
         $sql = "SELECT DISTINCT name cname FROM ngw_category WHERE taobao_cid IS NOT NULL ";
         $cates = M()->query($sql,'all');
         info('ok',1,[['cname'=>'全部']]+$cates);
+    }
+
+
+    /**
+     * [page 分页]
+     */
+    private function page($total)
+    {
+        $goods = array_slice($total,$this->dparam['page_no']-1,$this->dparam['page_size']);
+        return $goods;
     }
 
 
@@ -362,15 +390,19 @@ class GoodsShowController extends AppController
         $type = !isset($parmas['type']) ? '0,1' : $parmas['type'];
 
        //优先展示自己的商品
-       $sql[] = "SELECT num_iid,title,seller_name nick,pict_url,price,deal_price zk_final_price,item_url,reduce,volume,source FROM ngw_goods_online WHERE status = 1 AND store_type IN({$type}) AND title like '%".formattedData($parmas['title'])."%' AND source in(0,1)";
+       $sql[] = "SELECT num_iid,title,seller_name nick,pict_url,price,deal_price zk_final_price,item_url,url,reduce,volume,source,rating FROM ngw_goods_online WHERE status = 1 AND store_type IN({$type}) AND title like '%".formattedData($parmas['title'])."%' AND source in(0,1) AND item_url is not null ";
        //根据商品价格进行筛选
        if(!empty($parmas['start_price']) && !empty($parmas['maxPrice'])) {
             $sql[] = ' AND deal_price BETWEEN '.$parmas['start_price']. ' AND '.$parmas['maxPrice'];
        }
        //点击查看更多--库里的商品
-       $sql[] = $query ? ' LIMIT '.($parmas['page_no'] - 1) * $parmas['page_size'].','.$parmas['page_size'] : ' LIMIT 3';
+       $sql[] = ' GROUP BY num_iid LIMIT '.($query ? ($parmas['page_no'] - 1) * $parmas['page_size'].','.$parmas['page_size'] : 3);
 
        $self = M()->query(implode($sql, ''), 'all');
+       //计算出用户所得的返利金额
+        foreach($self as &$v) {
+            $v['userPrice'] = $v['rating'] && $v['source'] == 1 ? round($v['rating'] / 100 * $v['zk_final_price'] * parent::PERCENT, 2) : null;
+        }
         //当query 为false 或 库里展示商品小于要查询的商品数量时 查询淘宝客商品
         if(!$query || count($self) < $parmas['page_size'])
             $data = (new TaoBaoApiController('23630111', 'd2a2eded0c22d6f69f8aae033f42cdce'))->tbkItemGetRequest($parmas);

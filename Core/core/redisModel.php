@@ -41,7 +41,7 @@ class redisModel
 
 	public function addListAll($key,$list)
 	{
-		self::$handle->multi();
+		self::$handle->multi(Redis::PIPELINE);
 		foreach($list as $k => $v)
 		{
 			if(!self::$handle->rpush($key,json_encode($v)))
@@ -56,7 +56,7 @@ class redisModel
 
 	public function addHashAll($key,$list)
 	{
-		self::$handle->multi();
+		self::$handle->multi(Redis::PIPELINE);
 		foreach($list as $k => $v)
 		{
 			if(!self::$handle->hset($key,$k,json_encode($v)))

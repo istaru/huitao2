@@ -17,7 +17,7 @@ class UserController extends AppController
 		$sql = " SELECT objectId uid,sfuid,nickname,head_img,price,pend,pnow,(price+pend+pnow) total FROM ngw_uid WHERE objectId = '{$this->dparam['user_id']}' ";
 		$info = M()->query($sql);
 		empty($info) && info('用户不存在',-1);
-		$data = $predict['predict']==null?['predict'=>0]:$predict+$info;
+		$data = $predict['predict']==null?['predict'=>0]+$info:$predict+$info;
 		info(['msg'=>'请求成功!','status'=>1,'data'=>$data]);
 	}
 
