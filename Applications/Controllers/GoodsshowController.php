@@ -22,21 +22,16 @@ class GoodsShowController extends AppController
      */
     public function cateGoods()
     {
-        $sql = "SELECT id cid FROM ngw_category WHERE pid = {$this->dparam['cid']}";
+        $sql = "SELECT id cid,name cname FROM ngw_category WHERE pid = {$this->dparam['cid']}";
         $soncate = M()->query($sql,'all');
-        $soncate = array_column($soncate,'cid');
-        $rkeys = R()->keys('lm_');
-        foreach ($rkeys as &$v) $v = explode('_',$v)[1];
-
-        $this->intersect = array_intersect($soncate,$rkeys); // 取出交集
-        $this->diff     = array_diff($soncate,$rkeys);   // 差集
-
-        foreach ($this->diff as $v) {
+        foreach ($soncate as $v) {
+            $this->silent = 1;  //静默
+            $this->dparam['cid'] = $v['cid'];
             $this->dparam['page_no'] = 1;
-            $this->dparam['page_no'] = 1;
-            $this->goods[$v] = $this->showGoods();
+            $this->dparam['page_size'] = $this->dparam['size'];
+            $this->goods[$v['cname']] = $this->showGoods();
         }
-
+        info(['status'=>1,'msg'=>'操作成功!','data'=>$this->goods]);
     }
 
 
@@ -51,6 +46,7 @@ class GoodsShowController extends AppController
         $this->gtype = 1;
         if($this->dparam['stype'] == 2) $this->gtype = 3;
         $this->getNodes();
+
         $goods = R()->getListPage($this->cate,$this->dparam['page_no'],$this->dparam['page_size']);
         if(count($goods)>1){
             if(!$this->silent){
