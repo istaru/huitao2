@@ -12,6 +12,7 @@ class GoodsShowController extends AppController
     public $time        = 3;        //轮播频次
     public $ex_len      = 3000;     //excel商品数量
     public $nodes       = [];
+    public $cates       = [];
     public $son_nodes   = [];
     public $silent      = null;     // 静默
 
@@ -20,16 +21,19 @@ class GoodsShowController extends AppController
      */
     public function cateGoods()
     {
-        $sql = "SELECT id cid,name cname FROM ngw_category WHERE pid = {$this->dparam['cid']}";
+        $sql = "SELECT id cid,name FROM ngw_category WHERE pid = {$this->dparam['cid']}";
         $soncate = M()->query($sql,'all');
         foreach ($soncate as $v) {
             $this->silent = 1;  //静默
             $this->dparam['cid'] = $v['cid'];
             $this->dparam['page_no'] = 1;
             $this->dparam['page_size'] = $this->dparam['size'];
-            $this->goods[$v['cname']] = $this->showGoods();
+            $this->goods[$v['cid']] = $this->showGoods();
+            $this->cates[] = ['cid'=>$v['cid'],'name'=>$v['name']];
         }
-        info(['status'=>1,'msg'=>'操作成功!','data'=>$this->goods]);
+        if(empty($this->goods)) info('暂无该分类商品',-1);
+
+        info(['status'=>1,'msg'=>'操作成功!','data'=>$this->goods,'cate'=>$this->cates]);
     }
 
 
@@ -42,9 +46,8 @@ class GoodsShowController extends AppController
     {
         // R()->delLike('lm');die;
         $this->gtype = 1;
-        if($this->dparam['stype'] == 2) $this->gtype = 3;
+        if($this->dparam['stype'] == 1) $this->gtype = 3;
         $this->getNodes();
-
         $goods = R()->getListPage($this->cate,$this->dparam['page_no'],$this->dparam['page_size']);
         if(count($goods)>1){
             if(!$this->silent){
@@ -55,8 +58,8 @@ class GoodsShowController extends AppController
 
         }
         $sql = $this->getSQL();
-        // echo $sql;die;
         $goods = M()->query($sql,'all');
+        if(empty($goods)) info('暂无该分类商品',-1);
         $this->redisToGoods($this->cate,$goods);
         $goods = $this->page($goods);
         if(!$this->silent){
@@ -74,7 +77,7 @@ class GoodsShowController extends AppController
     {
         // R()->delLike('ex');die;
         $this->gtype = 2;
-        if($this->dparam['stype'] == 2) $this->gtype = 4;
+        if($this->dparam['stype'] == 1) $this->gtype = 4;
         $this->getNodesEx();
         $goods = R()->getListPage($this->cate,$this->dparam['page_no'],$this->dparam['page_size']);
         if(count($goods)>1)
@@ -82,6 +85,7 @@ class GoodsShowController extends AppController
         $sql = $this->getSQL();
         // echo $this->cate;die;
         $goods = M()->query($sql,'all');
+        if(empty($goods)) info('暂无该分类商品',-1);
         $this->redisToGoods($this->cate,$goods);
         $goods = $this->page($goods);
         info(['status'=>1,'msg'=>'操作成功!','data'=>$goods,'son_cate'=>$this->son_nodes,'total'=>R()->size($this->cate)]);
@@ -108,16 +112,17 @@ class GoodsShowController extends AppController
         }
 
         if($this->gtype==2){
-            $sql= "SELECT a.*,b.title,b.seller_name nick,b.coupon_url,b.store_type,b.pict_url,b.price,b.category_id cid,b.category,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM ngw_goods_info a JOIN ngw_goods_online b ON a.num_iid = b.num_iid AND a.favorite_id = b.favorite_id WHERE a.is_show = 1 AND a.source = 0 AND a.status =1 AND b.category IN ('".implode("','",$this->nodes)."') ORDER BY a.is_front DESC ,score DESC";
+            $sql= "SELECT a.*,b.title,b.seller_name nick,b.url,b.store_type,b.pict_url,b.price,b.category_id cid,b.category,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM ngw_goods_info a JOIN ngw_goods_online b ON a.num_iid = b.num_iid AND a.favorite_id = b.favorite_id WHERE a.is_show = 1 AND a.source = 0 AND a.status =1 AND b.category IN ('".implode("','",$this->nodes)."') ORDER BY a.is_front DESC ,score DESC";
         }
 
         if($this->gtype==3){
-            $sql= "SELECT a.*,FORMAT((b.rating/100*b.price*".parent::PERCENT."),2) as rating,b.title,b.seller_name nick,b.store_type,b.pict_url,b.price,b.category_id cid,b.category,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM ngw_goods_info a JOIN ngw_goods_online b ON a.num_iid = b.num_iid AND a.favorite_id = b.favorite_id WHERE a.is_show = 1 AND a.source = 1 AND a.status =1 AND b.category_id IN (".implode(',',$this->nodes).") OR a.num_iid in (SELECT a.num_iid FROM ngw_goods_category_ref a JOIN ngw_goods_info b ON a.num_iid = b.num_iid WHERE b.is_show = 1 AND b.source = 1 AND b.status =1 AND a.category_id IN(".implode(',',$this->nodes).")) AND b.price <= 19.9 ORDER BY a.is_front DESC ,score DESC";
+            $sql= "SELECT a.*,FORMAT((b.rating/100*b.price*".parent::PERCENT."),2) as rating,b.title,b.seller_name nick,b.store_type,b.pict_url,b.price,b.category_id cid,b.category,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM ngw_goods_info a JOIN ngw_goods_online b ON a.num_iid = b.num_iid AND a.favorite_id = b.favorite_id WHERE a.is_show = 1 AND a.source = 1 AND a.status =1 AND b.category_id IN (".implode(',',$this->nodes).") AND b.price <= 19.9 OR a.num_iid in (SELECT a.num_iid FROM ngw_goods_category_ref a JOIN ngw_goods_info b ON a.num_iid = b.num_iid WHERE b.is_show = 1 AND b.source = 1 AND b.status =1 AND a.category_id IN(".implode(',',$this->nodes)."))  ORDER BY a.is_front DESC ,score DESC";
         }
 
         if($this->gtype==4){
-            $sql= "SELECT a.*,b.title,b.seller_name nick,b.coupon_url,b.store_type,b.pict_url,b.price,b.category_id cid,b.category,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM ngw_goods_info a JOIN ngw_goods_online b ON a.num_iid = b.num_iid AND a.favorite_id = b.favorite_id WHERE a.is_show = 1 AND a.source = 0 AND a.status =1 AND b.category IN ('".implode("','",$this->nodes)."') AND b.price <= 19.9 ORDER BY a.is_front DESC ,score DESC";
+            $sql= "SELECT a.*,b.title,b.seller_name nick,b.url,b.store_type,b.pict_url,b.price,b.category_id cid,b.category,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM ngw_goods_info a JOIN ngw_goods_online b ON a.num_iid = b.num_iid AND a.favorite_id = b.favorite_id WHERE a.is_show = 1 AND a.source = 0 AND a.status =1 AND b.price <= 19.9 AND b.category IN ('".implode("','",$this->nodes)."')  ORDER BY a.is_front DESC ,score DESC";
         }
+        // echo $sql;die;
         return $sql;
     }
 
@@ -129,12 +134,11 @@ class GoodsShowController extends AppController
     {
         $sql = "SELECT * FROM ngw_category WHERE id = {$this->dparam['cid']}";
         $cate = M()->query($sql);
-        if($this->dparam['stype'] == 2){
+        if($this->dparam['stype'] == 1){
             $this->cate = "lm99_{$cate['id']}_".$cate['name'];
         }else{
             $this->cate = "lm_{$cate['id']}_".$cate['name'];
         }
-
         $sql = "SELECT id,name FROM ngw_category WHERE `left` >= {$cate['left']} AND `right` <= {$cate['right']}";
         $cates = M()->query($sql,'all');
         foreach ($cates as $v) $temp[] = $v['id'];
@@ -155,7 +159,7 @@ class GoodsShowController extends AppController
      */
     public function getNodesEx()
     {
-        if($this->dparam['stype'] == 2){
+        if($this->dparam['stype'] == 1){
             $this->cate = "ex99_".$this->dparam['cname'];
         }else{
             $this->cate = "ex_".$this->dparam['cname'];
@@ -323,7 +327,6 @@ class GoodsShowController extends AppController
             $sort[$k]   = $v['score'];
             $front[$k]  = $v['is_front'];
         }
-        D($arr);die;
         array_multisort($front,SORT_DESC,$sort,SORT_DESC,$arr);
         return $arr;
     }
@@ -360,13 +363,19 @@ class GoodsShowController extends AppController
 
     //{"num_iid":"","status":""}
     /**
-     * 商品开关
+     * 商品开关(用于优惠券过期)
      */
     public function goodsSwitch()
     {
         if(!empty($this->dparam['num_iid']) && !empty($this->dparam['status'])){
+            //更新商品的状态
             M()->query("update ngw_goods_online set status = 2 where num_iid = {$this->dparam['num_iid']}");
-            A('Goods:delAllGoods');
+            //取出商品对应的分类名
+            $sql = "select category cname from ngw_goods_online where num_iid = {$this->dparam['num_iid']} ";
+            $cates = M()->query($sql)+['全部'];
+            //删除 redis 中包含该分类的商品分类
+            foreach($cates as $v) R()->delFeild($v);
+
             info('请求成功',1,[]);
         }
     }
@@ -384,19 +393,16 @@ class GoodsShowController extends AppController
         $type = !isset($parmas['type']) ? '0,1' : $parmas['type'];
 
        //优先展示自己的商品
-       $sql[] = "SELECT num_iid,title,seller_name nick,pict_url,price,deal_price zk_final_price,item_url,url,reduce,volume,source,rating FROM ngw_goods_online WHERE status = 1 AND store_type IN({$type}) AND title like '%".formattedData($parmas['title'])."%' AND source in(0,1) AND item_url is not null ";
+       $sql[] = "SELECT num_iid,title,seller_name nick,pict_url,price,deal_price zk_final_price,item_url,url,reduce,volume,source,rating,FORMAT(rating/100*deal_price*".(parent::PERCENT).", 2) userPrice FROM ngw_goods_online WHERE status = 1 AND store_type IN({$type}) AND title like '%".formattedData($parmas['title'])."%' AND source in(0,1) AND item_url is not null";
        //根据商品价格进行筛选
        if(!empty($parmas['start_price']) && !empty($parmas['maxPrice'])) {
-            $sql[] = ' AND deal_price BETWEEN '.$parmas['start_price']. ' AND '.$parmas['maxPrice'];
+            $sql[] = 'AND deal_price BETWEEN '.$parmas['start_price']. ' AND '.$parmas['maxPrice'];
        }
        //点击查看更多--库里的商品
-       $sql[] = ' GROUP BY num_iid LIMIT '.($query ? ($parmas['page_no'] - 1) * $parmas['page_size'].','.$parmas['page_size'] : 3);
+       $sql[] = 'GROUP BY num_iid LIMIT '.($query ? ($parmas['page_no'] - 1) * $parmas['page_size'].','.$parmas['page_size'] : 3);
 
-       $self = M()->query(implode($sql, ''), 'all');
-       //计算出用户所得的返利金额
-        foreach($self as &$v) {
-            $v['userPrice'] = $v['rating'] && $v['source'] == 1 ? round($v['rating'] / 100 * $v['zk_final_price'] * parent::PERCENT, 2) : null;
-        }
+       $self = M()->query(implode($sql, ' '), 'all');
+
         //当query 为false 或 库里展示商品小于要查询的商品数量时 查询淘宝客商品
         if(!$query || count($self) < $parmas['page_size'])
             $data = (new TaoBaoApiController('23630111', 'd2a2eded0c22d6f69f8aae033f42cdce'))->tbkItemGetRequest($parmas);

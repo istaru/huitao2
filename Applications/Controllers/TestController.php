@@ -6,5 +6,8 @@ class TestController extends AppController {
         R()->delLike('lm');
         R()->delLike('ex');
     }
+    public function b(){
+        (SuccShopIncomeController::getObj())->incomeHandle();
+    }
 
 }

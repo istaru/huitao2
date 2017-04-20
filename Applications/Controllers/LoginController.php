@@ -97,15 +97,22 @@ class LoginController extends AppController
 	 */
 	public function unionHandleForLogin()
 	{
+
 		if(!strstr($this->dparam['did'],$this->uid_info['did_list'])){
 			$data				= $this->dparam;
-			$data['did']		= $this->uid_info['id'];
+			$data['did']		= $this->dparam['did'];
 			$data['did_list']	= $this->uid_info['did_list'].','.$this->dparam['did'];
 			$data['did_count']	= $this->uid_info['did_count'] + 1;
 			$data['logintime']	=	time();
 			unset($data['phone']);
 			unset($data['password']);
-
+			if($this->dparam['type'] == 1){	//android
+				$data['idfa']		= '';
+				$data['uuid']		= '';
+				$data['bdid']		= '';
+			}else{
+				$data['imei']		= '';
+			}
 			M('uid')->where(" objectId = '{$this->uid_info['objectId']}' ")->save($data);
 		}
 		//修改密码 重置token

@@ -117,13 +117,15 @@ class TaoBaoKeController {
                             //减过邮费之后的价钱
                             $v['paid_fee'] = abs($v['paid_fee']) - abs($taobaoList['post_fee']) < 0 ? 0 : abs($v['paid_fee']) - abs($taobaoList['post_fee']);
                             //获取明文id
-                            $v['open_id']  = $taobaoList['open_id'];
+                            $v['num_iid']  = $taobaoList['open_id'];
                             //补全order表中明文id
-                            M('order')->where(['order_id' => ['=', $v['order_id']]])->save(['num_iid' => $v['open_id']]);
+                            M('order')->where(['order_id' => ['=', $v['order_id']]])->save(['num_iid' => $v['num_iid']]);
                         }
                     }
                     //生成退单时间
                     !empty($v['create_order_time']) OR $v['create_order_time'] = date('Y-m-d H:i:s');
+                    //生成入库日期
+                    $v['created_date'] = date('Y-m-d');
                     $sql .= '('.implode($this->taoBaoKeModel->setFileds($v), ',').'),';
                 }
             }
@@ -143,16 +145,16 @@ class TaoBaoKeController {
     }
     //捕捉到订单信息入库之后的后续动作
     private function notice($status = '', $data = '') {
-        $record  = new RecordController;
+        $timerTask  = new TimerTaskController;
         switch($status) {
             case 2:
-                $record->updateOrderInfo($data);
-                // (SuccShopIncomeController::getObj())->incomeHandle($data);
+                $timerTask->orderInfo($data);
+                $timerTask->purchaseRecord($data, 2);
+                (SuccShopIncomeController::getObj())->incomeHandle($data);
                 break;
             case 5:
-                $record->purchaseRecord($data, 5);
-                $record->updateOrderBack($data);
-                // (FailShopIncomeController::getObj())->incomeHandle($data);
+                $timerTask->purchaseRecord($data, 5);
+                (FailShopIncomeController::getObj())->incomeHandle($data);
                 break;
         }
     }

@@ -33,7 +33,7 @@ class taskVerificationController {
     }
     //好友获得一个红包任务
     public static function friendsGetARedEnvelopeTask($uid) {
-        return;
+        return M()->where(['type' => ['=', 1], 'uid' => ['=', $uid]])->select('single');
     }
 
 }

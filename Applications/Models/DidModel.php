@@ -20,7 +20,9 @@ class DidModel
         return M('did')->add($data,$status);
     }
     public function getUserDid($uid) {
-        $data = array_filter(M('uid')->where("objectId = '{$uid}'")->field('imei,idfa,bdid,idfa,uuid')->select('single'));
+        $data = M('uid')->where("objectId = '{$uid}'")->field('imei,idfa,bdid,idfa,uuid')->select('single');
+        if(!$data) return;
+        $data = array_filter($data);
         $s = '';
         foreach($data as $k => $v) {
             $s .= $k.'='."'{$v}'".' AND ';

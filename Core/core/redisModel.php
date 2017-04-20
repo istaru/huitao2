@@ -41,7 +41,6 @@ class redisModel
 
 	public function addListAll($key,$list)
 	{
-		echo $key;
 		self::$handle->multi(Redis::PIPELINE);
 		foreach($list as $k => $v)
 		{

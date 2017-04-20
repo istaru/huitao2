@@ -3,11 +3,8 @@ class SuccShopIncomeController
 {
 	public static $obj;
 	public $sql = [];
-
-	private function __construct()
-	{
-
-	}
+	const PERCENT = 0.7;
+	private function __construct(){}
 
 
 	public static function getObj()
@@ -22,7 +19,7 @@ class SuccShopIncomeController
 	/**
 	 * [buySuccess 订单返利生成预估收入]
 	 */
-	public function incomeHandle($order_list)
+	public function incomeHandle($order_list = ['7145541093113222'])
 	{
 		if(empty($order_list)) return;
 
@@ -73,7 +70,7 @@ class SuccShopIncomeController
 	public function orderInfo($order_list)
 	{
 		//取出订单以及关联数据
-		$sql = "select distinct(o.order_id) , o.uid , if(o.cost<o.deal_price,o.cost,o.deal_price) as cost , o.rating,o.amount,u.sfuid from ngw_order o join ngw_uid u on o.uid = u.objectId where o.order_id in (".implode(',',$order_list).") and o.status = 1 ";
+		$sql = "SELECT distinct(a.order_id),b.paid_fee cost ,a.rating,c.sfuid FROM ngw_order a JOIN ngw_order_status b JOIN ngw_uid c ON a.order_id = b.order_id AND a.uid = c.objectId WHERE a.order_id IN (".implode(',',$order_list).") AND a.status = 1 AND b.status = 2 ";
 		$o_info = M()->query($sql,'all');
 		// D($o_info);die;
 		return $o_info;
