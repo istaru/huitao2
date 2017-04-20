@@ -59,7 +59,7 @@ class GoodsShowController extends AppController
         }
         $sql = $this->getSQL();
         $goods = M()->query($sql,'all');
-        if(empty($goods)) info('暂无该分类商品',-1);
+        if(!$this->silent && empty($goods)) info('暂无该分类商品',-1);
         $this->redisToGoods($this->cate,$goods);
         $goods = $this->page($goods);
         if(!$this->silent){
@@ -85,7 +85,7 @@ class GoodsShowController extends AppController
         $sql = $this->getSQL();
         // echo $this->cate;die;
         $goods = M()->query($sql,'all');
-        if(empty($goods)) info('暂无该分类商品',-1);
+        if(!$this->silent && empty($goods)) info('暂无该分类商品',-1);
         $this->redisToGoods($this->cate,$goods);
         $goods = $this->page($goods);
         info(['status'=>1,'msg'=>'操作成功!','data'=>$goods,'son_cate'=>$this->son_nodes,'total'=>R()->size($this->cate)]);
@@ -367,7 +367,7 @@ class GoodsShowController extends AppController
      */
     public function goodsSwitch()
     {
-        if(!empty($this->dparam['num_iid']) && !empty($this->dparam['status'])){
+        if(!empty($this->dparam['num_iid'])){
             //更新商品的状态
             M()->query("update ngw_goods_online set status = 2 where num_iid = {$this->dparam['num_iid']}");
             //取出商品对应的分类名
@@ -412,6 +412,17 @@ class GoodsShowController extends AppController
             'taobaoGoodsSum' => isset($data['sum'])         ? $data['sum']         : 0,
         ]);
     }
+
+
+    /**
+     * [hotTab 热门搜索]
+     */
+    public function hotTab()
+    {
+        $data = [
+        ];
+    }
+
 
 
     //{"user_id":"","page_no":"","page_size":""}

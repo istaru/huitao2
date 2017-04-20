@@ -58,20 +58,20 @@ class ScriptController extends Controller
 		echo 'ok'.$date.'\n';
 	}
 
-
+	//用户行为redis->mysql
 	public function behaviour()
 	{
-		$len	= 10;
+		$len	= 50;
 		$sql1	= $this->createSql($this->arrayTotal(R()->getListPage('click',0,$len)),'click');
 		$sql2	= $this->createSql($this->arrayTotal(R()->getListPage('share',0,$len)),'share');
 		$sql3	= $this->createSql($this->arrayTotal(R()->getListPage('search',0,$len)),'search');
-
 		//开始事务
 		M()->startTrans();
 		R()->startTrans();
 		try {
 			if($sql1){
 				M()->query($sql1);
+				//删除 redis相应条数
 				R()->ltrim('click',$len,-1);
 			}
 
@@ -91,8 +91,7 @@ class ScriptController extends Controller
 		}
 		M()->commit();
 		R()->commit();
-		echo 1;
-		//删除 redis相应条数
+		echo 'ok'.date('y-m-d h:i:s',time()).'\n';
 	}
 
 
@@ -113,13 +112,12 @@ class ScriptController extends Controller
 				$str = " INSERT INTO ngw_search_log (uid,search_content,type,report_date) VALUES ";
 				break;
 		}
-
 		if($type == 'search'){
 			foreach ($arr as $k => $v)
 				$str .= "('{$v['uid']}','{$v['content']}',{$v['type']},'{$date}'),";
 		}else{
 			foreach ($arr as $k => $v)
-				$str .= "('{$v['uid']}','{$v['num_iid']}',{$v['num']},{$v['type']},'{$date}'),";
+				$str .= "('{$v['uid']}','{$v['content']}',{$v['num']},{$v['type']},'{$date}'),";
 		}
 
 		return rtrim($str,',');
@@ -131,7 +129,7 @@ class ScriptController extends Controller
 		$temp = [];
 		foreach ($arr as $k => $v) {
 			if(!array_key_exists($v['uid'].$v['type'],$temp))
-				$temp[$v['uid'].$v['type']] = ['uid'=>$v['uid'],'num_iid'=>$v['content'],'num'=>1,'type'=>$v['type']];
+				$temp[$v['uid'].$v['type']] = ['uid'=>$v['uid'],'content'=>$v['content'],'num'=>1,'type'=>$v['type']];
 			else
 				$temp[$v['uid'].$v['type']]['num'] += 1;
 		}
