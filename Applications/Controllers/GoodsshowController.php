@@ -184,21 +184,21 @@ class GoodsShowController extends AppController
     public function category()
     {
         $cates = [
-                    ['name'=>'全部','cid'=>'1'],
-                    ['name'=>'女装','cid'=>'133','icon_url'=>RES_SITE.'resource/img/category/img_sort_01.png','content'=>'T恤、衬衫、连衣裙'],
-                    ['name'=>'鞋包','cid'=>'134','icon_url'=>RES_SITE.'resource/img/category/img_sort_02.png','content'=>'凉鞋、拖鞋、单鞋'],
-                    ['name'=>'美妆个护','cid'=>'145','icon_url'=>RES_SITE.'resource/img/category/img_sort_03.png','content'=>'保养、护肤'],
-                    ['name'=>'内衣','cid'=>'154','icon_url'=>RES_SITE.'resource/img/category/img_sort_04.png','content'=>'文胸、保暖内衣'],
-                    ['name'=>'男装','cid'=>'','icon_url'=>RES_SITE.'resource/img/category/img_sort_05.png','content'=>'外套、休闲裤、衬衫'],
-                    ['name'=>'衣饰配件','cid'=>'161','icon_url'=>RES_SITE.'resource/img/category/img_sort_06.png','content'=>'裤装、卫衣'],
-                    ['name'=>'母婴亲子','cid'=>'166','icon_url'=>RES_SITE.'resource/img/category/img_sort_07.png','content'=>'婴儿车、奶瓶'],
-                    ['name'=>'家电','cid'=>'172','icon_url'=>RES_SITE.'resource/img/category/img_sort_08.png','content'=>'家电、厨房电器'],
-                    ['name'=>'数码','cid'=>'178','icon_url'=>RES_SITE.'resource/img/category/img_sort_09.png','content'=>'手机、平板电脑'],
-                    ['name'=>'运动','cid'=>'198','icon_url'=>RES_SITE.'resource/img/category/img_sort_10.png','content'=>'健身、户外'],
-                    ['name'=>'游戏动漫','cid'=>'203','icon_url'=>RES_SITE.'resource/img/category/img_sort_11.png','content'=>'桌游、手办'],
-                    ['name'=>'美食','cid'=>'210','icon_url'=>RES_SITE.'resource/img/category/img_sort_12.png','content'=>'休闲零食、茶水饮料'],
-                    ['name'=>'日常家具','cid'=>'221','icon_url'=>RES_SITE.'resource/img/category/img_sort_13.png','content'=>'床上用品、卧室家具'],
-                    ['name'=>'办公学习','cid'=>'230','icon_url'=>RES_SITE.'resource/img/category/img_sort_14.png','content'=>'办公用品、文具'],
+            ['name'=>'全部','cid'=>'1'],
+            ['name'=>'女装','cid'=>'133','icon_url'=>RES_SITE.'resource/img/category/img_sort_01.png','content'=>'T恤、衬衫、连衣裙'],
+            ['name'=>'鞋包','cid'=>'134','icon_url'=>RES_SITE.'resource/img/category/img_sort_02.png','content'=>'凉鞋、拖鞋、单鞋'],
+            ['name'=>'美妆个护','cid'=>'145','icon_url'=>RES_SITE.'resource/img/category/img_sort_03.png','content'=>'保养、护肤'],
+            ['name'=>'内衣','cid'=>'154','icon_url'=>RES_SITE.'resource/img/category/img_sort_04.png','content'=>'文胸、保暖内衣'],
+            ['name'=>'男装','cid'=>'','icon_url'=>RES_SITE.'resource/img/category/img_sort_05.png','content'=>'外套、休闲裤、衬衫'],
+            ['name'=>'衣饰配件','cid'=>'161','icon_url'=>RES_SITE.'resource/img/category/img_sort_06.png','content'=>'裤装、卫衣'],
+            ['name'=>'母婴亲子','cid'=>'166','icon_url'=>RES_SITE.'resource/img/category/img_sort_07.png','content'=>'婴儿车、奶瓶'],
+            ['name'=>'家电','cid'=>'172','icon_url'=>RES_SITE.'resource/img/category/img_sort_08.png','content'=>'家电、厨房电器'],
+            ['name'=>'数码','cid'=>'178','icon_url'=>RES_SITE.'resource/img/category/img_sort_09.png','content'=>'手机、平板电脑'],
+            ['name'=>'运动','cid'=>'198','icon_url'=>RES_SITE.'resource/img/category/img_sort_10.png','content'=>'健身、户外'],
+            ['name'=>'游戏动漫','cid'=>'203','icon_url'=>RES_SITE.'resource/img/category/img_sort_11.png','content'=>'桌游、手办'],
+            ['name'=>'美食','cid'=>'210','icon_url'=>RES_SITE.'resource/img/category/img_sort_12.png','content'=>'休闲零食、茶水饮料'],
+            ['name'=>'日常家具','cid'=>'221','icon_url'=>RES_SITE.'resource/img/category/img_sort_13.png','content'=>'床上用品、卧室家具'],
+            ['name'=>'办公学习','cid'=>'230','icon_url'=>RES_SITE.'resource/img/category/img_sort_14.png','content'=>'办公用品、文具'],
         ];
         info('ok',1,$cates);
     }
@@ -232,11 +232,11 @@ class GoodsShowController extends AppController
     {
         //取出需要轮询的部分
         $total      = array_map(function($arr){
-                                    if ($arr['score'] <= 50 && $arr['is_front'] == 0)
-                                        $arr['poll'] = 1;
-                                    else $arr['poll'] = 0;
-                                    return $arr;
-                                },$total);
+            if ($arr['score'] <= 50 && $arr['is_front'] == 0)
+                $arr['poll'] = 1;
+            else $arr['poll'] = 0;
+            return $arr;
+        },$total);
         // D($total);die;
         $key        = array_search(1,array_column($total,'poll'));
         $polls      = array_slice($total,$key);
@@ -286,7 +286,8 @@ class GoodsShowController extends AppController
     {
         if(empty($this->dparam['user_id']) || empty($this->dparam['num_iid'] || empty($this->dparam['type']))) info('参数不全',-1);
 
-        (UserRecordController::getObj()) -> shareRecord($this->dparam['user_id'],$this->dparam['num_iid'],$this->dparam['type']);
+        (UserRecordController::getObj()) -> shareRecord($this->dparam['user_id'],$this->dparam['num_iid'],$this->dparam['type'],1); //1分享商品
+        // (UserRecordController::getObj()) -> shareRecord($this->dparam['user_id'],0,3,0); //1分享商品
         info('ok',1);
     }
 
@@ -345,17 +346,17 @@ class GoodsShowController extends AppController
      * 获取邀请页的三个商品详情
      */
     public function getApplyGoods(){
-        $sql = "SELECT pict_url,price,reduce,price-reduce  as sell_price from ngw_goods_online where top='1' and status ='1' order by reduce/price desc limit 30";
+        $sql = "SELECT pict_url,price,reduce,price-reduce  as sell_price from ngw_goods_online where status ='1' order by reduce/price desc limit 30";
         $data = M()->query($sql,'all');
         if($data){
-        //随机产生0-29之间的三个数
-        $numbers = range (0,29);
-        shuffle ($numbers);
-        $export_data=[];
-        for($i=0;$i<3;$i++){
-            $export_data[$i]=$data[$numbers[$i]];
-        }
-        info("列出成功",1,$export_data);
+            //随机产生0-29之间的三个数
+            $numbers = range (0,29);
+            shuffle ($numbers);
+            $export_data=[];
+            for($i=0;$i<3;$i++){
+                $export_data[$i]=$data[$numbers[$i]];
+            }
+            info("列出成功",1,$export_data);
         }
         info("列出失败",-1);
     }
@@ -384,27 +385,44 @@ class GoodsShowController extends AppController
         $parmas = $this->dparam;
         if(empty($parmas['page_no']) || empty($parmas['page_size']) || !isset($parmas['system']) || !isset($parmas['title']))
             info('缺少参数', -1);
-
+        $title = formattedData($parmas['title']);
         //记录用户搜索
         if(!empty($parmas['user_id']))
             (UserRecordController::getObj())->searchRecord($parmas['user_id'],$parmas['title'],$parmas['system']);
         $query = !empty($parmas['query']) ? : false;
         $type = !isset($parmas['type']) ? '0,1' : $parmas['type'];
+        //点击查看更多 --针对库里的商品 默认显示三条
+        $limit = 'GROUP BY num_iid LIMIT '.($query ? ($parmas['page_no'] - 1) * $parmas['page_size'].','.$parmas['page_size'] : 3);
+        //根据商品价格进行筛选
+        $priceScreening = !empty($parmas['start_price']) && !empty($parmas['maxPrice']) ? ' AND deal_price BETWEEN '.$parmas['start_price']. ' AND '.$parmas['maxPrice'] : ' ';
+        //优先展示score评分高的商品
+       $sql = "SELECT a.num_iid , a.title , a.seller_name nick , a.pict_url , a.price , a.deal_price zk_final_price , a.item_url , a.url , a.reduce , a.volume , a.source , a.rating ,
+            FORMAT( a.rating / 100 * a.deal_price * ".parent::PERCENT." , 2) userPrice , b.score FROM(
+                SELECT * FROM ngw_goods_online WHERE status = 1 AND store_type IN({$type}) AND title LIKE '%{$title}%' AND source IN(0 , 1) {$priceScreening} AND item_url IS NOT NULL {$limit}
+            ) a LEFT JOIN ngw_goods_info b ON b.num_iid = a.num_iid ORDER BY score DESC";
 
-       //优先展示自己的商品
-       $sql[] = "SELECT num_iid,title,seller_name nick,pict_url,price,deal_price zk_final_price,item_url,url,reduce,volume,source,rating,FORMAT(rating/100*deal_price*".(parent::PERCENT).", 2) userPrice FROM ngw_goods_online WHERE status = 1 AND store_type IN({$type}) AND title like '%".formattedData($parmas['title'])."%' AND source in(0,1) AND item_url is not null";
-       //根据商品价格进行筛选
-       if(!empty($parmas['start_price']) && !empty($parmas['maxPrice'])) {
-            $sql[] = 'AND deal_price BETWEEN '.$parmas['start_price']. ' AND '.$parmas['maxPrice'];
-       }
-       //点击查看更多--库里的商品
-       $sql[] = 'GROUP BY num_iid LIMIT '.($query ? ($parmas['page_no'] - 1) * $parmas['page_size'].','.$parmas['page_size'] : 3);
-
-       $self = M()->query(implode($sql, ' '), 'all');
-
+       $self = M()->query($sql, 'all');
         //当query 为false 或 库里展示商品小于要查询的商品数量时 查询淘宝客商品
         if(!$query || count($self) < $parmas['page_size'])
             $data = (new TaoBaoApiController('23630111', 'd2a2eded0c22d6f69f8aae033f42cdce'))->tbkItemGetRequest($parmas);
+
+        if(!empty($data['taobaoGoods'])) {
+            $numIid = [];
+            foreach($data['taobaoGoods'] as &$v) {
+                //获取numIid
+                foreach(explode('&', (parse_url($v['item_url']))['query']) as $val) {
+                    $item = explode('=', $val);
+                    $numIid[$item[0]] = $item[1];
+                }
+                $v['num_iid'] = isset($numIid['id']) ? $numIid['id'] : '';
+                //生成商品分享链接
+                $v['share_url'] = null;
+                //字段映射区分淘宝集市和天猫商品
+                $v['store_type'] = $v['user_type'] ? 0 : 1;
+                unset($v['user_type']);
+            }
+        }
+        foreach($self as &$v) $v['share_url'] = parent::SHARE_URL . $v['num_iid'];
         info('ok', 1, [
             'self'           => $self,
             'taobaoGoods'    => isset($data['taobaoGoods']) ? $data['taobaoGoods'] : [],
@@ -470,8 +488,20 @@ class GoodsShowController extends AppController
      */
     public function getShareDetail()
     {
-        $data=A('Goods:getShareDetail',[I('num_iid')]);
+        $data=M()->query("select num_iid,title,pict_url,price,reduce,store_name,volume from ngw_goods_online where num_iid='".I('num_iid')."'");
         info('请求成功',1,$data);
+    }
+
+    /**
+     * [delRedisCateGoods description]
+     * @param  [type] $type [1.lm联盟商品 2.ex商品]
+     */
+    public function delRedisCateGoods($type)
+    {
+        $keylike = $type == 1 ? 'lm' : ($type == 2 ? 'ex' : '' );
+        if(empty($keylike)) return;
+
+        R()->delLike($keylike);
     }
 
 }

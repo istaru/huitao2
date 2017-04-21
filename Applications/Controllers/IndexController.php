@@ -46,7 +46,7 @@ class IndexController extends AppController
 			];
 		if(!empty($this->dparam['app_ver']) && $this->dparam['app_ver'] == '1.0.5')
 			$data['isuser'] = 0;
-		else $data['isuser'] = 0;
+		else $data['isuser'] = 1;
 		info($data);
 
 	}

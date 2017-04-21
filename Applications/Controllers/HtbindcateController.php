@@ -52,7 +52,7 @@ class HtbindcateController extends Controller
      * 加载分类列表
      */
     public function getcatitem(){
-        $sql1='select id,name from ngw_category where name is not null GROUP BY name,id ORDER BY id ASC';
+        $sql1='select id,name from ngw_category where name is not null GROUP BY name ORDER BY id ASC';
         $data=M()->query($sql1,'all');
         info('success',1,$data);
     }

@@ -61,13 +61,15 @@ class ScriptController extends Controller
 	//用户行为redis->mysql
 	public function behaviour()
 	{
-		$len	= 50;
-		$sql1	= $this->createSql($this->arrayTotal(R()->getListPage('click',0,$len)),'click');
-		$sql2	= $this->createSql($this->arrayTotal(R()->getListPage('share',0,$len)),'share');
-		$sql3	= $this->createSql($this->arrayTotal(R()->getListPage('search',0,$len)),'search');
+		$len=100;
+		$sql1	= $this->createSql($this->arrayTotalClick(R()->getListPage('click',0,$len)),'click');
+		$sql2	= $this->createSql($this->arrayTotalShare(R()->getListPage('share',0,$len)),'share');
+		$sql3	= $this->createSql(R()->getListPage('search',0,-1),'search');
+
+
 		//开始事务
 		M()->startTrans();
-		R()->startTrans();
+		// R()->startTrans();
 		try {
 			if($sql1){
 				M()->query($sql1);
@@ -90,7 +92,8 @@ class ScriptController extends Controller
 			R()->rollback();
 		}
 		M()->commit();
-		R()->commit();
+		// R()->commit();
+		// D($a);
 		echo 'ok'.date('y-m-d h:i:s',time()).'\n';
 	}
 
@@ -106,7 +109,7 @@ class ScriptController extends Controller
 				$str = " INSERT INTO ngw_click_log (uid,num_iid,click,type,report_date) VALUES ";
 				break;
 			case 'share':
-				$str = " INSERT INTO ngw_share_log (uid,num_iid,share,type,report_date) VALUES ";
+				$str = " INSERT INTO ngw_share_log (uid,num_iid,share,type,report_date,share_type) VALUES ";
 				break;
 			case 'search':
 				$str = " INSERT INTO ngw_search_log (uid,search_content,type,report_date) VALUES ";
@@ -115,23 +118,38 @@ class ScriptController extends Controller
 		if($type == 'search'){
 			foreach ($arr as $k => $v)
 				$str .= "('{$v['uid']}','{$v['content']}',{$v['type']},'{$date}'),";
-		}else{
+		}elseif($type == 'click'){
 			foreach ($arr as $k => $v)
 				$str .= "('{$v['uid']}','{$v['content']}',{$v['num']},{$v['type']},'{$date}'),";
+		}elseif($type == 'share'){
+			foreach ($arr as $k => $v)
+				$str .= "('{$v['uid']}','{$v['content']}',{$v['num']},{$v['type']},'{$date}',{$v['share_type']}),";
 		}
 
 		return rtrim($str,',');
 	}
 
 
-	private function arrayTotal($arr)
+	private function arrayTotalClick($arr)
 	{
 		$temp = [];
 		foreach ($arr as $k => $v) {
-			if(!array_key_exists($v['uid'].$v['type'],$temp))
-				$temp[$v['uid'].$v['type']] = ['uid'=>$v['uid'],'content'=>$v['content'],'num'=>1,'type'=>$v['type']];
+			if(!array_key_exists($v['uid'].$v['type'].$v['content'],$temp))
+				$temp[$v['uid'].$v['type'].$v['content']] = ['uid'=>$v['uid'],'content'=>$v['content'],'num'=>1,'type'=>$v['type']];
 			else
-				$temp[$v['uid'].$v['type']]['num'] += 1;
+				$temp[$v['uid'].$v['type'].$v['content']]['num'] += 1;
+		}
+		return $temp;
+	}
+
+	private function arrayTotalShare($arr)
+	{
+		$temp = [];
+		foreach ($arr as $k => $v) {
+			if(!array_key_exists($v['uid'].$v['type'].$v['content'],$temp))
+				$temp[$v['uid'].$v['type'].$v['content']] = ['uid'=>$v['uid'],'content'=>$v['content'],'num'=>1,'type'=>$v['type'],'share_type'=>$v['share_type']];
+			else
+				$temp[$v['uid'].$v['type'].$v['content']]['num'] += 1;
 		}
 		return $temp;
 	}

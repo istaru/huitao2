@@ -32,8 +32,10 @@ class InvitationsController extends AppController
     }
     //排行榜
     public function rankingList() {
-        $parmas = $_POST;
-        //查看用户自己的收入(包含预估收入)以及邀请人数
+        $parmas = $this->dparam;
+        //默认查询收益榜
+        $type = empty($params['type']) ? 1 : $params['type'];
+        //查看用户自己的收入(包含预估收入)和邀请人数
         $self = empty($parmas['user_id']) ? ['money' => 0, 'person_num' => 0] : M()->query("SELECT a.money,b.person_num FROM( SELECT sum(price) money , uid FROM ngw_uid_log WHERE status IN(1 , 2) AND uid = '{$parmas['user_id']}') a LEFT JOIN( SELECT count(0) person_num , uid FROM ngw_uid_log WHERE score_type = 2 AND uid = '{$parmas['user_id']}') b ON b.uid = a.uid");
        $startTime = $endTime = '';
        //月榜
@@ -45,19 +47,16 @@ class InvitationsController extends AppController
             $startTime = date('Y-m-d 00:00:00', strtotime('+'. 1 - date('w') .' days' ));
             $endTime   = date('Y-m-d 24:00:00', strtotime('+'. 7 - date('w') .' days' ));
         }
-        //type 1 = 收入榜, 2 = 邀请榜
-        if($parmas['type'] == 1) {
-            $list = $this->queryRankingList($startTime, $endTime);
-        } else if($parmas['type'] == 2)
-            $list = M()->query('SELECT b.nickname , b.head_img, a.friends_num FROM( SELECT count(0) friends_num , uid FROM ngw_uid_log WHERE score_type = 2 GROUP BY uid ORDER BY friends_num DESC LIMIT 10) a LEFT JOIN( SELECT nickname , head_img , objectId FROM ngw_uid) b ON b.objectId = a.uid', 'all');
-        else info('参数异常');
-        info('请求成功', 1, ['self' => $self, 'ranking_list' => isset($list) ? $list : []]);
-    }
-    // 查询所选日期内用户的收入
-    public function queryRankingList($startTime = '', $endTime = '') {
         $str = '';
         if($startTime && $endTime)
             $str = "AND createdAt >= '{$startTime}' AND  createdAt < '{$endTime}'";
-        return M()->query('SELECT b.nickname , b.head_img, a.friends_num FROM( SELECT sum(price) friends_num , uid FROM ngw_uid_log WHERE status = 2 ' .$str. ' GROUP BY uid ORDER BY friends_num DESC LIMIT 10) a LEFT JOIN( SELECT nickname , head_img , objectId FROM ngw_uid) b ON b.objectId = a.uid', 'all');
+        //type 1 = 收入榜, 2 = 邀请榜
+        if($type == 1) {
+            $list = M()->query("SELECT b.nickname , b.head_img, a.friends_num FROM( SELECT sum(price) friends_num , uid FROM ngw_uid_log WHERE status = 2 {$str} GROUP BY uid ORDER BY friends_num DESC LIMIT 10) a LEFT JOIN( SELECT nickname , head_img , objectId FROM ngw_uid) b ON b.objectId = a.uid", 'all');
+        } else if($type == 2) {
+            $list = M()->query("SELECT b.nickname , b.head_img, a.friends_num FROM( SELECT count(0) friends_num , uid FROM ngw_uid_log WHERE score_type = 2 {$str} GROUP BY uid ORDER BY friends_num DESC LIMIT 10) a LEFT JOIN( SELECT nickname , head_img , objectId FROM ngw_uid) b ON b.objectId = a.uid");
+        }
+        else info('参数异常');
+        info('请求成功', 1, ['self' => $self, 'ranking_list' => isset($list) ? $list : []]);
     }
 }

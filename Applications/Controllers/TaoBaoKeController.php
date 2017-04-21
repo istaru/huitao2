@@ -148,13 +148,11 @@ class TaoBaoKeController {
         $timerTask  = new TimerTaskController;
         switch($status) {
             case 2:
-                echo '付款成功:', D($data);
                 D($timerTask->orderInfo($data));
                 D($timerTask->purchaseRecord($data, 2));
                 (SuccShopIncomeController::getObj())->incomeHandle($data);
                 break;
             case 5:
-                echo '退款成功:', D($data);
                 D($timerTask->purchaseRecord($data, 5));
                 (FailShopIncomeController::getObj())->incomeHandle($data);
                 break;

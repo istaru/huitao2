@@ -125,7 +125,7 @@ class NewbietaskController extends AppController {
 			}
 		} else {
 			$data['status'] = 1;	//任务进行中状态
-			return $this->userCompletedTasks($uid, $data);
+			info('任务进行中', 1, $this->userCompletedTasks($uid, $data));
 		}
 	}
 	//查询新手任务进度
@@ -134,28 +134,39 @@ class NewbietaskController extends AppController {
 		$uid    = !empty($params['user_id']) ? $params['user_id'] : info('请您赶快去注册登录吧!', -1);
 		//判断用户注册时间 是否可以做新手任务
 		!strtotime(($this->checkuid($uid))['createdAt']) < 1487944802 OR info('2017-02-24之后注册的用户才可以参加新手任务', -1);
-		//检测当前用户已完成的任务中是否还有未领取的奖励 如果有则不显示下个任务
-		if($task = M()->query("SELECT id task_id,name,introduce,step,price,task_img FROM ngw_task WHERE id IN( SELECT task_id FROM ngw_uid_bill_log WHERE status = 1 AND type = 2 AND uid = '{$uid}')", 'single')) {
-			$task['status'] = 2;	//红包未领状态
-			$this->userCompletedTasks($uid, $task);
-		}
-		//取出用户正在进行的任务
-		$data = M()->query("SELECT id task_id,name,introduce,step,price,task_img FROM ngw_task WHERE id NOT IN( SELECT task_id FROM ngw_task_log WHERE uid = '{$uid}') AND type = 1", 'single');
-		//如果没有查到任务则表示该用户任务已经全部做完
-		!empty($data) OR info('您已经做完了全部新手任务!', 1);
-		//检测该任务用户是否已经完成了
-		$this->ckNewUserMission($uid, $data);
-		//如果能走到这一步表示用户完成的是那种没钱的任务 递归再检查下个任务
-		$this->queryTask($uid);
+		do {
+			if($task = M()->query("SELECT id task_id,name,introduce,step,price,task_img FROM ngw_task WHERE id IN( SELECT task_id FROM ngw_uid_bill_log WHERE status = 1 AND type = 2 AND uid = '{$uid}')", 'single')) {
+				$task['status'] = 2;	//红包未领状态
+				info('立即领取奖励', 1, $this->userCompletedTasks($uid, $task));
+			}
+			//取出用户正在进行的任务
+			$data = userBehaviorVerificationController::userOngoingTask($uid);
+			//如果没有查到任务则表示该用户任务已经全部做完
+			if(empty($data)) {
+				info('ok', 1, $this->userCompletedTasks($uid, [
+					'step' => '', 'task_img' => 'resource/img/task/img_task_09.png', 'name' => '您已完成新手任务', 'status' => 4
+				]));
+			}
+			//检测该任务用户是否已经完成了
+			$this->ckNewUserMission($uid, $data);
+		} while (true);
 	}
-	public function userCompletedTasks($uid, $data) {
-		$result   = M()->query("SELECT id task_id,name,introduce,step,price,task_img FROM ngw_task WHERE id IN( SELECT task_id FROM ngw_task_log WHERE uid = '{$uid}') AND type = 1", 'all');
+	public function userCompletedTasks($uid, $data = []) {
+		$result = userBehaviorVerificationController::userCompletedTask($uid);
 		$result[] = $data;
 		foreach($result as $k => &$v) {
-			$v['status'] = isset($v['status']) ? $v['status'] : 3;
-			if(in_array($v['name'], $data) && 3 == $v['status'])
-				unset($result[$k]);
+		    $v['task_img'] = RES_SITE.$v['task_img'];
+		    $step = explode(',', $v['step']);
+		    $explain = '';
+		    foreach($step as $val) {
+		        $explain .= RES_SITE.$val.',';
+		    }
+		    $v['step'] = rtrim($explain, ',');
+		    $v['status'] = isset($v['status']) ? $v['status'] : 3;
+		    if(in_array($v['name'], $data) && 3 == $v['status']) {
+		    	unset($result[$k]);
+		    }
 		}
-		info('ok', 1, array_values($result));
+		return array_values($result);
 	}
 }

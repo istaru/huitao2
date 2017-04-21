@@ -7,7 +7,13 @@ class TestController extends AppController {
         R()->delLike('ex');
     }
     public function b(){
-        (SuccShopIncomeController::getObj())->incomeHandle(['7142340340113222']);
+        (SuccShopIncomeController::getObj())->incomeHandle(['7145541093113224']);
+    }
+    public function c(){
+        (new GoodsShowController())->delRedisCateGoods(1);
+    }
+    public function d(){
+        (FailShopIncomeController::getObj())->incomeHandle(['7145541093113222','7145541093113223','7145541093113224']);
     }
 
 }

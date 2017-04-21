@@ -3,7 +3,7 @@ class FailShopIncomeController
 {
 	public static $obj;
 	public $sql = [];
-	public $msg = 'INSERT INTO ngw_message (uid,content,lid,report_date) VALUES ';
+	public $msg = 'INSERT INTO ngw_message (uid,content,ulogid,report_date) VALUES ';
 	public $income = 'INSERT INTO ngw_income_log (order_id,uid,status,score_source,score_type,score_info,price) VALUES ';
 
 	private function __construct()
@@ -34,13 +34,14 @@ class FailShopIncomeController
 		$estimate_res	=	$this->orderEstimate($order_list);	//预估
 		$cash_res		=	$this->orderCash($order_list);		//余额
 
-		if(empty($estimate_res) && empty($cash_res)) return;
 
 		!empty($estimate_res)	&&	$this->estimateHandle($estimate_res);
 		!empty($cash_res) 		&&	$this->cashHandle($cash_res);
 
-		$this->sql[] = rtrim($this->msg,',');;
-		$this->sql[] = rtrim($this->income,',');
+		if(!empty($estimate_res) || !empty($cash_res)){
+			$this->sql[] = rtrim($this->msg,',');;
+			$this->sql[] = rtrim($this->income,',');
+		}
 
 		$this->execSql();
 	}
@@ -68,7 +69,6 @@ class FailShopIncomeController
 	 */
 	public function cashHandle($data)
 	{
-		D($data);
 		$order_list = '';
 		$uids = [];	//要处理的用户id列表
 		foreach ($data as $k => $v) {

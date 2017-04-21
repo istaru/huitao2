@@ -61,19 +61,18 @@ class UserController extends AppController
 	 */
 	public function checkbindMasters($uid, $sfuid) {
 		try {
-			$userBehaviorVerification = new userBehaviorVerificationController;
 			//验证用户是否已经注册登录
-			if(!$user = $userBehaviorVerification->userRegistration($uid)) E('您赶紧去注册登录吧');
+			if(!$user = userBehaviorVerificationController::userRegistration($uid)) E('您赶紧去注册登录吧');
 			//验证用户是否已经绑定过师傅了
 			if(!empty($user['sfuid'])) E('您已经填写过邀请人了');
 			//验证要绑定的好友账号是否存在
-			if(!$sf = $userBehaviorVerification->userRegistration($sfuid)) E('您填写的好友不存在');
+			if(!$sf = userBehaviorVerificationController::userRegistration($sfuid)) E('您填写的好友不存在');
 			if($sf['objectId'] == $user['objectId']) E('不允许绑定自己');
 			//验证该用户是否已经淘宝授权过 且该淘宝账号只被授权过一次
-			if(!$taobaoInfo = $userBehaviorVerification->queryTaoBaoAuthId($user['taobao_id'])) E('请您先淘宝授权');
+			if(!$taobaoInfo = userBehaviorVerificationController::queryTaoBaoAuthId($user['taobao_id'])) E('请您先淘宝授权');
 			if(count($taobaoInfo) > 1) E('您已经不是新用户啦');
 			//该用户设备号只有一次记录的才允许绑定好友
-			count($userBehaviorVerification->queryUserDeviceInformation([
+			count(userBehaviorVerificationController::queryUserDeviceInformation([
 				'uuid' => $user['uuid'],
 				'bdid' => $user['bdid'],
 				'idfa' => $user['idfa'],
@@ -200,12 +199,15 @@ class UserController extends AppController
 	}
 
 	/**
-	 * [addFrieldLog 邀请页建立好友关系]
+	 * [addFrieldLog 邀请页建立好友关系以及分享app]
 	 */
 	public function addFrieldLog()
 	{
 		if(!$_REQUEST['phone'] || !$_REQUEST['user_id']) info('数据不完整',-1);
 	    if(!preg_match("/^1[34578]\d{9}$/",$_REQUEST['phone'])) info('非法手机号',-1);
+
+		(UserRecordController::getObj()) -> shareRecord($_REQUEST['user_id'],null,3,0); //1分享商品
+
 	    $exisit_tb = M()->query("select * from ngw_taobao_log where uid = '{$_REQUEST['user_id']}'",'single');
 	    if(empty($exisit_tb)) info('您的邀请人还未进行淘宝授权!',-1);
 		$is_new_user = M()->query("select id from ngw_uid where phone ='{$_REQUEST['phone']}' ",'single',true);
@@ -298,6 +300,7 @@ class UserController extends AppController
 			foreach ($data as $v)
 				(TaskincomeController::getObj())->getRewardForTask($v);
 		} else info('参数异常',-1);
+		info('领取成功', 1);
 	}
 
 }

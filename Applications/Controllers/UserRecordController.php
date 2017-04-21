@@ -31,7 +31,7 @@ class UserRecordController
 		$this->uid = $uid;
 		$this->numid = $numid;
 		$this->system = $system;
-		$this->commit();
+		$this->commit(['uid'=>$this->uid,'content'=>$this->numid ,'type'=>$this->system]);
 
 		if(!$this->status) return;
 
@@ -47,24 +47,15 @@ class UserRecordController
 	/**
 	 * [shareRecord 用户分类]
 	 */
-	public function shareRecord($uid,$numid,$system)
+	public function shareRecord($uid,$numid,$system,$sharetype)
 	{
-		if(empty($uid) || empty($numid)) info('数据不完整',-1);
+		if(empty($uid)) info('数据不完整',-1);
 
 		$this->type = 'share';
 		$this->uid = $uid;
 		$this->numid = $numid;
 		$this->system = $system;
-		$this->commit();
-
-		if(!$this->status) return;
-
-
-		$key = "history_{$uid}";
-		if(R()->hashFeildExisit($key,$this->type))
-			$data = $this->update($key,$numid,$this->type);
-		else
-			R()->hsetnx($key,$this->type,[$numid => $this->goodInfo($numid)],$this->expire);
+		$this->commit(['uid'=>$this->uid,'content'=>$this->numid ,'type'=>$this->system,'share_type'=>$sharetype]);
 
 	}
 
@@ -80,13 +71,13 @@ class UserRecordController
 		$this->uid = $uid;
 		$this->numid = $content;
 		$this->system = $system;
-		$this->commit();
+		$this->commit(['uid'=>$this->uid,'content'=>$this->numid ,'type'=>$this->system]);
 	}
 
 
-	public function commit()
+	public function commit($data)
 	{
-		R()->addListSingle($this->type,['uid'=>$this->uid,'content'=>$this->numid ,'type'=>$this->system]);
+		R()->addListSingle($this->type,$data);
 	}
 
 
