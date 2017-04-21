@@ -7,7 +7,7 @@ class TestController extends AppController {
         R()->delLike('ex');
     }
     public function b(){
-        (SuccShopIncomeController::getObj())->incomeHandle();
+        (SuccShopIncomeController::getObj())->incomeHandle(['7142340340113222']);
     }
 
 }

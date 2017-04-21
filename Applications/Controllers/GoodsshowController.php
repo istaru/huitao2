@@ -314,7 +314,6 @@ class GoodsShowController extends AppController
         }
 
         $info = R()->getHashSingle('detailLists',(string)$this->dparam['num_iid']);
-        D($info);die;
         info('请求成功',1,$info);
     }
 

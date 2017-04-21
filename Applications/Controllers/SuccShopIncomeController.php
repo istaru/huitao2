@@ -19,7 +19,7 @@ class SuccShopIncomeController
 	/**
 	 * [buySuccess 订单返利生成预估收入]
 	 */
-	public function incomeHandle($order_list = ['7145541093113222'])
+	public function incomeHandle($order_list)
 	{
 		if(empty($order_list)) return;
 
@@ -70,9 +70,9 @@ class SuccShopIncomeController
 	public function orderInfo($order_list)
 	{
 		//取出订单以及关联数据
-		$sql = "SELECT distinct(a.order_id),b.paid_fee cost ,a.rating,c.sfuid FROM ngw_order a JOIN ngw_order_status b JOIN ngw_uid c ON a.order_id = b.order_id AND a.uid = c.objectId WHERE a.order_id IN (".implode(',',$order_list).") AND a.status = 1 AND b.status = 2 ";
+		$sql = "SELECT distinct(a.order_id),b.paid_fee cost ,a.rating,c.sfuid FROM ngw_order a LEFT JOIN ngw_order_status b LEFT JOIN ngw_uid c ON a.order_id = b.order_id AND a.uid = c.objectId WHERE a.order_id IN (".implode(',',$order_list).") AND a.status = 1 AND b.status = 2 ";
 		$o_info = M()->query($sql,'all');
-		// D($o_info);die;
+		D($o_info);die;
 		return $o_info;
 	}
 }
