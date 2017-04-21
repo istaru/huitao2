@@ -178,8 +178,8 @@ class ExcelGoodsPdo extends GoodsPdo{
         $insert_goods_sql = $insert_goods_sql.trim($c,",");
         //echo $insert_goods_sql;
         $insert_coupon_sql = $insert_coupon_sql.trim($c1,",");
-        //echo $insert_coupon_sql;exit;
-        $r = db_transaction($this->pdo,array($insert_goods_sql),array($bindParam,$bindParam1));
+        //echo $insert_coupon_sql;print_r($bindParam1);exit;
+        $r = db_transaction($this->pdo,array($insert_goods_sql,$insert_coupon_sql),array($bindParam,$bindParam1));
     }
 
      //取出当日数据所有商品num_iid

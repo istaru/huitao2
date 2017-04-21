@@ -7,7 +7,7 @@ abstract class NewGoods extends GoodsModule
 
     public $adzone_id = "67202476";
 
-    public $isDebug = 1;
+    //public $isDebug = 1;
 
     public $isRecord = 1;
 
@@ -48,7 +48,7 @@ class ExcelGoods extends NewGoods{
         //$this->_dealCoupon();exit;
 
         $attrs = $this->_getTempTableAttrs();
-
+        if(!$attrs)ssreturn(0,$msg='导入临时表获取失败.',2,1);
         $limit = 2000;
 
         for($i=0;$i<5;$i++){
@@ -158,7 +158,7 @@ class ExcelGoods extends NewGoods{
                 }
 
                 $attrs = trim($attrs,",");
-
+               // print_r($column);exit;
                 //print_r($this->pdo->fetchData($attrs));
                 return $attrs;
               
@@ -235,13 +235,23 @@ class FavoriteGoods extends NewGoods{
 
     public $transaction_tools;
 
+    public $isLog = 0;
+
+    protected $file_log_tools;
+
     public function __construct(){
         //定义了日期
         parent::__construct();
+
+        $this->isRecord = 0;
         //断点操作工具
-        $this->transaction_tools = new TransactionTools();
+        $this->transaction_tools = new TransactionTools;
+        //文件日志工具
+        $this->file_log_tools = new FileLogTools($this->isRecord);
 
         $this->pdo = new FavoriteGoodsPdo($this->isDebug,$this->adzone_id);
+
+        
 
     }
 
@@ -262,7 +272,7 @@ class FavoriteGoods extends NewGoods{
             //取得所有分类选品库
             if(isset($r["results"]["tbk_favorites"])){ 
                 //开始记录事务记录
-                if($this->isRecord)$this->transaction_tools->writeRecord();
+                if($this->isLog)$this->transaction_tools->writeRecord();
 
                 foreach ($r["results"]["tbk_favorites"] as $key => $val) {
                     //分类id=>分类名
@@ -274,7 +284,7 @@ class FavoriteGoods extends NewGoods{
                 //单个任务成功记录
                 //必须没有回滚点
                 //echo $this->transaction_tools->listenProcess();exit;
-                if($this->isRecord)
+                if($this->isLog)
 
                     $this->transaction_tools->addMissionLog("第".($cur_retry+1)."次选品库".count($favorites)."个分类获取");
 
@@ -284,36 +294,48 @@ class FavoriteGoods extends NewGoods{
             //执行了5次，还是没有结果
             if($cur_retry++==$retry){
 
-                if($this->isRecord)$this->transaction_tools->addErrorLog('获取淘宝联盟选品库列表失败.');
+                if($this->isLog)$this->transaction_tools->addErrorLog('获取淘宝联盟选品库列表失败.');
 
                 return ssreturn($favorites,$msg='获取淘宝联盟选品库列表失败.',2,1) ;
             }//开启循环的几个条件
 
-        }while($this->isRecord&&!count($favorites)&&$cur_retry<$retry);
+        }while($this->isLog&&!count($favorites)&&$cur_retry<$retry);
 
         return $favorites;
 
     }
+
+
+   
+
+
     //用API取得数据（批量数据）
     // 
     public function getGoodsData(){
 
         $favorites = $this->_getFavoriteData();
         //如果有回滚点，去掉已经处理完的任务。
-        if($this->isRecord){
+        //if($this->isLog){
 
-            $rollback_sign = $this->transaction_tools->listenProcess($favorites);
-            //echo $rollback_sign;
-            if($rollback_sign>0){
+            //$rollback_sign = $this->transaction_tools->listenProcess($favorites);
+            $rollback_sign = array_unique($this->file_log_tools->readSuccessFavLog());
+            //print_r($rollback_sign);
+            if(count($rollback_sign)){
+
+                if(trim($rollback_sign[0])=="success."){
+                    if(!isset($_REQUEST["isRefresh"]))
+                        return ssreturn(1,'当天已经导入过一次数据，如果想重新导入请强制刷新。',1,1) ;
+                    else $this->file_log_tools->clearSuccessFavLog("");
+                 }
                 //干掉已经成功操作的分类
                 foreach ($favorites as $k => $v) {
 
-                    if($v!=$rollback_sign)unset($favorites[$k]);
+                    if(in_array($v,$rollback_sign))unset($favorites[$k]);
 
-                    else break;
+                    //else break;
                 }
             }
-        }
+        //}
         "当前分类：".print_r($favorites);//exit;
         //获取API重试次数
         $retry = 5;
@@ -339,7 +361,7 @@ class FavoriteGoods extends NewGoods{
             //!!*没有值，说明没绑定到分类上
             if(!isset($categroy_result["category_id"])||!$categroy_result["category_id"]){
 
-                if($this->isRecord)$this->transaction_tools->addErrorLog('选品库分类'.$value.'获取映射失败.');
+                if($this->isLog)$this->transaction_tools->addErrorLog('选品库分类'.$value.'获取映射失败.');
                 
                 continue;
             }
@@ -356,7 +378,7 @@ class FavoriteGoods extends NewGoods{
             //echo 1;;print_r($r);exit;
             if(isset($r["results"]["uatm_tbk_item"])){
                 //开始分类任务的事务记录
-                if($this->isRecord)$this->transaction_tools->beginMission($value);
+                if($this->isLog)$this->transaction_tools->beginMission($value);
                 //总数据数
                 $total_results = $r["total_results"];
                 //单类处理总结果数
@@ -402,7 +424,7 @@ class FavoriteGoods extends NewGoods{
                 }while($total_results > $param["page_no"] * count($r["results"]["uatm_tbk_item"]));
                 //
                 //完成分类任务的事务记录
-                if($this->isRecord){
+                if($this->isLog){
                     $this->transaction_tools->endMission();
                    // echo "选品库:".$value."获取".$favorites_success."条数据.";
                     echo "选品库分类：".$value."获取".$favorite_dealing_data."条数据，忽略".($total_results-$favorite_dealing_data)."条数据.<br>";
@@ -413,7 +435,7 @@ class FavoriteGoods extends NewGoods{
 
                 $error_msg = '获取'.$value.'选品库的宝贝信息失败.';
 
-                if($this->isRecord)$this->transaction_tools->addErrorLog($error_msg);
+                if($this->isLog)$this->transaction_tools->addErrorLog($error_msg);
 
                 return ssreturn($favorites,$error_msg,2,1) ;
             }// echo $invalid_goods_list;
@@ -466,63 +488,15 @@ class FavoriteGoods extends NewGoods{
 
             //更改新品属性
             if(count($t_com_online_goods_list))$r = $this->pdo->updateComGoodsStatusNew($t_com_online_goods_list,$this->date);
-            
+        
+            $this->file_log_tools->writeSuccessFavLog($value);
+
         }
+
+        $this->file_log_tools->clearSuccessFavLog("success.");
+        
         return ssreturn(1,'操作成功',1,1) ;
-       // }
-       // 
-       // 
-       // 
-       /*
-        //---------添加新增商品（可能1商品有多个分类）end------------//
-        //exit; 
-        //!!*这里有个比较大的风险，导入数据比真实少很多，会导致大量未下架商品下架，做个限制，不能下架25%
-        $online_goods_list = $this->pdo->fetchOnlineGoodsNumId();
-         //当日线上数据,比较这次处理的数据数，超过25%禁止操作
-        if(count($online_goods_list)>=$total_dealing_data*1.25){
-            $error_msg = "本次操作数据($total_dealing_data)小于线上(".count($online_goods_list).")商品25%以上.";
-            if($this->isRecord)$this->transaction_tools->addErrorLog($error_msg);
-            return ssreturn($favorites,$error_msg,2,1) ;
-        }
-        //失效的商品num__id，删除多余：
-        //失效商品（相对昨天少了2块：1.被手动删除的商品 2.失效商品，多的是新增的商品）
-        //这里的失效只是API中status=0的数据
-        $invalid_goods_list = explode(",",trim($invalid_goods_list,","));
-        //print_r($invalid_goods_list);
-        if($this->isRecord){echo "本次执行总处理：".$total_dealing_data."条数据，忽略".count($invalid_goods_list)."条数据.<br>";}      
-        //有效新入 = 新入 - 无效（貌似多余，以防万一）
-        //将本次操作的数量，作为限制，根据时间倒叙。
-        $valid_goods_list = array_diff($this->pdo->fetchNewGoodsNumId($total_dealing_data),$invalid_goods_list);  
-            if($this->isRecord){echo "本日新入：".count($valid_goods_list);echo "条数据<br>";}      
-        //----②添加新增商品start----//
-        //新增 = 新入 - 线上（上架+手工下架）
-        //以前失效下架的，又有新的添加为新品（先删除这些numid数据在增加，以免2个同num_iid）
-        if($this->isRecord){echo "本日线上：".count($online_goods_list);echo "条数据<br>";}
-
-        $incr_online_goods_list = array_diff($valid_goods_list,$online_goods_list);
-            if($this->isRecord){echo "新增：".count($incr_online_goods_list)."条数据";}
-
-        $r = $this->pdo->insertOnlineIncrGoods($incr_online_goods_list);
-            if($this->isRecord){echo $r ? "成功。<br>" : "失败。<br>";}
-        //exit;
-        //----③下架失效商品start----//
-        //下线 = 线上（上架+手工下架）- 新入 = (运营手动删除选品库商品 + API失效商品)
-        $off_online_goods_list = array_diff($online_goods_list,$valid_goods_list);
-            if($this->isRecord){echo "下架：".count($off_online_goods_list)."条数据";}
-        $r = $this->pdo->updateOnlineOffGoods($off_online_goods_list);
-            if($this->isRecord){echo $r ? "成功。<br>" : "失败。<br>";}
-        //exit;
-        //④更新 = 新入 && 线上
-        $com_online_goods_list = array_intersect($valid_goods_list,$online_goods_list);
-            if($this->isRecord){echo "更新信息：".count($com_online_goods_list)."条数据";}
-        $r = $this->pdo->updateOnlineComGoods($com_online_goods_list);
-            if($this->isRecord){echo $r ? "成功。<br>" : "失败。<br>";}
-        exit;
-
-        */
-        //$new_goods_list = array_merge($invalid_goods_list,$valid_goods_list);
-        //print_r($new_goods_list);
-       //print_r($api->tbkUatmFavoritesItem());
+       
     }  
     //getGoodsData内部使用，单次用API取数据的结果
     protected function _getUnitGoodsData($api,$param){

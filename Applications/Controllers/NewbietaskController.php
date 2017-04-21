@@ -93,7 +93,7 @@ class NewbietaskController extends AppController {
 	public function ckTask($key, $uid) {
 		static $func = [
 			1 => 'commoditySharingTask',
-			2 => 'taobaoMandateTask',
+			2 => 'verifyUserTaobaoLicense',
 			3 => 'aFriendInvitationTask',
 			4 => 'oneSinglePurchaseTask',
 			5 => 'friendsGetARedEnvelopeTask',
@@ -101,7 +101,7 @@ class NewbietaskController extends AppController {
 			7 => 'friendsAccumulatedTwoSingleTask',
 			8 => 'friendConfirmTheDeliveryOfTwoTimesTask'
 		];
-		return !empty($func[$key]) ? call_user_func_array(['taskVerificationController', $func[$key]], [$uid]) : false;
+		return !empty($func[$key]) ? call_user_func_array(['userBehaviorVerificationController', $func[$key]], [$uid]) : false;
 	}
 	public function ckNewUserMission($uid, $data) {
 		if($this->ckTask($data['task_id'], $uid)) {

@@ -19,16 +19,13 @@ class TaoBaoAuthController extends AppController {
                         'taobao_id' => $data['taobao_id'],
                         'nick'      => $data['user_name']
                     ]) OR E('授权失败');
-                //获取用户设备表主键id
-                foreach((new DidModel)->getUserDid($data['user_id']) as $v)
-                    $v['uid'] != $data['user_id'] OR $didId = $v['id'];
                 //绑定淘宝账号与用户之间的关系 如果之前绑定过一样的则不需要再添加
                 if(!M('taobao_log')->where(['uid' => ['=', $data['user_id']], 'taobao_id' => ['=', $data['taobao_id']]],['and'])->select('single')) {
                     M('taobao_log')->add([
                         'taobao_id'   => $data['taobao_id'],
                         'uid'         => $data['user_id'],
                         'report_date' => date('Y-m-d'),
-                        'did_id'      => !empty($didId) ? $didId : E('无法获取到您的设备信息')
+                        'did_id'      => M('uid')->where(['objectId' => ['=', $data['user_id']]])->field('did')->select('single')
                     ]) OR E('授权失败');
                 }
                 $this->upUserAuth($data['user_id'], 1, $data['user_head_img'], $data['user_name'], $data['taobao_id']) OR E('授权失败');

@@ -419,8 +419,10 @@ class GoodsShowController extends AppController
      */
     public function hotTab()
     {
-        $data = [
-        ];
+        $sql = "SELECT DISTINCT search_content FROM ngw_search_log LIMIT 0,10";
+        $info = M()->query($sql,'all');
+        foreach ($info as $v) $tabs[]=$v['search_content'];
+        info('ok',1,$tabs);
     }
 
 

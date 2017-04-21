@@ -61,20 +61,28 @@ class UserController extends AppController
 	 */
 	public function checkbindMasters($uid, $sfuid) {
 		try {
-			$uid != $sfuid OR E('不允许绑定自己');
-			//验证该用户是否存在表中
-			$user = M('uid')->field('sfuid,nickname,taobao_id')->where(['objectId'=> ['=',$uid]])->select('single');
-			!empty($user)  OR E('您赶紧去注册登录吧');
-			empty($sfuid)  OR E('您已经填写过邀请人了');
+			$userBehaviorVerification = new userBehaviorVerificationController;
+			//验证用户是否已经注册登录
+			if(!$user = $userBehaviorVerification->userRegistration($uid)) E('您赶紧去注册登录吧');
+			//验证用户是否已经绑定过师傅了
+			if(!empty($user['sfuid'])) E('您已经填写过邀请人了');
+			//验证要绑定的好友账号是否存在
+			if(!$sf = $userBehaviorVerification->userRegistration($sfuid)) E('您填写的好友不存在');
+			if($sf['objectId'] == $user['objectId']) E('不允许绑定自己');
 			//验证该用户是否已经淘宝授权过 且该淘宝账号只被授权过一次
-			$taobaoInfo = M('taobao_log')->where(['taobao_id' => ['=', $user['taobao_id']]])->select('all');
+			if(!$taobaoInfo = $userBehaviorVerification->queryTaoBaoAuthId($user['taobao_id'])) E('请您先淘宝授权');
 			if(count($taobaoInfo) > 1) E('您已经不是新用户啦');
-			if(count($taobaoInfo) < 1) E('请您先淘宝授权');
 			//该用户设备号只有一次记录的才允许绑定好友
-			count((new DidModel)->getUserDid($uid)) == 1 OR E('您已经不是新用户啦');
-			//徒弟 师傅如果是一个淘宝授权账号  禁止绑定关系
-			$shiFu = M('uid')->where(['objectId' => ['=', $sfuid], 'Invitation_code' => ['=', $sfuid]], ['OR'])->select('single') OR E('您填写的好友不存在');
-			empty($shiFu['taobao_id']) ? E('您的好友可能还未允许淘宝授权暂时无法绑定好友') : $shiFu['taobao_id'] != $user['taobao_id'] OR E('淘宝授权账号重复暂时无法绑定好友');
+			count($userBehaviorVerification->queryUserDeviceInformation([
+				'uuid' => $user['uuid'],
+				'bdid' => $user['bdid'],
+				'idfa' => $user['idfa'],
+				'imei' => $user['imei']
+			])) <= 1 OR E('您已经不是新用户啦');
+			//验证用户要绑定的好友是否已经淘宝授权 并且双方淘宝授权账号不一样
+			if(empty($sf['taobao_id'])) E('您的好友可能还未允许淘宝授权暂时无法绑定好友');
+			if($sf['taobao_id'] == $user['taobao_id']) E('淘宝授权账号重复暂时无法绑定好友');
+
 			//杜绝出现互绑情况 比如 1的徒弟是2  1的师傅是2
 			if($n = M('uid_log')->field('score_source')->where(['uid' => ['=', $uid], 'score_type' => ['=', 2],], ['and'])->select())
 				!in_array($sfuid, array_column($n,'score_source')) OR E('他已经是您的好友了呀');
