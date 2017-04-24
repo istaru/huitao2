@@ -471,7 +471,7 @@ class GoodsShowController extends AppController
 
 
 
-    //{"user_id":"","page_no":"","page_size":""}
+    //{"user_id":"8NoO8sqDbo","page_no":"","page_size":""}
     /**
      * [history 用户浏览记录]
      */

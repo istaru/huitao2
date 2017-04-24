@@ -23,7 +23,7 @@ class UidModel
 		$uid_data['objectId'] = $this->createRandomOnlyStr();
 		$uid_data['nickname'] = $uid_data['objectId'];
 		$uid_data['report_date'] = date('Y-m-d',time());
-		$uid_data['head_img'] = RES_SITE."shoppingResource/head/".rand(1,2).".jpg";
+		$uid_data['head_img'] = RES_SITE."resource/img/head/".rand(1,2).".jpg";
 		$num = M()->query('select id from ngw_uid order by id desc limit 1');
 		$uid_data['Invitation_code'] = generateInvitationCode($num['id']);
 		if(M('uid')->add($uid_data,$status))

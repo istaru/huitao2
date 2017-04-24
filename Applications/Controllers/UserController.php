@@ -49,7 +49,7 @@ class UserController extends AppController
 	{
 		empty($this->dparam['user_id']) && info('数据不完整',-1);
 
-		$sql = " SELECT price,status,updatedAt date_time,if(status<4,errmsg,(CASE status WHEN 5 THEN duiba_success WHEN 6 THEN duiba_end_errmsg ELSE '请耐心等待' END)) msg FROM ngw_pnow WHERE uid = '{$this->dparam['user_id']}'";
+		$sql = " SELECT price,status,updatedAt date_time,if(status<4,errmsg,( CASE status WHEN 4 THEN duiba_success ELSE duiba_end_errmsg END)) msg FROM ngw_pnow WHERE uid = '{$this->dparam['user_id']}'";
 
 		info('请求成功',1,M()->query($sql,'all'));
 	}
@@ -134,6 +134,8 @@ class UserController extends AppController
 		M()->commit();
 		return $type ? info('绑定成功') : true;
 	}
+
+
 	//{"user_id":"ZRzjAdppve"}
 	/**
 	 * [message 消息]
@@ -148,6 +150,7 @@ class UserController extends AppController
 	}
 
 
+	//{"user_id":"ZRzjAdppve"}
 	/**
 	 * [redMessage description]
 	 */

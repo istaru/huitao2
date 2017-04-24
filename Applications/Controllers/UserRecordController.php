@@ -35,11 +35,11 @@ class UserRecordController
 
 		if(!$this->status) return;
 
-		$key = "history_{$uid}";
-		if(R()->hashFeildExisit($key,$this->type))
-			$data = $this->update($key,$numid);
+		$this->key = "history_{$uid}";
+		if(R()->hashFeildExisit($this->key,$this->type))
+			$data = $this->update();
 		else
-			R()->hsetnx($key,$this->type,[$numid => $this->goodInfo($numid)],$this->expire);
+			R()->hsetnx($this->key,$this->type,[$numid => $this->goodInfo($numid)],$this->expire);
 
 	}
 
@@ -93,9 +93,9 @@ class UserRecordController
 
 	private function update()
 	{
-		$info = $this->ckGoodsCount(R()->getHashSingle($this->uid,$this->type));
+		$info = $this->ckGoodsCount(R()->getHashSingle($this->key,$this->type));
 		$info[$this->numid] = $this->goodInfo($this->numid);
-		R()->addHashSingle($this->uid,$this->type,$info);
+		R()->addHashSingle($this->key,$this->type,$info);
 	}
 
 

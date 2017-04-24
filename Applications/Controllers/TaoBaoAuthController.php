@@ -7,7 +7,7 @@ class TaoBaoAuthController extends AppController {
         $data = $this->dparam;
         //取消授权
         if(empty($data['taobao_id']) && !empty($data['user_id'])) {
-            M()->exec("UPDATE ngw_uid SET taobao_auth=0,taobao_id=NULL,nickname='{$data['user_id']}',head_img='".(RES_SITE."shoppingResource/head/".rand(1,2))."' where objectId='{$data['user_id']}'");
+            M()->exec("UPDATE ngw_uid SET taobao_auth=0,taobao_id=NULL,nickname='{$data['user_id']}',head_img='".(RES_SITE."resource/img/head/".rand(1,2)).".jpg' where objectId='{$data['user_id']}'");
             info('已成功取消授权',1);
         //授权认证
         } else if(!empty($data['user_id']) && !empty($data['taobao_id']) && !empty($data['user_name']) && !empty($data['user_head_img'])) {

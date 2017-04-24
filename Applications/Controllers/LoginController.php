@@ -152,7 +152,7 @@ class LoginController extends AppController
 		$this->dparam['nickname']		=	$this->dparam['objectId'];
 		$this->dparam['uid']			=	$this->dparam['objectId'];
 		$this->dparam['Invitation_code']=	generateInvitationCode($num['id']);
-		$this->dparam['head_img']		=	RES_SITE."shoppingResource/head/".rand(1,2).".jpg";
+		$this->dparam['head_img']		=	RES_SITE."resource/img/head/".rand(1,2).".jpg";
 		$this->dparam['password']		=	md5($this->dparam['password']);
 		$this->dparam['token']			=	md5($this->dparam['phone'].time());
 
