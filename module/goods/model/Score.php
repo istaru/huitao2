@@ -8,6 +8,13 @@ class Score extends GoodsModule {
 
 	protected $pdo;
 
+	//热卖分数线
+	protected	$is_sold_score = 80;
+		//移除出热卖分数线
+	protected	$is_not_sold_score = 70;
+		//最高分数
+	protected	$limited_score = 120;
+
 	public function __construct(){
 		   //定义了日期
         parent::__construct();
@@ -41,6 +48,8 @@ class Score extends GoodsModule {
 		$success_rec = 0;
 		//失败数量
 		$fail_rec = 0;
+		//var_dump($goods_info);exit;
+		if(!count($goods_info))ssreturn(0,"上个小时数据查询失败.",2,2);
 		//echo count($goods_info);exit;
 		foreach ($goods_info as $key => $info) {
 					//有点击，无购买，可能要扣分
@@ -48,7 +57,7 @@ class Score extends GoodsModule {
 				
 				$clicks = $info["click"];
 				//每小时，每50个点击为中线，每小时最多扣加分上线的25% 
-				$score = abs($clicks-50)* (-0.01) < (GW_HOUR_ADD_SCORE_LIMIT * -0.25) ? GW_HOUR_ADD_SCORE_LIMIT * -0.25 : abs($clicks-50)* (-0.01);
+				$score = abs($clicks-50)* (-0.01) < (GW_HOUR_ADD_SCORE_LIMIT * -0.25) ? GW_HOUR_ADD_SCORE_LIMIT * (-0.25) : abs($clicks-50)* (-0.01);
 
 			}//有分数，代表有价格，值得更新
 			else{
@@ -74,6 +83,27 @@ class Score extends GoodsModule {
 
 				}else continue;
 			}
+
+			$goods_score_info = $this->pdo->fetchGoodScore($info["num_iid"]);
+			//print_r($goods_score_info);
+			//没这个商品在info表中
+			if(!count($goods_score_info))continue;
+			//得到当前分数
+			list($cur_score,$is_sold) = array_values($goods_score_info);
+			//是否超过分数上线
+			if($cur_score>=$this->limited_score)continue;
+			echo $this->is_sold_score.",c:".($cur_score+$score);echo ",issold:$is_sold,";echo $info["num_iid"];echo "<br>";
+			//商品分数获得后，非热卖&超过一定分值标示 商品为热卖
+			if(!$is_sold&&$cur_score+$score>=$this->is_sold_score){
+					echo "num_iid".$info["num_iid"];echo "<br>";
+					$r = $this->pdo->updateGoodsIsSold($info["num_iid"],1);
+					
+			}
+			//商品分数获得后，热卖&低于一定分值标示 商品为非热卖
+			if($is_sold&&$cur_score+$score<=$this->is_not_sold_score)
+
+					$r = $this->pdo->updateGoodsIsSold($info["num_iid"],0);
+
 			//更新商品评分
 			$r = $this->pdo->updateGoodsScore($info["num_iid"],number_format($score,2));
 
@@ -91,11 +121,11 @@ class Score extends GoodsModule {
 	}
 	//得到 num_iid=>conver_rate 的转化率
 	protected function _getGoodsConverRate($num_iid){
-
+		//print_r($num_iid);exit;
 		$conver_rate = array();
 
 		$t_conver_rate = $this->pdo->fetchGoodsConverRate($num_iid);
-		print_r($t_conver_rate);//exit;
+		//print_r($t_conver_rate);//exit;
 		foreach ($t_conver_rate as $key => $value) {
 			
 			$conver_rate[$value["num_iid"]] = $value["convert_rate"];
@@ -131,16 +161,27 @@ class Score extends GoodsModule {
 
 	//填充商品分数的数据(小时内的点击销售情况).
 	public function updateGoodsScoreInfo(){
-		
+		//记录上个小时的数据
+		$this->pdo->insertHourReport();
+		//查询出来
 		$data = $this->pdo->fetchGoodsPurchaseInfoLastHour();
-	
-		foreach ($data as $key => $value) {
-			
-			if($value["num_iid"]){
+		//print_r($data);
+		try{
+			foreach ($data as $key => $value) {
+				
+				if($value["num_iid"]){
 
-				$this->pdo->updateGoodsScoreInfo($value["num_iid"],$value["click"],$value["purchase"]);
+					$this->pdo->updateGoodsScoreInfo($value["num_iid"],$value["click"],$value["purchase"]);
+					
+				}
+
 			}
 
+			return 1;
+
+		}catch(Exception $e){
+
+			ssreturn(0,$e->getMessage(),2,2);
 		}
 
 	}
@@ -159,7 +200,7 @@ class Score extends GoodsModule {
 
         parent::__construct();
 
-        $this->isDebug = $isDebug;
+        //$this->isDebug = $isDebug;
 
         $this->pdo = $this->isDebug?locationCon("shopping_new"):shoppingCon();
 
@@ -189,36 +230,80 @@ class Score extends GoodsModule {
 			on a.num_iid = b.num_iid";
 			*/
 			/**/
-			$sql = "select b.num_iid,fee,count(0) purchase,click from ngw_shopping_log a JOIN 
+
+
+
+			
+			//当前几点
+			$last_hour_num = date('H',strtotime(date('Y-m-d H:i:s')." -1 hour"));
+
+			$sql = "select num_iid,sum(fee/amount) fee,sum(purchase) purchase,sum(click) click from ngw_hour_report where hour = ".$last_hour_num." and report_date = '".date("Y-m-d")."' GROUP BY num_iid";
+			//echo $sql;
+			return db_query($sql,$this->db,array(),$this->pdo);
+			/*
+			$sql = "select b.num_iid,fee,count(0) purchase,click from ".$this->table_pre."shopping_log a JOIN 
 				
-				(select sum(click) click,num_iid from ngw_click_log where createdAt >= '".date('Y-m-d H',strtotime(date('Y-m-d H:i:s')." -1 hour"))."' group by num_iid)b 
+				(select sum(click) click,num_iid from ".$this->table_pre."click_log where createdAt between '".date('Y-m-d H',strtotime(date('Y-m-d H:i:s')." -1 hour"))."' and '".date('Y-m-d H')."' group by num_iid)b 
 			
 					on a.num_iid = b.num_iid
 	
-	 		where a.createdAt >= '".date('Y-m-d H',strtotime(date('Y-m-d H:i:s')." -1 hour"))."' group by a.num_iid";
-			//echo $sql;exit;
-	 		$sql = "select b.num_iid,fee,count(0) purchase,click from ngw_shopping_log a JOIN 
+	 		where a.createdAt between '".date('Y-m-d H',strtotime(date('Y-m-d H:i:s')." -1 hour"))."' and '".date('Y-m-d H')."' group by a.num_iid";
+			echo $sql;exit;// 测试数据用	
+	 		$sql = "select b.num_iid,fee,count(0) purchase,click from ".$this->table_pre."shopping_log a JOIN 
 				
-				(select sum(click) click,num_iid from ngw_click_log where createdAt >= '2017-01-02 14:09:17' group by num_iid)b 
+				(select sum(click) click,num_iid from ".$this->table_pre."click_log where createdAt between '2017-01-02 14:09:17' and '".date('Y-m-d H')."' group by num_iid)b 
 			
 					on a.num_iid = b.num_iid
 	
-	 		where a.createdAt >= '2017-01-02 14:09:17' group by a.num_iid";
+	 		where a.createdAt between '2017-01-02 14:09:17' and '".date('Y-m-d H')."' group by a.num_iid";
 			
+	 		
+	 		$sql = "select sum(click) click,num_iid from ".$this->table_pre."click_log where createdAt between '".date('Y-m-d H',strtotime(date('Y-m-d H:i:s')." -1 hour"))."' and '".date('Y-m-d H')."' group by num_iid";
+	 		echo $sql;//exit;// 测试数据用	
+	 		$click_info = db_query($sql,$this->db,array(),$this->pdo);
+
+	 		$sql = "select fee,count(0) purchase,num_iid from ".$this->table_pre."shopping_log where createdAt between '".date('Y-m-d H',strtotime(date('Y-m-d H:i:s')." -1 hour"))."' and '".date('Y-m-d H')."' group by num_iid";
+	 			// 测试数据用	
+	 		$sql = "select fee,count(0) purchase,num_iid from ".$this->table_pre."shopping_log where createdAt between '2017-03-20 16' and '2017-04-21 17' group by num_iid";
+	 		echo $sql;exit;// 测试数据用	
+	 		$purchase_info = db_query($sql,$this->db,array(),$this->pdo);
+
+	 		
+
 			//echo $sql;exit;
 			return db_query($sql,$this->db,array(),$this->pdo);
+			*/
 
+		}
+		//插入单个小时的数据
+		public function insertHourReport(){
+			//上个小时
+			$last_hour = date('Y-m-d H',strtotime(date('Y-m-d H:i:s')." -1 hour"));
+			//当前几点
+			$last_hour_num = date('H',strtotime($last_hour.":0:0"));
+			//echo $last_hour_num;
+
+			$sql_list = array();
+
+			$sql_list[] = "replace into ".$this->table_pre."hour_report(click,num_iid,type,hour,report_date) select sum(click) click,num_iid,type,$last_hour_num,report_date from ".$this->table_pre."click_log where createdAt between '".$last_hour."' and '".date('Y-m-d H')."' group by num_iid,type";
+
+			$sql_list[] = "replace into ".$this->table_pre."hour_report(num_iid,type,purchase,hour,report_date,fee,benifit,amount) select num_iid,type,count(0) purchase,$last_hour_num,report_date,fee,benifit,IF(ISNULL(amount),1,amount) amount from ".$this->table_pre."shopping_log where createdAt between '".$last_hour."' and '".date('Y-m-d H')."' group by num_iid,type";
+			///print_r($sql_list);
+
+			$r = db_transaction($this->pdo,$sql_list,array());
+
+			return $r;
 
 		}
 
 		//上一小时的下单的商品id
 		public function fetchGoodsIdLastHour(){
-			/*
-			 $sql = "select distinct(num_iid) from ".$this->table_pre."shopping_log where createdAt > '". date('Y-m-d H',strtotime(date('Y-m-d H:i:s')." -1 hour"))."' and num_iid > 0";
-			*/
 			
+			$sql = "select distinct(num_iid) from ".$this->table_pre."shopping_log where createdAt between '".date('Y-m-d H',strtotime(date('Y-m-d H:i:s')." -1 hour"))."' and '".date('Y-m-d H')."' and num_iid > 0";
+			
+			//echo $sql;
 
-			$sql = "select distinct(num_iid) from ".$this->table_pre."shopping_log where createdAt > '2017-01-02 14:09:17' and num_iid > 0";
+			//$sql = "select distinct(num_iid) from ".$this->table_pre."shopping_log where createdAt > '2017-01-02 14:09:17' and num_iid > 0";
 			
 			return db_query_col($sql,$this->db,array(),$this->pdo);
 		}
@@ -228,10 +313,10 @@ class Score extends GoodsModule {
 
 			$num_iid_con = "";
 
-			if(is_array($num_iid)&&count($num_iid))$num_iid_con = " and num_iid in (".implode(",",$num_iid).")";
+			if(is_array($num_iid))$num_iid_con = " and num_iid in (".implode(",",$num_iid).")";
 
 			$sql = "select IF(click > 0,purchase/click,0) convert_rate,num_iid from ".$this->table_pre."goods_info where status in (".implode(",",GW_SCORED_GOODS).")".$num_iid_con;
-			//echo $sql;
+			echo $sql;
 			return db_query($sql,$this->db,array(),$this->pdo);
 		}
 
@@ -251,7 +336,26 @@ class Score extends GoodsModule {
 			//echo $sql;exit;
 			$r = db_execute($sql,$this->db,array(),$this->pdo);
 
+			//if($r!==false)return $this->fetchGoodScore($num_iid);
+
 	        return $r;
+
+		}
+
+		public function fetchGoodScore($num_iid){
+
+			$sql = "select score,is_sold,num_iid from ".$this->table_pre."goods_info where num_iid in ($num_iid)"; 
+			//echo $sql;exit;
+			return db_query_row($sql,$this->db,array(),$this->pdo);
+
+		}
+
+		//更新商品城热卖状态
+		public function updateGoodsIsSold($num_iid,$is_sold_status){
+
+			$sql = "update ".$this->table_pre."goods_info set is_sold = $is_sold_status where num_iid in ($num_iid)"; 
+			//echo $sql;exit;
+			$r = db_execute($sql,$this->db,array(),$this->pdo);
 
 		}
 

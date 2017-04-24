@@ -41,11 +41,11 @@ class RecordPdo extends RecordModule {
 
 	public function fetchOrderInfoGoods($order_list){
 
-		$sql = "select distinct(open_id) num_iid from ".TALBE_PRE."order a 
+		$sql = "select distinct(a.num_iid) num_iid from ".TALBE_PRE."order a 
     
             left join ".TALBE_PRE."order_status b on a.order_id = b.order_id
 
-        where a.order_id in (".implode(",",$order_list).") and a.status = 0 and b.order_id in (".implode(",",$order_list).") and open_id > 0 and num_iid > 0";
+        where a.order_id in (".implode(",",$order_list).") and a.status = 0 and b.order_id in (".implode(",",$order_list).") and a.num_iid > 0";
         //echo $sql;exit;
 
         $result = db_query_col($sql,$this->db,array(),$this->pdo);

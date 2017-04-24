@@ -62,18 +62,18 @@ class Record extends RecordModule {
         
         if(count($order_list)==0)return ssreturn(0,'参数格式有误.',2) ;
 
-        $num_iid = $this->pdo->fetchOrderInfoGoods($order_list);
-        //print_r($num_iid);
-        /*
-        $sql = "replace into ".TALBE_PRE."order (order_id,uid,type,status,num_iid,coupon_id,title,pict_url,item_url,price,rating,seller_id,store_type,created_date,deal_price,category,category_id,favorite_id,favorite,source)select order_id,uid,type,1,b.num_iid,a.coupon_id,a.title,a.pict_url,a.item_url,a.price,a.rating,a.seller_id,a.store_type,a.created_date,a.deal_price,a.category,a.category_id,a.favorite_id,a.favorite,a.source from ".TALBE_PRE."goods_online a right join ".TALBE_PRE."order b where a.num_iid in(".implode(",",$num_iid).") and b.num_iid in(".implode(",",$num_iid).")";
+            $num_iid = $this->pdo->fetchOrderInfoGoods($order_list);
 
-        $r = db_execute($sql,$this->db,array(),$this->pdo);*/
+        if(!count($num_iid))return ssreturn(0,'无法找到匹配的订单商品.',2,1) ;
+        //print_r($num_iid);
+ 
         $r = $this->pdo->updateOrderInfo($num_iid);
 
-         if($r===false)
+        if($r===false)
+
             return ssreturn(0,'订单补全执行失败.',2,1) ;
-        else
-           return ssreturn($r,'操作成功.',1,1) ;
+
+        else return ssreturn($r,'操作成功.',1,1) ;
             
 
         
@@ -87,10 +87,11 @@ class Record extends RecordModule {
             $r = $this->pdo->insertPurchaseRecord($order_id_list,$order_status);
 
             if($r===false)
+                
                 return ssreturn(0,'购买记录执行失败.',2) ;
-            else{
-                return ssreturn($r,'操作成功.',1) ;
-            } 
+            
+            else return ssreturn($r,'操作成功.',1) ;
+             
             //return $r;
 
         }

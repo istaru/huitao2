@@ -93,6 +93,25 @@ class GoodsShowController extends AppController
 
 
     /**
+     * [soldGoods 热卖商品(混合)]
+     */
+     public function soldGoods()
+     {
+        $this->gtype = 5;
+        $goods = R()->getListPage('soldLists',$this->dparam['page_no'],$this->dparam['page_size']);
+        if(count($goods)>1)
+            info(['status'=>1,'msg'=>'操作成功!','data'=>$goods,'total'=>R()->size('soldLists')]);
+        $sql = $this->getSQL();
+        $goods = M()->query($sql,'all');
+        if(!$this->silent && empty($goods)) info('暂无该分类商品',-1);
+        $this->redisToGoods('soldLists',$goods);
+        $goods = $this->page($goods);
+        info(['status'=>1,'msg'=>'操作成功!','data'=>$goods,'total'=>R()->size('soldLists')]);
+
+     }
+
+
+    /**
      * [redisToGoods redis取商品]
      */
     private function redisToGoods($key,$list)
@@ -107,20 +126,28 @@ class GoodsShowController extends AppController
     public function getSQL()
     {
         // D($this->nodes);die;
+        // 联盟商品
         if($this->gtype==1){
             $sql= "SELECT a.*,FORMAT((b.rating/100*b.price*".parent::PERCENT."),2) as rating,b.title,b.seller_name nick,b.url,b.store_type,b.pict_url,b.price,b.category_id cid,b.category,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM ngw_goods_info a JOIN ngw_goods_online b ON a.num_iid = b.num_iid AND a.favorite_id = b.favorite_id WHERE a.is_show = 1 AND a.source = 1 AND a.status =1 AND b.category_id IN (".implode(',',$this->nodes).") OR a.num_iid in (SELECT a.num_iid FROM ngw_goods_category_ref a JOIN ngw_goods_info b ON a.num_iid = b.num_iid WHERE b.is_show = 1 AND b.source = 1 AND b.status =1 AND a.category_id IN(".implode(',',$this->nodes).")) ORDER BY a.is_front DESC ,score DESC";
         }
 
+        //excel优惠券商品
         if($this->gtype==2){
             $sql= "SELECT a.*,b.title,b.seller_name nick,b.url,b.store_type,b.pict_url,b.price,b.category_id cid,b.category,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM ngw_goods_info a JOIN ngw_goods_online b ON a.num_iid = b.num_iid AND a.favorite_id = b.favorite_id WHERE a.is_show = 1 AND a.source = 0 AND a.status =1 AND b.category IN ('".implode("','",$this->nodes)."') ORDER BY a.is_front DESC ,score DESC";
         }
 
+        //9.9联盟商品
         if($this->gtype==3){
             $sql= "SELECT a.*,FORMAT((b.rating/100*b.price*".parent::PERCENT."),2) as rating,b.title,b.seller_name nick,b.url,b.store_type,b.pict_url,b.price,b.category_id cid,b.category,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM ngw_goods_info a JOIN ngw_goods_online b ON a.num_iid = b.num_iid AND a.favorite_id = b.favorite_id WHERE a.is_show = 1 AND a.source = 1 AND a.status =1 AND b.category_id IN (".implode(',',$this->nodes).") AND b.price <= 19.9 OR a.num_iid in (SELECT a.num_iid FROM ngw_goods_category_ref a JOIN ngw_goods_info b ON a.num_iid = b.num_iid WHERE b.is_show = 1 AND b.source = 1 AND b.status =1 AND a.category_id IN(".implode(',',$this->nodes)."))  ORDER BY a.is_front DESC ,score DESC";
         }
-
+        //9.9 excel商品
         if($this->gtype==4){
             $sql= "SELECT a.*,b.title,b.seller_name nick,b.url,b.store_type,b.pict_url,b.price,b.category_id cid,b.category,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM ngw_goods_info a JOIN ngw_goods_online b ON a.num_iid = b.num_iid AND a.favorite_id = b.favorite_id WHERE a.is_show = 1 AND a.source = 0 AND a.status =1 AND b.price <= 19.9 AND b.category IN ('".implode("','",$this->nodes)."')  ORDER BY a.is_front DESC ,score DESC";
+        }
+
+        //热卖商品
+        if($this->gtype==5){
+            $sql="SELECT a.*,FORMAT((b.rating/100*b.price*".parent::PERCENT."),2) as rating,b.title,b.seller_name nick,b.url,b.store_type,b.pict_url,b.price,b.category_id cid,b.category,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM ngw_goods_info a JOIN ngw_goods_online b ON a.num_iid = b.num_iid AND a.favorite_id = b.favorite_id WHERE a.is_show = 1 AND a.is_sold = 1 AND a.status=1 ORDER BY a.is_front DESC,score DESC";
         }
         // echo $sql;die;
         return $sql;

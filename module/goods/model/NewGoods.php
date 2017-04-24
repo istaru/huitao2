@@ -486,7 +486,7 @@ class FavoriteGoods extends NewGoods{
             if(count($com_online_goods_list))$r = $this->pdo->updateOnlineComGoods($com_online_goods_list);
                 if($this->isRecord){echo $r ? "成功。<br>" : "失败。<br>";}
 
-            //更改新品属性
+            //更改新品属性,不在是新品（旧商品）
             if(count($t_com_online_goods_list))$r = $this->pdo->updateComGoodsStatusNew($t_com_online_goods_list,$this->date);
         
             $this->file_log_tools->writeSuccessFavLog($value);

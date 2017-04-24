@@ -18,7 +18,7 @@ class GoodsModule extends Module{
 
     public $date;
 
-    public $isDebug = 0;
+    public $isDebug = 1;
 
     private $module = "goods";
 
