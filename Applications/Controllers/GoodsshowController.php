@@ -21,7 +21,7 @@ class GoodsShowController extends AppController
      */
     public function cateGoods()
     {
-        $sql = "SELECT id cid,name FROM ngw_category WHERE pid = {$this->dparam['cid']}";
+        $sql = "SELECT id cid,name FROM ngw_category WHERE `type` = 0 AND pid = {$this->dparam['cid']}";
         $soncate = M()->query($sql,'all');
         foreach ($soncate as $v) {
             $this->silent = 1;  //静默
@@ -48,10 +48,12 @@ class GoodsShowController extends AppController
         $this->gtype = 1;
         if($this->dparam['stype'] == 1) $this->gtype = 3;
         $this->getNodes();
-        $goods = R()->getListPage($this->cate,$this->dparam['page_no'],$this->dparam['page_size']);
-        if(count($goods)>1){
+        $page_no = ($this->dparam['page_no'] - 1) * $this->dparam['page_size'] ;
+        $page_size = $page_no + $this->dparam['page_size'] - 1;
+        $goods = R()->getListPage($this->cate,$page_no,$page_size);
+        if(R()->size($this->cate)>1){
             if(!$this->silent){
-                info(['status'=>1,'msg'=>'操作成功!','data'=>$goods,'son_cate'=>$this->son_nodes,'total'=>R()->size($this->cate)]);
+                info(['status'=>1,'msg'=>'操作成功!','data'=>$goods,'son_cate'=>$this->son_nodes,'total'=>count($goods)]);
             }else{
                 return $goods;
             }
@@ -63,7 +65,7 @@ class GoodsShowController extends AppController
         $this->redisToGoods($this->cate,$goods);
         $goods = $this->page($goods);
         if(!$this->silent){
-            info(['status'=>1,'msg'=>'操作成功!','data'=>$goods,'son_cate'=>$this->son_nodes,'total'=>R()->size($this->cate)]);
+            info(['status'=>1,'msg'=>'操作成功!','data'=>$goods,'son_cate'=>$this->son_nodes,'total'=>count($goods)]);
         }else{
             return $goods;
         }
@@ -79,16 +81,18 @@ class GoodsShowController extends AppController
         $this->gtype = 2;
         if($this->dparam['stype'] == 1) $this->gtype = 4;
         $this->getNodesEx();
-        $goods = R()->getListPage($this->cate,$this->dparam['page_no'],$this->dparam['page_size']);
-        if(count($goods)>1)
-            info(['status'=>1,'msg'=>'操作成功!','data'=>$goods,'son_cate'=>$this->son_nodes,'total'=>R()->size($this->cate)]);
+        $page_no = ($this->dparam['page_no'] - 1) * $this->dparam['page_size'] ;
+        $page_size = $page_no + $this->dparam['page_size'] - 1;
+        $goods = R()->getListPage($this->cate,$page_no,$page_size);
+        if(R()->size($this->cate)>1)
+            info(['status'=>1,'msg'=>'操作成功!','data'=>$goods,'son_cate'=>$this->son_nodes,'total'=>count($goods)]);
         $sql = $this->getSQL();
         // echo $this->cate;die;
         $goods = M()->query($sql,'all');
         if(!$this->silent && empty($goods)) info('暂无该分类商品',-1);
         $this->redisToGoods($this->cate,$goods);
         $goods = $this->page($goods);
-        info(['status'=>1,'msg'=>'操作成功!','data'=>$goods,'son_cate'=>$this->son_nodes,'total'=>R()->size($this->cate)]);
+        info(['status'=>1,'msg'=>'操作成功!','data'=>$goods,'son_cate'=>$this->son_nodes,'total'=>count($goods)]);
     }
 
 
@@ -98,15 +102,17 @@ class GoodsShowController extends AppController
      public function soldGoods()
      {
         $this->gtype = 5;
-        $goods = R()->getListPage('soldLists',$this->dparam['page_no'],$this->dparam['page_size']);
-        if(count($goods)>1)
-            info(['status'=>1,'msg'=>'操作成功!','data'=>$goods,'total'=>R()->size('soldLists')]);
+        $page_no = ($this->dparam['page_no'] - 1) * $this->dparam['page_size'] ;
+        $page_size = $page_no + $this->dparam['page_size'] - 1;
+        $goods = R()->getListPage('soldLists',$page_no,$page_size);
+        if(R()->size('soldLists')>1)
+            info(['status'=>1,'msg'=>'操作成功!','data'=>$goods,'total'=>count($goods)]);
         $sql = $this->getSQL();
         $goods = M()->query($sql,'all');
         if(!$this->silent && empty($goods)) info('暂无该分类商品',-1);
         $this->redisToGoods('soldLists',$goods);
         $goods = $this->page($goods);
-        info(['status'=>1,'msg'=>'操作成功!','data'=>$goods,'total'=>R()->size('soldLists')]);
+        info(['status'=>1,'msg'=>'操作成功!','data'=>$goods,'total'=>count($goods)]);
 
      }
 
@@ -159,21 +165,21 @@ class GoodsShowController extends AppController
      */
     public function getNodes()
     {
-        $sql = "SELECT * FROM ngw_category WHERE id = {$this->dparam['cid']}";
+        $sql = "SELECT * FROM ngw_category WHERE `type` = 0 AND id = {$this->dparam['cid']}";
         $cate = M()->query($sql);
         if($this->dparam['stype'] == 1){
             $this->cate = "lm99_{$cate['id']}_".$cate['name'];
         }else{
             $this->cate = "lm_{$cate['id']}_".$cate['name'];
         }
-        $sql = "SELECT id,name FROM ngw_category WHERE `left` >= {$cate['left']} AND `right` <= {$cate['right']}";
+        $sql = "SELECT id,name FROM ngw_category WHERE `type` = 0 AND `left` >= {$cate['left']} AND `right` <= {$cate['right']}";
         $cates = M()->query($sql,'all');
         foreach ($cates as $v) $temp[] = $v['id'];
 
         $this->nodes = $temp;
 
         //获得所有下级(只深一层)分类
-        $sql = "SELECT id,name FROM ngw_category WHERE `left` >= {$cate['left']} AND `right` <= {$cate['right']} AND depth = {$cate['depth']}+1";
+        $sql = "SELECT id,name FROM ngw_category WHERE `type` = 0 AND  `left` >= {$cate['left']} AND `right` <= {$cate['right']} AND depth = {$cate['depth']}+1";
         $son_cates = M()->query($sql,'all');
         foreach ($son_cates as $k => $v) {
             $this->son_nodes[] = ['cid'=>$v['id'],'name'=>$v['name']];
@@ -192,7 +198,7 @@ class GoodsShowController extends AppController
             $this->cate = "ex_".$this->dparam['cname'];
         }
         if($this->dparam['cname'] == '全部'){
-            $sql = "SELECT DISTINCT name  FROM  ngw_category WHERE taobao_category_name IS NOT NULL";
+            $sql = "SELECT DISTINCT name  FROM  ngw_category WHERE `type` = 0 AND taobao_category_name IS NOT NULL";
             $cates = M()->query($sql,'all');
             foreach ($cates as $v) $temp[] = $v['name'];
             $this->nodes = ['全部']+$temp;
@@ -236,7 +242,7 @@ class GoodsShowController extends AppController
      */
     public function categoryEx()
     {
-        $sql = "SELECT DISTINCT name cname FROM ngw_category WHERE taobao_cid IS NOT NULL ";
+        $sql = "SELECT DISTINCT name cname FROM ngw_category WHERE `type` = 0 AND taobao_cid IS NOT NULL ";
         $cates = M()->query($sql,'all');
         info('ok',1,[['cname'=>'全部']]+$cates);
     }
@@ -527,7 +533,8 @@ class GoodsShowController extends AppController
     {
         $keylike = $type == 1 ? 'lm' : ($type == 2 ? 'ex' : '' );
         if(empty($keylike)) return;
-
+        R()->delFeild('detailLists');
+        R()->delFeild('soldLists');
         R()->delLike($keylike);
     }
 
