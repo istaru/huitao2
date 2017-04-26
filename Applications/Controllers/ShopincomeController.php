@@ -31,13 +31,14 @@ class ShopincomeController extends getRewardController
 			$this->rewardRule($data);
 		else if($data['score_type'] == 1)	//好友下单 师傅提成
 			$this->rewardSwitch($data);
-
+		else if($data['score_type'] == 99)	//老用户迁移
+			$this->rewardRuleSuper($data);
 		$this->execSql();
 	}
 
 
 	/**
-	* [rewardSwitch 返利规则]
+	* [rewardSwitch 返利规则选择]
 	*/
 	public function rewardSwitch($data)
 	{
@@ -78,20 +79,29 @@ class ShopincomeController extends getRewardController
 	/**
 	* [rewardRule 徒弟购买对师傅的普通奖励]
 	*/
-	public function sfRewardRule()
+	public function sfRewardRule($data)
 	{
-		$price = -1;  //根据订单的类型计算价格
+		$price = $data['cost']*$data['rating']*parent::PERCENTSF;  //根据订单的类型计算价格
 		$this->createSql($data,1,$price,"恭喜您,获得好友下单红包{$price}元!");
 	}
 
 
 	/**
-	* [rewardRule 徒弟购买对师傅的普通奖励]
+	* [rewardRule 徒弟购买普通奖励]
 	*/
 	public function rewardRule($data)
 	{
-		$price = -1;  //根据订单的类型计算价格
+		$price = $data['cost']*$data['rating']*parent::PERCENT;  //根据订单的类型计算价格
 		$this->createSql($data,1,$price,"恭喜您,获得下单红包{$price}元!");
+	}
+
+	/**
+	* [rewardRule  拆红包特殊情况]
+	*/
+	public function rewardRuleSuper($data)
+	{
+		$price = $data['cost'];
+		$this->createSql($data,1,$price,"惠淘全方位大升级,点击领取之前的收入金额!");
 	}
 
 

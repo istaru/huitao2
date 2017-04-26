@@ -52,8 +52,8 @@ class InvitationsController extends AppController
         if($type == 1) {
             $list = M()->query("SELECT b.nickname , b.head_img, a.friends_num FROM( SELECT sum(price) friends_num , uid FROM ngw_uid_log WHERE status = 2 {$str} GROUP BY uid ORDER BY friends_num DESC LIMIT 10) a LEFT JOIN( SELECT nickname , head_img , objectId FROM ngw_uid) b ON b.objectId = a.uid", 'all');
         } else if($type == 2) {
-            $list = M()->query("SELECT b.nickname , b.head_img, a.friends_num FROM( SELECT count(0) friends_num , uid FROM ngw_uid_log WHERE score_type = 2 {$str} GROUP BY uid ORDER BY friends_num DESC LIMIT 10) a LEFT JOIN( SELECT nickname , head_img , objectId FROM ngw_uid) b ON b.objectId = a.uid");
+            $list = M()->query("SELECT b.nickname , b.head_img, a.friends_num FROM( SELECT count(0) friends_num , uid FROM ngw_uid_log WHERE score_type = 2 {$str} GROUP BY uid ORDER BY friends_num DESC LIMIT 10) a LEFT JOIN( SELECT nickname , head_img , objectId FROM ngw_uid) b ON b.objectId = a.uid", 'all');
         } else info('参数异常');
-        info('请求成功', 1, ['self' => $self, 'ranking_list' => !empty($list) ? $list : [ ]]);
+        info('请求成功', 1, ['self' => $self, 'ranking_list' => $list]);
     }
 }

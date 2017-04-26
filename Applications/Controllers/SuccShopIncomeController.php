@@ -40,7 +40,7 @@ class SuccShopIncomeController
 
 					//取出账单id
 					$bid = M()->getLastInsertId();
-					if($bid){
+					if($bid){	//得到账单 id 并新增一条红包消息用户拆红包
 						$sql = "INSERT IGNORE INTO ngw_message (uid,bid,content,type) VALUES ('{$v['uid']}',$bid,'购物红包',2)";
 						M()->query($sql);
 					}
@@ -74,7 +74,7 @@ class SuccShopIncomeController
 	public function orderInfo($order_list)
 	{
 		//取出订单以及关联数据
-		// $sql = "SELECT distinct(a.order_id),b.paid_fee cost ,a.rating,a.source,c.sfuid FROM ngw_order a LEFT JOIN ngw_order_status b ON a.order_id = b.order_id LEFT JOIN ngw_uid c ON a.uid = c.objectId WHERE a.order_id IN (".implode(',',$order_list).") AND a.status = 1 AND b.status = 2 ";
+		//检查这些订单是否补全并且状态正确
 		$sql = "SELECT distinct(a.order_id),b.paid_fee cost ,a.uid,a.source,a.rating,c.sfuid
 				FROM ngw_order a JOIN ngw_order_status b ON a.order_id = b.order_id
 				JOIN ngw_uid c ON  a.uid = c.objectId

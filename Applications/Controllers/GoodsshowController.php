@@ -22,6 +22,7 @@ class GoodsShowController extends AppController
      */
     public function cateGoods()
     {
+        //取出该 cid 下的所有一级子分类 cid
         $sql = "SELECT id cid,name FROM ngw_category WHERE `type` = 0 AND pid = {$this->dparam['cid']}";
         $soncate = M()->query($sql,'all');
         foreach ($soncate as $v) {
@@ -29,7 +30,7 @@ class GoodsShowController extends AppController
             $this->dparam['cid'] = $v['cid'];
             $this->dparam['page_no'] = 1;
             $this->dparam['page_size'] = $this->dparam['size'];
-            $tempgoods = $this->showGoods();
+            $tempgoods = $this->showGoods();    //循环执行父分类下的所有一级分类的数据
             if (!empty($tempgoods)) {
                 $this->goods[$v['cid']] = $tempgoods;
                 $this->cates[] = ['cid'=>$v['cid'],'name'=>$v['name']];
@@ -46,6 +47,7 @@ class GoodsShowController extends AppController
      */
     public function cateGoodsBoard()
     {
+        //取出该品牌下的所有子品牌
         $sql = "SELECT name cname FROM ngw_category WHERE `type` = 1 AND pname = '{$this->dparam['cname']}'";
         $soncate = M()->query($sql,'all');
         foreach ($soncate as $v) {
@@ -168,7 +170,7 @@ class GoodsShowController extends AppController
         $goods = M()->query($sql,'all');
         if(!$this->silent && empty($goods)) info('暂无该分类商品',-1);
         $this->redisToGoods('soldLists',$goods);
-        $goods = $this->page($goods);
+        // $goods = $this->page($goods);
         info(['status'=>1,'msg'=>'操作成功!','data'=>$goods,'total'=>count($goods)]);
 
      }
@@ -230,7 +232,7 @@ class GoodsShowController extends AppController
 
         //热卖商品
         if($this->gtype==5){
-            $sql="SELECT a.*,FORMAT((b.rating/100*b.price*".parent::PERCENT."),2) as rating,b.title,b.seller_name nick,b.url,b.store_type,b.pict_url,b.price,b.category_id cid,b.category,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM ngw_goods_info a JOIN ngw_goods_online b ON a.num_iid = b.num_iid AND a.favorite_id = b.favorite_id WHERE a.is_board = 0 AND a.is_show = 1 AND a.is_sold = 1 AND a.status=1 ORDER BY a.is_front DESC,score DESC";
+            $sql="SELECT a.*,FORMAT((b.rating/100*b.price*".parent::PERCENT."),2) as rating,b.title,b.seller_name nick,b.url,b.store_type,b.pict_url,b.price,b.category_id cid,b.category,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM ngw_goods_info a JOIN ngw_goods_online b ON a.num_iid = b.num_iid AND a.favorite_id = b.favorite_id WHERE a.is_board = 0 AND a.is_show = 1 AND a.is_sold = 1 AND a.status=1 GROUP BY a.num_iid ORDER BY a.is_front DESC,score DESC";
         }
 
         //品牌商品
@@ -240,9 +242,9 @@ class GoodsShowController extends AppController
 
         //新品
         if($this->gtype==7){
-            $sql="SELECT a.*,FORMAT((b.rating/100*b.price*".parent::PERCENT."),2) as rating,b.title,b.seller_name nick,b.url,b.store_type,b.pict_url,b.price,b.category_id cid,b.category,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM ngw_goods_info a JOIN ngw_goods_online b ON a.num_iid = b.num_iid AND a.favorite_id = b.favorite_id WHERE a.is_board = 0 AND a.is_show = 1 AND a.is_new = 1 AND a.status=1 ORDER BY a.is_front DESC,score DESC";
+            $sql="SELECT a.*,FORMAT((b.rating/100*b.price*".parent::PERCENT."),2) as rating,b.title,b.seller_name nick,b.url,b.store_type,b.pict_url,b.price,b.category_id cid,b.category,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM ngw_goods_info a JOIN ngw_goods_online b ON a.num_iid = b.num_iid AND a.favorite_id = b.favorite_id WHERE a.is_board = 0 AND a.is_show = 1 AND a.is_new = 1 AND a.status=1 GROUP BY a.num_iid ORDER BY a.is_front DESC,score DESC";
         }
-
+        // echo $sql;die;
         return $sql;
     }
 
@@ -321,20 +323,20 @@ class GoodsShowController extends AppController
     {
         $cates = [
             ['name'=>'全部','cid'=>'1'],
-            ['name'=>'女装','cid'=>'133','icon_url'=>RES_SITE.'resource/img/category/img_sort_01.png','content'=>'T恤、衬衫、连衣裙'],
+            ['name'=>'女装','cid'=>'113','icon_url'=>RES_SITE.'resource/img/category/img_sort_01.png','content'=>'T恤、衬衫、连衣裙'],
             ['name'=>'鞋包','cid'=>'134','icon_url'=>RES_SITE.'resource/img/category/img_sort_02.png','content'=>'凉鞋、拖鞋、单鞋'],
             ['name'=>'美妆个护','cid'=>'145','icon_url'=>RES_SITE.'resource/img/category/img_sort_03.png','content'=>'保养、护肤'],
             ['name'=>'内衣','cid'=>'154','icon_url'=>RES_SITE.'resource/img/category/img_sort_04.png','content'=>'文胸、保暖内衣'],
-            ['name'=>'男装','cid'=>'','icon_url'=>RES_SITE.'resource/img/category/img_sort_05.png','content'=>'外套、休闲裤、衬衫'],
+            ['name'=>'男装','cid'=>'240','icon_url'=>RES_SITE.'resource/img/category/img_sort_05.png','content'=>'外套、休闲裤、衬衫'],
             ['name'=>'衣饰配件','cid'=>'161','icon_url'=>RES_SITE.'resource/img/category/img_sort_06.png','content'=>'裤装、卫衣'],
             ['name'=>'母婴亲子','cid'=>'166','icon_url'=>RES_SITE.'resource/img/category/img_sort_07.png','content'=>'婴儿车、奶瓶'],
             ['name'=>'家电','cid'=>'172','icon_url'=>RES_SITE.'resource/img/category/img_sort_08.png','content'=>'家电、厨房电器'],
             ['name'=>'数码','cid'=>'178','icon_url'=>RES_SITE.'resource/img/category/img_sort_09.png','content'=>'手机、平板电脑'],
-            ['name'=>'运动','cid'=>'198','icon_url'=>RES_SITE.'resource/img/category/img_sort_10.png','content'=>'健身、户外'],
-            ['name'=>'游戏动漫','cid'=>'203','icon_url'=>RES_SITE.'resource/img/category/img_sort_11.png','content'=>'桌游、手办'],
-            ['name'=>'美食','cid'=>'210','icon_url'=>RES_SITE.'resource/img/category/img_sort_12.png','content'=>'休闲零食、茶水饮料'],
-            ['name'=>'日常家具','cid'=>'221','icon_url'=>RES_SITE.'resource/img/category/img_sort_13.png','content'=>'床上用品、卧室家具'],
-            ['name'=>'办公学习','cid'=>'230','icon_url'=>RES_SITE.'resource/img/category/img_sort_14.png','content'=>'办公用品、文具'],
+            ['name'=>'运动','cid'=>'198','icon_url'=>RES_SITE.'resource/img/category/img_sort_010.png','content'=>'健身、户外'],
+            ['name'=>'游戏动漫','cid'=>'203','icon_url'=>RES_SITE.'resource/img/category/img_sort_011.png','content'=>'桌游、手办'],
+            ['name'=>'美食','cid'=>'210','icon_url'=>RES_SITE.'resource/img/category/img_sort_012.png','content'=>'休闲零食、茶水饮料'],
+            ['name'=>'日常家具','cid'=>'221','icon_url'=>RES_SITE.'resource/img/category/img_sort_013.png','content'=>'床上用品、卧室家具'],
+            ['name'=>'办公学习','cid'=>'230','icon_url'=>RES_SITE.'resource/img/category/img_sort_014.png','content'=>'办公用品、文具'],
         ];
         info('ok',1,$cates);
     }
@@ -385,6 +387,9 @@ class GoodsShowController extends AppController
     }
 
 
+    /**
+     * [range 以时间戳0-9的规律取余获得当前的index位置,index 用户分割商品列表再重新拼接]
+     */
     private function range($polls)
     {
         //测试
@@ -416,7 +421,7 @@ class GoodsShowController extends AppController
 
     //{"user_id":"Nuwd8XEsBs","num_iid":"525103323591"}
     /**
-     * [share 分享成功]
+     * [share 分享记录用户分享行为]
      */
     public function share()
     {
@@ -430,13 +435,13 @@ class GoodsShowController extends AppController
 
     //{"user_id":"Nuwd8XEsBs","num_iid":"525103323591","type":"1"}
     /**
-     * [detail 商品详情]
+     * [detail 点击商品详情时记录商品点击行为]
      */
     public function detail()
     {
         if(empty($this->dparam['user_id']) || empty($this->dparam['num_iid'] || empty($this->dparam['type']))) info('参数不全',-1);
 
-        //记录用户点击
+        //记录用户点击及浏览历史记录
         (UserRecordController::getObj()) -> clickRecord($this->dparam['user_id'],$this->dparam['num_iid'],$this->dparam['type']);
 
 
@@ -455,17 +460,17 @@ class GoodsShowController extends AppController
     }
 
     /**
-     * [sortGoods 按分数排序]
+     * [sortGoods 按分数排序按前置和分数降序排列]
      */
-    private function sortGoods($arr)
-    {
-        foreach ($arr as $k => $v) {
-            $sort[$k]   = $v['score'];
-            $front[$k]  = $v['is_front'];
-        }
-        array_multisort($front,SORT_DESC,$sort,SORT_DESC,$arr);
-        return $arr;
-    }
+    // private function sortGoods($arr)
+    // {
+    //     foreach ($arr as $k => $v) {
+    //         $sort[$k]   = $v['score'];
+    //         $front[$k]  = $v['is_front'];
+    //     }
+    //     array_multisort($front,SORT_DESC,$sort,SORT_DESC,$arr);
+    //     return $arr;
+    // }
 //----
 
 
@@ -572,9 +577,10 @@ class GoodsShowController extends AppController
      */
     public function hotTab()
     {
-        $sql = "SELECT DISTINCT search_content FROM ngw_search_log LIMIT 0,10";
-        $info = M()->query($sql,'all');
-        foreach ($info as $v) $tabs[]=$v['search_content'];
+        // $sql = "SELECT DISTINCT search_content FROM ngw_search_log LIMIT 0,10";
+        // $info = M()->query($sql,'all');
+        // foreach ($info as $v) $tabs[]=$v['search_content'];
+        $tabs = ['t恤','家具用品','双肩包','益智玩具','盆栽','健身器','沙滩裙'];
         info('ok',1,$tabs);
     }
 

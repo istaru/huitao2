@@ -20,7 +20,8 @@ class TestController extends AppController {
         R()->delFeild('soldLists');
         R()->delLike('ex');
         R()->delLike('lm');
-
+        R()->delLike('board');
+        echo 'ok';
     }
 
 }

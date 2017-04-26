@@ -35,8 +35,8 @@ class FailShopIncomeController
 		$cash_res		=	$this->orderCash($order_list);		//余额
 
 
-		!empty($estimate_res)	&&	$this->estimateHandle($estimate_res);
-		!empty($cash_res) 		&&	$this->cashHandle($cash_res);
+		!empty($estimate_res)	&&	$this->estimateHandle($estimate_res);	//在预估则从预估返还
+		!empty($cash_res) 		&&	$this->cashHandle($cash_res);			//在余额则从余额返还
 
 		if(!empty($estimate_res) || !empty($cash_res)){
 			$this->sql[] = rtrim($this->msg,',');;

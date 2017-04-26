@@ -2,8 +2,8 @@
 abstract class getRewardController
 {
 	public $sql = [];
-
-
+	const PERCENT = 0.7;
+	const PERCENTSF = 0.2;
 	/**
 	* [createSql 生成sql]
 	*/

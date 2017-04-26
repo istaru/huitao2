@@ -21,7 +21,7 @@ class UserRecordController
 
 	//{"user_id":"","num_iid":""}
 	/**
-	 * [click 用户点击]
+	 * [click 记录用户点击行为]
 	 */
 	public function clickRecord($uid,$numid,$system)
 	{
@@ -36,6 +36,8 @@ class UserRecordController
 		if(!$this->status) return;
 
 		$this->key = "history_{$uid}";
+
+		//用户点击行为额外保存在redis 中作为单个用户的浏览商品记录
 		if(R()->hashFeildExisit($this->key,$this->type))
 			$data = $this->update();
 		else
@@ -45,7 +47,7 @@ class UserRecordController
 
 
 	/**
-	 * [shareRecord 用户分类]
+	 * [shareRecord 记录用户分享行为]
 	 */
 	public function shareRecord($uid,$numid,$system,$sharetype)
 	{
@@ -61,7 +63,7 @@ class UserRecordController
 
 
 	/**
-	 * [searchRecord 用户搜索]
+	 * [searchRecord 记录用户搜索行为]
 	 */
 	public function searchRecord($uid,$content,$system)
 	{
@@ -91,6 +93,9 @@ class UserRecordController
 	}
 
 
+	/**
+	 * [update 取出原来的redis 行为数据并追加]
+	 */
 	private function update()
 	{
 		$info = $this->ckGoodsCount(R()->getHashSingle($this->key,$this->type));
@@ -99,9 +104,15 @@ class UserRecordController
 	}
 
 
+	/**
+	 * [ckGoodsCount 点击行为规则]
+	 */
 	private function ckGoodsCount($data)
 	{
+		//小于规定的条数通过
 		if(count($data) < $this->count) return $data;
+
+		//大于了删除最早的一条返回
 		//删除最早一条
 		$data = array_reverse($data,true);
 		//提交

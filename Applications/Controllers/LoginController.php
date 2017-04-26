@@ -13,19 +13,19 @@ class LoginController extends AppController
 		/**开启事务**/
 		M()->startTrans();
 		try {
-			$this->checkParam();
-			$this->checkUid(2);
+			$this->checkParam();	//检查数据完整性
+			$this->checkUid(2);		//检查用户是否存在
 
-			if(!empty($this->dparam['token']))
+			if(!empty($this->dparam['token']))	//检查免登入 token 是否和库里一致
 				$this->checkToken();
 			else if(!empty($this->dparam['id_code']))	//存在验证码码表示修改密码登入
 				$this->checkCode(2);
 			else
-				$this->checkPwd();
+				$this->checkPwd();	//检查密码是否一致
 
-			$this->checkDid();
-			$this->unionHandleForLogin();
-			$this->unionHandle();
+			$this->checkDid();		//检查该设备信息是否在did 表中登记
+			$this->unionHandleForLogin();	//更新 uid 表
+			$this->unionHandle();	//附属表数据增加
 			// D($this->dparam);die;
 		} catch (Exception $e) {
 			M()->rollback();
@@ -45,11 +45,11 @@ class LoginController extends AppController
 		M()->startTrans();
 		try {
 			$this->checkParam();
-			$this->checkCode(1);
+			$this->checkCode(1);	//检查验证码
 			$this->checkUid(1);
 			$this->checkDid();
-			$this->uidRegister();
-			$this->unionHandle();
+			$this->uidRegister();	//注册用户
+			$this->unionHandle();	//更新 uid 表
 		} catch (Exception $e) {
 			M()->rollback();
 			info('网络异常!',-1);
@@ -113,7 +113,6 @@ class LoginController extends AppController
 			}else{
 				$data['imei']		= '';
 			}
-			M('uid')->where(" objectId = '{$this->uid_info['objectId']}' ")->save($data);
 		}
 		//修改密码 重置token
 		if(!empty($this->dparam['id_code'])){
