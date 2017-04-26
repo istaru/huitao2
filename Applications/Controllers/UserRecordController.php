@@ -105,7 +105,7 @@ class UserRecordController
 		//删除最早一条
 		$data = array_reverse($data,true);
 		//提交
-		$this->commit($this->uid,$this->numid,$count);
+		$this->commit($this->uid,$this->numid,$this->count);
 		array_pop($data);
 		return array_reverse($data,true);
 	}

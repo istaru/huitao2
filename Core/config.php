@@ -5,6 +5,7 @@
 return [
     /*-------------------数据库配置-------------------*/
     'database' => [
+
         'DB_DSN'    => 'mysql:host=192.168.1.151;dbname=huitao',
         'DB_USER'   => 'huitao',
         'DB_PWD'    => 'huitao',

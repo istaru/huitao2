@@ -1,5 +1,5 @@
 <?php
-class HtPowerController extends HtController
+class HtPowerController
 {
     /**
      * [setPower 设置某个后台用户的权限]
@@ -11,26 +11,29 @@ class HtPowerController extends HtController
     }
     public function setpower2(){
         /**
-         * 如果设置了id，则修改，方法是清空原来所有的权限，然后赋予全部的新权限(包括默认的查看个人中心页的基础权限)
+         * 如果只设置了username，那么是修改权限
         */
-        if(!empty($_POST['id'])&&$_POST['id']!=1){
-            if(M('htrole')->where(['htUser_id' => ['=',$_POST['id']]])->select()) {
-                M('htrole')->where(['htUser_id' => ['=',$_POST['id']]])->save();
+        if(!empty($_POST['username'])&&empty($_POST['password'])){
+            $id= M('htuser')->where(['username' => ['=',$_POST['username']]])->field('id')->select('single')['id'];
+            if($id) {
+                if($id==1){
+                    info("超级管理员权限禁止修改",-1);
+                }
+                //清除所有权限
+                M('htrole')->where(['htUser_id' => ['=',$id]])->save();
                 $arr = explode(",",$_POST['htNode_id']);
                 $myarr=[];
                 for ($i=0;$i<count($arr);$i++){
-                    $myarr[$i]['htUser_id']=$_POST['id'];
+                    $myarr[$i]['htUser_id']=$id;
                     $myarr[$i]['htNode_id']=$arr[$i];
                 }
                 /**
                  * 赋予已被清空的基础权限
                 */
-                $myarr[count($arr)]['htUser_id']=$_POST['id'];
-                $myarr[count($arr)]['htNode_id']='40';
                 $data=M('htrole')->batchAdd($myarr);
                 $data?info("权限修改成功",1):info("权限修改失败",-3);
             }else{
-                info("请输入正确的ID",-1);
+                info("请输入正确的用户名",-1);
             }
 
         }
@@ -63,17 +66,21 @@ class HtPowerController extends HtController
      */
     public function getpower()
     {
-        if(!empty($_POST['id'])) {
-            if(M('htrole')->where(['htUser_id' => ['=',$_POST['id']]])->select()){
-            $n = implode(',',array_column((M('htrole')->field('htNode_id')->where(['htUser_id' => ['=',$_POST['id']]])->select()),"htNode_id"));
+        if(!empty($_POST['username'])) {
+            $id= M('htuser')->where(['username' => ['=',$_POST['username']]])->field('id')->select('single')['id'];
+            if($id){
+            $n = implode(',',array_column((M('htrole')->field('htNode_id')->where(['htUser_id' => ['=',$id]])->select()),"htNode_id"));
             $n = M('htnode')->where("id in({$n})")->select();
             info('OK',1,$n);
         }
             else{
-                info("请输入正确的ID",-1);
-            }}
+                info("不存在的用户名",-1);
+            }
+        }
         else if(!empty($_SESSION['user']['id'])){
             info("ok",1);
+        }else{
+
         }
 
     }
