@@ -252,6 +252,7 @@ class GoodsShowController extends AppController
      */
     public function getSQL()
     {
+        if(empty($this->nodes)) info('没有该类型商品!',-1);
         // D($this->nodes);die;
         // 联盟商品
         if($this->gtype==1){
