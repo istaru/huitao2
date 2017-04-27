@@ -16,11 +16,12 @@ class TestController extends AppController {
         (FailShopIncomeController::getObj())->incomeHandle(['7145541093113222','7145541093113223','7145541093113224']);
     }
     public function del(){
+        R()->delLike('ex_');
         R()->delFeild('detailLists');
         R()->delFeild('soldLists');
-        R()->delLike('ex');
-        R()->delLike('lm');
-        R()->delLike('board');
+
+        R()->delLike('lm_');
+        R()->delLike('board_');
         echo 'ok';
     }
 

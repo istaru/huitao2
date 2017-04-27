@@ -25,7 +25,7 @@ class UserRecordController
 	 */
 	public function clickRecord($uid,$numid,$system)
 	{
-		if(empty($uid) || empty($numid)) info('数据不完整',-1);
+		if(!isset($uid) || !isset($numid) || !isset($system)) info('数据不完整Record',-1);
 
 		$this->type = 'click';
 		$this->uid = $uid;
@@ -51,7 +51,7 @@ class UserRecordController
 	 */
 	public function shareRecord($uid,$numid,$system,$sharetype)
 	{
-		if(empty($uid)) info('数据不完整',-1);
+		if(!isset($uid) || !isset($system) || !isset($sharetype)) info('数据不完整',-1);
 
 		$this->type = 'share';
 		$this->uid = $uid;
@@ -67,7 +67,7 @@ class UserRecordController
 	 */
 	public function searchRecord($uid,$content,$system)
 	{
-		if(empty($uid) || empty($content)) info('数据不完整',-1);
+		if(!isset($uid) || !isset($content) || !isset($system)) info('数据不完整',-1);
 
 		$this->type = 'search';
 		$this->uid = $uid;

@@ -132,8 +132,10 @@ class ScriptController extends Controller
 
 	private function arrayTotalClick($arr)
 	{
+
 		$temp = [];
 		foreach ($arr as $k => $v) {
+			if(empty($v['uid']) || empty($v['type']) || empty($v['content'])) continue;
 			if(!array_key_exists($v['uid'].$v['type'].$v['content'],$temp))
 				$temp[$v['uid'].$v['type'].$v['content']] = ['uid'=>$v['uid'],'content'=>$v['content'],'num'=>1,'type'=>$v['type']];
 			else
@@ -146,6 +148,7 @@ class ScriptController extends Controller
 	{
 		$temp = [];
 		foreach ($arr as $k => $v) {
+			if(empty($v['uid']) || empty($v['type']) || empty($v['content'])) continue;
 			if(!array_key_exists($v['uid'].$v['type'].$v['content'],$temp))
 				$temp[$v['uid'].$v['type'].$v['content']] = ['uid'=>$v['uid'],'content'=>$v['content'],'num'=>1,'type'=>$v['type'],'share_type'=>$v['share_type']];
 			else
