@@ -9,7 +9,7 @@ abstract class keepReport extends htReport{
 
 
     public $field = " report_date,count(DISTINCT(uid)) as num ";
-    public $table = " gw_uid_login_log ";
+    public $table = " ngw_uid_login_log ";
     public $where = " where uid in (%s) ";
     public $group = " GROUP BY report_date ";
 

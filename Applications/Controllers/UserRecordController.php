@@ -1,5 +1,5 @@
 <?php
-class UserRecordController
+class UserRecordController extends AppController
 {
 	public $status	= true;
 	public $count	= 10;
@@ -8,7 +8,7 @@ class UserRecordController
 	private static $behaviour;
 
 
-	private function __construct(){
+	public function __construct(){
 	}
 
 
@@ -51,7 +51,7 @@ class UserRecordController
 	 */
 	public function shareRecord($uid,$numid,$system,$sharetype)
 	{
-		if(!isset($uid) || !isset($system) || !isset($sharetype)) info('数据不完整',-1);
+		if(!isset($uid) || !isset($numid)|| !isset($system) || !isset($sharetype)) info('数据不完整',-1);
 
 		$this->type = 'share';
 		$this->uid = $uid;
@@ -85,7 +85,8 @@ class UserRecordController
 
 	private function goodInfo()
 	{
-		$sql	= "SELECT title,seller_name nick,pict_url,price,deal_price zk_final_price,item_url,reduce,volume, 1 type FROM ngw_goods_online WHERE num_iid = {$this->numid}";
+		$sql	= "SELECT a.*,FORMAT((b.rating/100*b.price*".parent::PERCENT."),2) as rating,b.title,b.seller_name nick,b.url,b.store_type,b.pict_url,b.price,b.category_id cid,b.category,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url, 1 type FROM ngw_goods_info a JOIN ngw_goods_online b ON a.num_iid = b.num_iid AND a.favorite_id = b.favorite_id WHERE a.num_iid = {$this->numid}";
+		// $sql	= "SELECT title,seller_name nick,pict_url,price,deal_price zk_final_price,item_url,reduce,volume, 1 type FROM ngw_goods_online WHERE num_iid = {$this->numid}";
 		$info 	= M()->query($sql,'single');
 		// D($info);die;
 		if(empty($info)) info('商品不存在!',-1);

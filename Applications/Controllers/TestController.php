@@ -19,7 +19,6 @@ class TestController extends AppController {
         R()->delLike('ex_');
         R()->delFeild('detailLists');
         R()->delFeild('soldLists');
-
         R()->delLike('lm_');
         R()->delLike('board_');
         echo 'ok';

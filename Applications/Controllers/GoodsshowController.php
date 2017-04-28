@@ -210,6 +210,7 @@ class GoodsShowController extends AppController
             info(['status'=>1,'msg'=>'操作成功!','data'=>$goods,'total'=>count($goods)]);
         $sql = $this->getSQL();
         $goods = M()->query($sql,'all');
+
         if(!$this->silent && empty($goods)) info('暂无该分类商品',-1);
         $this->redisToGoods('soldLists',$goods);
         // $goods = $this->page($goods);
@@ -252,24 +253,27 @@ class GoodsShowController extends AppController
      */
     public function getSQL()
     {
-        if(empty($this->nodes)) info('没有该类型商品!',-1);
         // D($this->nodes);die;
         // 联盟商品
         if($this->gtype==1){
+            if(empty($this->nodes)) info('没有该类型商品!',-1);
             $sql= "SELECT a.*,FORMAT((b.rating/100*b.price*".parent::PERCENT."),2) as rating,b.title,b.seller_name nick,b.url,b.store_type,b.pict_url,b.price,b.category_id cid,b.category,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM ngw_goods_info a JOIN ngw_goods_online b ON a.num_iid = b.num_iid AND a.favorite_id = b.favorite_id WHERE a.is_board = 0 AND a.is_show = 1 AND a.source = 1 AND a.status =1 AND b.category_id IN (".implode(',',$this->nodes).") OR a.num_iid in (SELECT a.num_iid FROM ngw_goods_category_ref a JOIN ngw_goods_info b ON a.num_iid = b.num_iid WHERE b.is_show = 1 AND b.source = 1 AND b.status =1 AND a.category_id IN(".implode(',',$this->nodes).")) GROUP BY a.num_iid ORDER BY a.is_front DESC ,score DESC";
         }
 
         //excel优惠券商品
         if($this->gtype==2){
+            if(empty($this->nodes)) info('没有该类型商品!',-1);
             $sql= "SELECT a.*,b.title,b.seller_name nick,b.url,b.store_type,b.pict_url,b.price,b.category_id cid,b.category,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM ngw_goods_info a JOIN ngw_goods_online b ON a.num_iid = b.num_iid AND a.favorite_id = b.favorite_id WHERE a.is_board = 0 AND a.is_show = 1 AND a.source = 0 AND a.status =1 AND b.category IN ('".implode("','",$this->nodes)."') GROUP BY a.num_iid ORDER BY a.is_front DESC ,score DESC";
         }
 
         //9.9联盟商品
         if($this->gtype==3){
+            if(empty($this->nodes)) info('没有该类型商品!',-1);
             $sql= "SELECT a.*,FORMAT((b.rating/100*b.price*".parent::PERCENT."),2) as rating,b.title,b.seller_name nick,b.url,b.store_type,b.pict_url,b.price,b.category_id cid,b.category,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM ngw_goods_info a JOIN ngw_goods_online b ON a.num_iid = b.num_iid AND a.favorite_id = b.favorite_id WHERE a.is_board = 0 AND a.is_show = 1 AND a.source = 1 AND a.status =1 AND b.category_id IN (".implode(',',$this->nodes).") AND b.price <= 19.9 OR a.num_iid in (SELECT a.num_iid FROM ngw_goods_category_ref a JOIN ngw_goods_info b ON a.num_iid = b.num_iid WHERE b.is_show = 1 AND b.source = 1 AND b.status =1 AND a.category_id IN(".implode(',',$this->nodes).")) GROUP BY a.num_iid ORDER BY a.is_front DESC ,score DESC";
         }
         //9.9 excel商品
         if($this->gtype==4){
+            if(empty($this->nodes)) info('没有该类型商品!',-1);
             $sql= "SELECT a.*,b.title,b.seller_name nick,b.url,b.store_type,b.pict_url,b.price,b.category_id cid,b.category,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM ngw_goods_info a JOIN ngw_goods_online b ON a.num_iid = b.num_iid AND a.favorite_id = b.favorite_id WHERE a.is_board = 0 AND a.is_show = 1 AND a.source = 0 AND a.status =1 AND b.price <= 19.9 AND b.category IN ('".implode("','",$this->nodes)."') GROUP BY a.num_iid ORDER BY a.is_front DESC ,score DESC";
         }
 
@@ -280,6 +284,7 @@ class GoodsShowController extends AppController
 
         //品牌商品
         if($this->gtype==6){
+            if(empty($this->nodes)) info('没有该类型商品!',-1);
             $sql="SELECT a.*,FORMAT((b.rating/100*b.price*".parent::PERCENT."),2) as rating,b.title,b.seller_name nick,b.url,b.store_type,b.pict_url,b.price,b.category_id cid,b.category,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM ngw_goods_info a JOIN ngw_goods_online b ON a.num_iid = b.num_iid AND a.favorite_id = b.favorite_id WHERE a.is_board = 1 AND a.is_show = 1 AND a.status = 1 AND b.category_id IN (".implode(',',$this->nodes).") GROUP BY a.num_iid ORDER BY a.is_front DESC,a.score DESC";
         }
 
@@ -624,7 +629,7 @@ class GoodsShowController extends AppController
         // $sql = "SELECT DISTINCT search_content FROM ngw_search_log LIMIT 0,10";
         // $info = M()->query($sql,'all');
         // foreach ($info as $v) $tabs[]=$v['search_content'];
-        $tabs = ['t恤','家具用品','双肩包','益智玩具','盆栽','健身器','沙滩裙'];
+        $tabs = ['t恤','家具','双肩包','益智玩具','盆栽','健身器','沙滩裙'];
         info('ok',1,$tabs);
     }
 
@@ -640,7 +645,7 @@ class GoodsShowController extends AppController
             $total = array_filter(R()->getHashSingle('history_'.$this->dparam['user_id'],'click'),function($v){
                 if($v['type'] == 1) return $v;  //1表示用户没有删的历史记录
             });
-            $page   = $this->page($total);
+            $page   = $this->page(array_reverse($total));
             info(['status'=>1,'msg'=>'操作成功!','data'=>$page]);
         }else{
             info('暂无数据',-1);

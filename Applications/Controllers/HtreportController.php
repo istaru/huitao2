@@ -21,10 +21,10 @@ class HtreportController
 
 		##师傅主句
 		$main_sql = "
-			SELECT t.uid,sf.fee,sf.benifit FROM gw_tracking t
+			SELECT t.uid,sf.fee,sf.benifit FROM ngw_tracking t
 				LEFT JOIN  (
 						-- 师傅
-						SELECT uid,sum(fee) AS fee,sum(benifit) AS benifit FROM gw_shopping_log
+						SELECT uid,sum(fee) AS fee,sum(benifit) AS benifit FROM ngw_shopping_log
 						WHERE uid IN
 						({$inner_main_sql})
 						AND order_id NOT IN ({$notin_order_sql})
@@ -36,9 +36,9 @@ class HtreportController
 		##徒弟主句
 		$td_main_sql = "
 					-- 徒弟
-					SELECT uid,sum(fee) AS fee,sum(benifit) AS benifit FROM gw_shopping_log
+					SELECT uid,sum(fee) AS fee,sum(benifit) AS benifit FROM ngw_shopping_log
 					WHERE uid IN
-					(SELECT objectId FROM gw_uid WHERE sfuid IN ({$inner_main_sql}) )
+					(SELECT objectId FROM ngw_uid WHERE sfuid IN ({$inner_main_sql}) )
 					AND order_id not IN ({$notin_order_sql})
 		";
 
@@ -75,7 +75,7 @@ SELECT a.* FROM (
 			LEFT JOIN
 			(
 				-- 关系
-				SELECT sfuid,objectId FROM gw_uid WHERE sfuid IN ({$inner_main_sql})
+				SELECT sfuid,objectId FROM ngw_uid WHERE sfuid IN ({$inner_main_sql})
 			) b
 			ON a.uid = b.objectId GROUP BY b.sfuid
 
@@ -141,7 +141,7 @@ SELECT a.* FROM (
 	 */
 	private function mainTrackReportSql()
 	{
-		$sql = "SELECT DISTINCT(uid) FROM gw_tracking  WHERE `uid` IS NOT NULL ";
+		$sql = "SELECT DISTINCT(uid) FROM ngw_tracking  WHERE `uid` IS NOT NULL ";
 		return $sql;
 	}
 
@@ -149,7 +149,7 @@ SELECT a.* FROM (
 	private function notInOrderIdSql()
 	{
 		//退单的订单ID
-		$sql = "SELECT order_id FROM gw_shopping_log WHERE order_status = 5";
+		$sql = "SELECT order_id FROM ngw_shopping_log WHERE order_status = 5";
 		return $sql;
 	}
 
@@ -159,23 +159,23 @@ SELECT a.* FROM (
 	public function channelOneReport()
 	{
 
-		$inner_main_sql = "SELECT DISTINCT(uid) FROM gw_tracking  WHERE uid IS NOT NULL ";
+		$inner_main_sql = "SELECT DISTINCT(uid) FROM ngw_tracking  WHERE uid IS NOT NULL ";
 
 		//渠道
 		if(!empty($_REQUEST['media_id']) && $_REQUEST['media_id'] != 'teyao'){
 			$inner_main_sql .= " AND source = '{$_REQUEST['media_id']}' ";
 
-			$str = M()->query("select str from gw_track_batch where batch = '002'",'single');
+			$str = M()->query("select str from ngw_track_batch where batch = '002'",'single');
 			$inner_main_sql .= $str['str'];
 
 
 
-			$inner_main_sql2 = "SELECT objectId FROM gw_uid WHERE objectId IN ({$inner_main_sql}) AND type = {$_REQUEST['type']}";
+			$inner_main_sql2 = "SELECT objectId FROM ngw_uid WHERE objectId IN ({$inner_main_sql}) AND type = {$_REQUEST['type']}";
 		}
 
 		//特邀
 		if(!empty($_REQUEST['media_id']) && $_REQUEST['media_id'] == 'teyao'){
-			$inner_main_sql2 = " SELECT objectId FROM gw_uid WHERE power = 2
+			$inner_main_sql2 = " SELECT objectId FROM ngw_uid WHERE power = 2
 			";
 		}
 
@@ -196,7 +196,7 @@ SELECT a.* FROM (
 
 		$sf_sql = "
 -- 师傅
-SELECT report_date,sum(fee) AS fee,sum(benifit) AS benifit FROM gw_shopping_log
+SELECT report_date,sum(fee) AS fee,sum(benifit) AS benifit FROM ngw_shopping_log
 WHERE uid IN
 ({$inner_main_sql2})
 AND order_id NOT IN (".$this->notInOrderIdSql().")
@@ -205,9 +205,9 @@ GROUP BY report_date
 		";
 		$td_sql = "
 -- 徒弟
-SELECT report_date,sum(fee) AS td_fee,sum(benifit) AS td_benifit FROM gw_shopping_log
+SELECT report_date,sum(fee) AS td_fee,sum(benifit) AS td_benifit FROM ngw_shopping_log
 WHERE uid IN
-(SELECT objectId FROM gw_uid WHERE sfuid IN (
+(SELECT objectId FROM ngw_uid WHERE sfuid IN (
 	{$inner_main_sql2})
 )
 AND order_id NOT IN (".$this->notInOrderIdSql().")
@@ -215,12 +215,12 @@ AND order_id NOT IN (".$this->notInOrderIdSql().")
 GROUP BY report_date
 		";
 //查询每日分享数
-$share_sql = "SELECT report_date,count(id) AS share FROM gw_share_log WHERE type = {$_REQUEST['type']} {$dt_where} AND uid in ({$inner_main_sql2}) GROUP BY report_date ";
+$share_sql = "SELECT report_date,count(id) AS share FROM ngw_share_log WHERE type = {$_REQUEST['type']} {$dt_where} AND uid in ({$inner_main_sql2}) GROUP BY report_date ";
 //查询每日分享率(去重分享数/去重登入数)
 $share_percent_sql = "SELECT a.report_date,left((a.num/b.num*100),5) as s_percent FROM
-(select report_date,count(DISTINCT(uid)) as num from gw_share_log where type = {$_REQUEST['type']} {$dt_where} AND uid in ({$inner_main_sql2}) GROUP BY report_date) a
+(select report_date,count(DISTINCT(uid)) as num from ngw_share_log where type = {$_REQUEST['type']} {$dt_where} AND uid in ({$inner_main_sql2}) GROUP BY report_date) a
 JOIN
-(select report_date,count(DISTINCT(uid)) as num from gw_uid_login_log where type = {$_REQUEST['type']} {$dt_where}  AND uid in ({$inner_main_sql2})  GROUP BY report_date) b
+(select report_date,count(DISTINCT(uid)) as num from ngw_uid_login_log where type = {$_REQUEST['type']} {$dt_where}  AND uid in ({$inner_main_sql2})  GROUP BY report_date) b
 ON a.report_date = b.report_date";
 // echo $share_percent_sql;die;
 $type = $_REQUEST['type'] == '0' ? '2' : $_REQUEST['type'] ;
@@ -228,19 +228,19 @@ $type = $_REQUEST['type'] == '0' ? '2' : $_REQUEST['type'] ;
 $keep_sql = "
 select a.report_date,(a.uid - b.uid) as keep from (
 
-		select report_date,count(DISTINCT(uid)) uid from gw_uid_login_log where uid in (
+		select report_date,count(DISTINCT(uid)) uid from ngw_uid_login_log where uid in (
 
-					select DISTINCT(uid) from gw_tracking where system = {$type} and source = '{$_REQUEST['media_id']}' and uid is not null
+					select DISTINCT(uid) from ngw_tracking where system = {$type} and source = '{$_REQUEST['media_id']}' and uid is not null
 
 		) and type = {$_REQUEST['type']} {$dt_where} group by report_date
 
 ) a
 join
 (
-		select count(DISTINCT(a.uid)) uid,a.report_date from gw_uid_login_log a
+		select count(DISTINCT(a.uid)) uid,a.report_date from ngw_uid_login_log a
 		join
 		(
-			select uid,report_date from gw_tracking where system = {$type} and source = '{$_REQUEST['media_id']}' and uid is not null
+			select uid,report_date from ngw_tracking where system = {$type} and source = '{$_REQUEST['media_id']}' and uid is not null
 
 		)b on a.report_date = b.report_date and a.uid = b.uid where type = {$_REQUEST['type']} and a.report_date between '{$_REQUEST['start_time']}' and '{$_REQUEST['end_time']}' GROUP BY a.report_date
 
@@ -251,13 +251,13 @@ echo $keep_sql;die;
 
 
 //推广新增
-	$track_num_sql = "SELECT report_date,count(distinct(uid)) as track_num from gw_tracking where  uid IS NOT NULL and source = '{$_REQUEST['media_id']}' and system = {$type} {$dt_where} GROUP BY report_date";
+	$track_num_sql = "SELECT report_date,count(distinct(uid)) as track_num from ngw_tracking where  uid IS NOT NULL and source = '{$_REQUEST['media_id']}' and system = {$type} {$dt_where} GROUP BY report_date";
 //邀请新增
-$invatation_add_sql = "SELECT report_date,count(id) as invatation_num FROM gw_uid WHERE sfuid IN ({$inner_main_sql2}) {$dt_where} GROUP BY report_date";
+$invatation_add_sql = "SELECT report_date,count(id) as invatation_num FROM ngw_uid WHERE sfuid IN ({$inner_main_sql2}) {$dt_where} GROUP BY report_date";
 
 
 //有效用户(新增用户的点击数)
-$user_click_num_sql = "select report_date,count(DISTINCT(uid)) as click_num from gw_click_log where uid in ((select DISTINCT(uid) from gw_tracking where uid IS NOT NULL and uid in (select distinct(uid) from gw_taobao_log) and system = {$type}  {$dt_where} )) {$dt_where} GROUP BY report_date
+$user_click_num_sql = "select report_date,count(DISTINCT(uid)) as click_num from ngw_click_log where uid in ((select DISTINCT(uid) from ngw_tracking where uid IS NOT NULL and uid in (select distinct(uid) from ngw_taobao_log) and system = {$type}  {$dt_where} )) {$dt_where} GROUP BY report_date
 ";
 echo $user_click_num_sql;die;
 // echo $user_click_num_sql;die;
@@ -298,9 +298,9 @@ echo $user_click_num_sql;die;
 		$start = strtotime($_REQUEST['start_time']);
 		$end = date('Y-m-d',strtotime('+7 day',$start));
 		$sql = "
-select report_date as date,count(DISTINCT(uid)) as keep from gw_uid_login_log where uid in (
+select report_date as date,count(DISTINCT(uid)) as keep from ngw_uid_login_log where uid in (
 
-	select uid from gw_tracking where uid is not null and system = 1 and source = 'youmi' and report_date = '{$_REQUEST['start_time']}'
+	select uid from ngw_tracking where uid is not null and system = 1 and source = 'youmi' and report_date = '{$_REQUEST['start_time']}'
 
 ) and report_date between '{$_REQUEST['start_time']}' and '{$end}' and type =1 GROUP BY report_date
 		";
