@@ -58,6 +58,7 @@ class HtToCashModel{
             $arr['duiba_end_errmsg']=$data['duiba_end_errmsg'];
             $arr['oper_id']=$data['oper_id'];
             $arr['duiba_stime']=$data['duiba_stime'];
+            $arr['status']='3';
             return M('pnow')->where(['id' => ['=',$data['id']]])->save($arr);
         }
     }

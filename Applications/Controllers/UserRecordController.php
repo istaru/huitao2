@@ -51,8 +51,7 @@ class UserRecordController extends AppController
 	 */
 	public function shareRecord($uid,$numid,$system,$sharetype)
 	{
-		if(!isset($uid) || !isset($numid)|| !isset($system) || !isset($sharetype)) info('数据不完整',-1);
-
+		if(!isset($uid) || !isset($system) || !isset($sharetype)) info('数据不完整',-1);
 		$this->type = 'share';
 		$this->uid = $uid;
 		$this->numid = $numid;

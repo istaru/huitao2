@@ -224,18 +224,31 @@ class ExcelGoodsPdo extends GoodsPdo{
     //插入新增的商品信息
     //新增 = 新入 - 线上（上架+手工下架）
     //以前失效下架的，又有新的添加为新品（先删除这些numid数据在增加，以免2个同num_iid）
-    public function insertOnlineIncrGoods($incr_online_goods_list){
+    public function insertOnlineIncrGoods($incr_online_goods_list,$goods_type_attr=0){
 
         if(!count($incr_online_goods_list))return;
         
         $sql_list = array();
         //先删除这些numid数据在增加，以免2个同num_iid 
         $sql_list[] = "replace into ".$this->table_pre."goods_online(status,source,num_iid,title,pict_url,category,category_id,favorite,favorite_id,price,volume,rating,seller_id,seller_name,store_name,store_type,coupon_id,sum,num,val,limited,reduce,discount,deal_price,created_date,coupon_start_time,coupon_end_time,url,coupon_url) select 1,source,a.num_iid,title,pict_url,category,category_id,favorite,favorite_id,price,volume,rating,seller_id,seller_name,store_name,store_type,b.coupon_id,sum,num,val,limited,reduce,discount,deal_price,a.created_date,start_time,end_time,url,coupon_url from (select * from ".$this->table_pre."goods where num_iid in (".implode(",",$incr_online_goods_list).") and source = ".$this->source.") a LEFT JOIN ".$this->table_pre."goods_coupon b on a.num_iid = b.num_iid and a.coupon_id = b.coupon_id";
+        //print_r($sql_list);
+        switch ($goods_type_attr) {
+                //品牌，只针对新增
+                case 1: 
+                    $is_board = 1;
+                break;
+                
+                default:
+                    $is_board = 0;
+                break;
+        }
+
+       
 
         //$r = db_insert($sql,$this->db,array(),$this->pdo);
         //先删除这些numid数据在增加，以免2个同num_iid
         //默认新增商品50分评分
-        $sql_list[] = "replace into ".$this->table_pre."goods_info(status,source,is_coupon,is_new,is_sold,is_front,is_board,click,purchase,score,top,created_date,category_id,favorite_id,num_iid)select 1,".$this->source.",1,1,0,0,0,0,0,50,0,created_date,category_id,favorite_id,num_iid from ".$this->table_pre."goods where num_iid in (".implode(",",$incr_online_goods_list).")";
+        $sql_list[] = "replace into ".$this->table_pre."goods_info(status,source,is_coupon,is_new,is_sold,is_front,is_board,click,purchase,score,top,created_date,category_id,favorite_id,num_iid)select 1,".$this->source.",1,1,0,0,$is_board,0,0,50,0,created_date,category_id,favorite_id,num_iid from ".$this->table_pre."goods where num_iid in (".implode(",",$incr_online_goods_list).")";
 
         //print_r($sql_list);
         //$r = db_insert($sql,$this->db,array(),$this->pdo);
@@ -281,6 +294,7 @@ class ExcelGoodsPdo extends GoodsPdo{
          return $r;
 
      } 
+
      //按分数排序只保留前1w条数据，后面的都直接下架
      public function fetchGoodsSortByScore($limit=10000){
 
@@ -439,7 +453,7 @@ class FavoriteGoodsPdo extends GoodsPdo{
     //插入新增的商品信息
     //新增 = 新入 - 线上（上架+手工下架）
     //以前失效下架的，又有新的添加为新品（先删除这些numid数据在增加，以免2个同num_iid）
-    public function insertOnlineIncrGoods($incr_online_goods_list){
+    public function insertOnlineIncrGoods($incr_online_goods_list,$goods_type_attr=0){
 
         if(!count($incr_online_goods_list))return;
         
@@ -447,11 +461,23 @@ class FavoriteGoodsPdo extends GoodsPdo{
         //先删除这些numid数据在增加，以免2个同num_iid 
         $sql_list[] = "replace into ".$this->table_pre."goods_online(status,source,num_iid,title,pict_url,small_images,item_url,category,category_id,favorite,favorite_id,price,volume,rating,seller_id,store_name,store_type,discount,deal_price,created_date,event_start_time,event_end_time) select 1,source,num_iid,title,pict_url,small_images,item_url,category,category_id,favorite,favorite_id,price,volume,rating,seller_id,store_name,store_type,discount,deal_price,created_date,event_start_time,event_end_time from ".$this->table_pre."goods where num_iid in (".implode(",",$incr_online_goods_list).") and source = ".$this->source;
 
+
+         switch ($goods_type_attr) {
+                //品牌，只针对新增
+                case 1: 
+                    $is_board = 1;
+                break;
+                
+                default:
+                    $is_board = 0;
+                break;
+        }
+
         //$r = db_insert($sql,$this->db,array(),$this->pdo);
         //先删除这些numid数据在增加，以免2个同num_iid
         //默认新增商品50分评分
-        $sql_list[] = "replace into ".$this->table_pre."goods_info(status,source,is_coupon,is_new,is_sold,is_front,is_board,click,purchase,score,top,created_date,category_id,favorite_id,num_iid)select 1,".$this->source.",0,1,0,0,0,0,0,50,0,created_date,category_id,favorite_id,num_iid from ".$this->table_pre."goods where num_iid in (".implode(",",$incr_online_goods_list).") and source = ".$this->source;
-
+        $sql_list[] = "replace into ".$this->table_pre."goods_info(status,source,is_coupon,is_new,is_sold,is_front,is_board,click,purchase,score,top,created_date,category_id,favorite_id,num_iid)select 1,".$this->source.",0,1,0,0,$is_board,0,0,50,0,created_date,category_id,favorite_id,num_iid from ".$this->table_pre."goods where num_iid in (".implode(",",$incr_online_goods_list).") and source = ".$this->source;
+        //if($goods_type_attr)print_r($sql_list);
         //$r = db_insert($sql,$this->db,array(),$this->pdo);
         $r = db_transaction($this->pdo,$sql_list);
         
@@ -512,7 +538,7 @@ class FavoriteGoodsPdo extends GoodsPdo{
 
      public function fetchCategoryByFavoriteType($favorite_id,$favorite_name){
 
-        $sql = "select category_id,category_name from ".$this->table_pre."category_favorite_ref where favorite_id = $favorite_id and favorite_name = '$favorite_name'";
+        $sql = "select category_id,category_name,type from ".$this->table_pre."category_favorite_ref where favorite_id = $favorite_id and favorite_name = '$favorite_name'";
         //echo $sql;
         $r = db_query_row($sql,$this->db,array(),$this->pdo);
         

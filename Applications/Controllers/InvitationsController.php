@@ -35,7 +35,7 @@ class InvitationsController extends AppController
         //默认查询收益榜
         $type = empty($params['type']) ? 1 : $params['type'];
         //查看用户自己的收入(包含预估收入)和邀请人数
-        $self = empty($params['user_id']) ? ['money' => 0, 'person_num' => 0] : M()->query("SELECT a.money,b.person_num FROM( SELECT sum(price) money , uid FROM ngw_uid_log WHERE status IN(1 , 2) AND uid = '{$params['user_id']}') a LEFT JOIN( SELECT count(0) person_num , uid FROM ngw_uid_log WHERE score_type = 2 AND uid = '{$params['user_id']}') b ON b.uid = a.uid");
+        $self = empty($params['user_id']) ? ['money' => 0, 'person_num' => 0] : M()->query("SELECT a.money,b.person_num FROM( SELECT sum(price) money , uid FROM ngw_uid_log WHERE status IN(1 , 2) AND uid = '{$params['user_id']}') a LEFT JOIN( SELECT count(0) person_num , uid FROM ngw_uid_log WHERE score_type = 2 AND uid = '{$params['user_id']}') b ON b.uid = a.uid", 'single');
        //月榜
        if(isset($params['query']) && $params['query'] == 'moth') {
             $startTime = date('Y-m-d 00:00:00', strtotime(date('Y-m')));

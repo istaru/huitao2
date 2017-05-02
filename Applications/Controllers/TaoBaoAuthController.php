@@ -21,12 +21,10 @@ class TaoBaoAuthController extends AppController {
                     ]) OR E('授权失败');
                 //绑定淘宝账号与用户之间的关系 如果之前绑定过一样的则不需要再添加
                 if(!M('taobao_log')->where(['uid' => ['=', $data['user_id']], 'taobao_id' => ['=', $data['taobao_id']]],['and'])->select('single')) {
-                    M('taobao_log')->add([
-                        'taobao_id'   => $data['taobao_id'],
-                        'uid'         => $data['user_id'],
-                        'report_date' => date('Y-m-d'),
-                        'did_id'      => M('uid')->where(['objectId' => ['=', $data['user_id']]])->field('did')->select('single')
-                    ]) OR E('授权失败');
+                    $did = M('uid')->where(['objectId' => ['=', $data['user_id']]])->field('did')->select('single');
+                    $did = $did ? $did['did'] : ' ';
+                    $date = date('Y-m-d');
+                    M()->exec("INSERT INTO ngw_taobao_log(`taobao_id`, `did_id`, `uid`, `report_date`) VALUES ('{$data['taobao_id']}', '{$did}', '{$data['user_id']}', '{$date}')") OR E('授权失败');
                 }
                 $this->upUserAuth($data['user_id'], 1, $data['user_head_img'], $data['user_name'], $data['taobao_id']) OR E('授权失败');
             } catch(Exception $e) {

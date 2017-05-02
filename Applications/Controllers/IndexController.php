@@ -41,8 +41,8 @@ class IndexController extends AppController
 				'msg'=>'请求成功!',
 				'data'=>$banners,
 				'countdown'=>10,	//倒计时的时间
-				'frequency'=>10,		//显示的次数
-				'openver'=>1,
+				'frequency'=>3,		//显示的次数
+				'openver'=>2,
 			];
 		if(!empty($this->dparam['app_ver']) && $this->dparam['app_ver'] == '1.0.5')
 			$data['isuser'] = 0;

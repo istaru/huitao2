@@ -7,7 +7,10 @@ class DuibaController extends AppController
 {
 	//http://item.mssoft.info/shopping/duiba/exchange
 	//{"user_id":"Nuwd8XEsBs","price":"1","alipay_num":"kkk_se7en@qq.com","alipay_name":"张浩"}
-	//用户申请提现
+
+	/**
+	 * [exchange 提现申请(申请入库,收集兑吧接口需要的字段)]
+	 */
 	public function exchange()
 	{
 		//uid预扣款
@@ -34,7 +37,7 @@ class DuibaController extends AppController
 		if(empty($this->dparam['alipay_num']) || empty($this->dparam['alipay_name']))  info('支付宝信息不完整',-1);
 
 
-
+		//更新用户金额
 		$uid_data = [
 			'price' => $uid_info['price'] - $this->dparam['price'],	//余额
 			'pnow' => $uid_info['pnow'] + $this->dparam['price'],	//在提现金额
@@ -67,19 +70,17 @@ class DuibaController extends AppController
 
 
 	//http://item.mssoft.info/shopping/duiba/zhida
-	//直达兑吧兑换页(请求)
+	//直达兑吧兑换页(兑吧调我们)
 	public function zhida()
 	{
 		if(empty($_POST['uid']) || empty($_POST['pid']) || empty($_POST['price']) || empty($_POST['alipay']) || empty($_POST['alipay_name'])) info('参数不全',-1);
+
+		//拼接参数向兑吧请求
 		$arr = [
 			'uid'=>$_POST['uid'].'_'.$_POST['pid'],
 			'credits'=>$_POST['price'],
 			'alipay'=>$_POST['alipay'],
 			'realname'=>$_POST['alipay_name'],
-			// 'uid'=>'CY4icZ5yfO_19',
-			// 'credits'=>10,
-			// 'alipay'=>'18502115942',
-			// 'realname'=>'王宝',
 			'appKey'=>parent::DUIBA_KEY,
 			'timestamp'=>round(microtime(true),3)*1000,
 			'appSecret'=>parent::DUIBA_SECRET,
@@ -141,7 +142,7 @@ class DuibaController extends AppController
 	}
 
 
-	//通知结果(回调)
+	//通知结果(兑吧调我们)
 	public function feedback()
 	{
 		$url =  'http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];

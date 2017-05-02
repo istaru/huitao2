@@ -292,7 +292,6 @@ class GoodsShowController extends AppController
         if($this->gtype==7){
             $sql="SELECT a.*,FORMAT((b.rating/100*b.price*".parent::PERCENT."),2) as rating,b.title,b.seller_name nick,b.url,b.store_type,b.pict_url,b.price,b.category_id cid,b.category,b.deal_price zk_final_price,b.item_url,b.reduce,b.volume,concat('".parent::SHARE_URL."',b.num_iid) share_url FROM ngw_goods_info a JOIN ngw_goods_online b ON a.num_iid = b.num_iid AND a.favorite_id = b.favorite_id WHERE a.is_board = 0 AND a.is_show = 1 AND a.is_new = 1 AND a.status=1 GROUP BY a.num_iid ORDER BY a.is_front DESC,score DESC";
         }
-        // echo $sql;die;
         return $sql;
     }
 
@@ -587,15 +586,13 @@ class GoodsShowController extends AppController
         $priceScreening = !empty($parmas['start_price']) && !empty($parmas['maxPrice']) ? ' AND deal_price BETWEEN '.$parmas['start_price']. ' AND '.$parmas['maxPrice'] : ' ';
         //优先展示score评分高的商品
        $sql = "SELECT a.num_iid , a.title , a.seller_name nick , a.pict_url , a.price , a.deal_price zk_final_price , a.item_url , a.url , a.reduce , a.volume , a.source , a.rating ,
-            FORMAT( a.rating / 100 * a.deal_price * ".parent::PERCENT." , 2) userPrice , b.score FROM(
+            FORMAT( a.rating / 100 * a.deal_price * ".parent::PERCENT." , 2) userPrice , b.score, a.store_type,CONCAT('".parent::SHARE_URL."', a.num_iid) share_url FROM(
                 SELECT * FROM ngw_goods_online WHERE status = 1 AND store_type IN({$type}) AND title LIKE '%{$title}%' AND source IN(0 , 1) {$priceScreening} AND item_url IS NOT NULL {$limit}
             ) a LEFT JOIN ngw_goods_info b ON b.num_iid = a.num_iid ORDER BY score DESC";
-
        $self = M()->query($sql, 'all');
         //当query 为false 或 库里展示商品小于要查询的商品数量时 查询淘宝客商品
         if(!$query || count($self) < $parmas['page_size'])
             $data = (new TaoBaoApiController('23630111', 'd2a2eded0c22d6f69f8aae033f42cdce'))->tbkItemGetRequest($parmas);
-
         if(!empty($data['taobaoGoods'])) {
             $numIid = [];
             foreach($data['taobaoGoods'] as &$v) {
@@ -607,12 +604,10 @@ class GoodsShowController extends AppController
                 $v['num_iid'] = isset($numIid['id']) ? $numIid['id'] : '';
                 //生成商品分享链接
                 $v['share_url'] = null;
-                //字段映射区分淘宝集市和天猫商品
-                $v['store_type'] = $v['user_type'] ? 0 : 1;
+
                 unset($v['user_type']);
             }
         }
-        foreach($self as &$v) $v['share_url'] = parent::SHARE_URL . $v['num_iid'];
         info('ok', 1, [
             'self'           => $self,
             'taobaoGoods'    => isset($data['taobaoGoods']) ? $data['taobaoGoods'] : [],

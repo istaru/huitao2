@@ -127,6 +127,9 @@ class ExcelGoods extends NewGoods{
         //②优惠券过期的下架||优惠券找不到的下架
         $this->pdo->updateOnlineOffGoods($this->pdo->fetchGoodsSortByScore(10000));
 
+       (new GoodsShowController())->delRedisCateGoods(2); 
+
+       //删除excel 商品
 
     } 
 
@@ -273,7 +276,9 @@ class FavoriteGoods extends NewGoods{
             if(isset($r["results"]["tbk_favorites"])){ 
                 //开始记录事务记录
                 if($this->isLog)$this->transaction_tools->writeRecord();
-
+                 //颠倒下顺序，让品牌后加入，可以覆盖普通商品属性
+                $r["results"]["tbk_favorites"] = array_reverse($r["results"]["tbk_favorites"]);
+             
                 foreach ($r["results"]["tbk_favorites"] as $key => $val) {
                     //分类id=>分类名
                     $favorites[$val["favorites_id"]] = $val["favorites_title"];
@@ -314,6 +319,8 @@ class FavoriteGoods extends NewGoods{
     public function getGoodsData(){
 
         $favorites = $this->_getFavoriteData();
+       
+        //print_r($favorites);
         //如果有回滚点，去掉已经处理完的任务。
         //if($this->isLog){
 
@@ -362,9 +369,17 @@ class FavoriteGoods extends NewGoods{
             if(!isset($categroy_result["category_id"])||!$categroy_result["category_id"]){
 
                 if($this->isLog)$this->transaction_tools->addErrorLog('选品库分类'.$value.'获取映射失败.');
-                
+                //跳过这个分类的检查
+                $this->file_log_tools->writeSuccessFavLog($value);
+
                 continue;
             }
+             //商品类型（1-品牌 0-普通商品）
+            $goods_type_attr = $categroy_result["type"];
+            //向下兼容代码
+            unset($categroy_result["type"]);
+            //echo "g.".$goods_type_attr;echo "<br>";
+            //print_r($categroy_result);echo "<br>";exit;
             //字符串格式
             $param["favorites_id"] = $key."";
 
@@ -464,8 +479,8 @@ class FavoriteGoods extends NewGoods{
 
             $incr_online_goods_list = array_diff($valid_goods_list,$online_goods_list);
                 if($this->isRecord){echo "新增：".count($incr_online_goods_list)."条数据";}
-
-            $r = $this->pdo->insertOnlineIncrGoods($incr_online_goods_list);
+               // echo "新增：".count($incr_online_goods_list)."条数据";
+            $r = $this->pdo->insertOnlineIncrGoods($incr_online_goods_list,$goods_type_attr);
                 if($this->isRecord){echo $r ? "成功。<br>" : "失败。<br>";}
             //exit;
             //----③下架失效商品start----//
@@ -490,6 +505,7 @@ class FavoriteGoods extends NewGoods{
             if(count($t_com_online_goods_list))$r = $this->pdo->updateComGoodsStatusNew($t_com_online_goods_list,$this->date);
         
             $this->file_log_tools->writeSuccessFavLog($value);
+           
 
         }
 

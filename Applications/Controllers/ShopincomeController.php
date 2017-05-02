@@ -3,7 +3,8 @@ class ShopincomeController extends getRewardController
 {
 	private static $shop;
 	private $fst_sf = 5;   //徒弟购买师傅首两单的奖励
-
+	private $percent = 0.7;
+	private $percentsf = 0.2;
 
 	private function __construct(){
 
@@ -33,6 +34,7 @@ class ShopincomeController extends getRewardController
 			$this->rewardSwitch($data);
 		else if($data['score_type'] == 99)	//老用户迁移
 			$this->rewardRuleSuper($data);
+		// D($this->sql);die;
 		$this->execSql();
 	}
 
@@ -81,8 +83,8 @@ class ShopincomeController extends getRewardController
 	*/
 	public function sfRewardRule($data)
 	{
-		$price = $data['cost']*$data['rating']*parent::PERCENTSF;  //根据订单的类型计算价格
-		$this->createSql($data,1,$price,"恭喜您,获得好友下单红包{$price}元!");
+		// $price = $data['cost']*$data['rating']/100*$this->percentsf;  //根据订单的类型计算价格
+		$this->createSql($data,1,$data['cost'],"恭喜您,获得好友下单红包{$data['cost']}元!");
 	}
 
 
@@ -91,8 +93,8 @@ class ShopincomeController extends getRewardController
 	*/
 	public function rewardRule($data)
 	{
-		$price = $data['cost']*$data['rating']*parent::PERCENT;  //根据订单的类型计算价格
-		$this->createSql($data,1,$price,"恭喜您,获得下单红包{$price}元!");
+		// $price = $data['cost']*$data['rating']/100*$this->percent;  //根据订单的类型计算价格
+		$this->createSql($data,1,$data['cost'],"恭喜您,获得下单红包{$data['cost']}元!");
 	}
 
 	/**
@@ -100,8 +102,7 @@ class ShopincomeController extends getRewardController
 	*/
 	public function rewardRuleSuper($data)
 	{
-		$price = $data['cost'];
-		$this->createSql($data,1,$price,"惠淘全方位大升级,点击领取之前的收入金额!");
+		$this->createSql($data,1,$data['cost'],"惠淘全方位大升级,点击领取之前的收入金额!");
 	}
 
 

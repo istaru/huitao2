@@ -20,6 +20,7 @@ class TaoBaoKeController {
     public function __construct() {
         $this->taoBaoKeModel = new TaoBaoKeModel;
         self::$baiChuanConfig = (include DIR_CORE.'baiChuanConfig.php')['order'];
+
     }
     public function run() {
         foreach(self::$baiChuanConfig as $v) {
@@ -30,7 +31,7 @@ class TaoBaoKeController {
     }
     // 订单信息
     public function message() {
-        $this->taoBaoApi = new TaoBaoApiController('', '');
+        $this->taoBaoApi = new TaoBaoApiController('23597987', '035bff81056833b5a95ee1145eae7620');
         //获取所有订单信息
         // $resp = $this->taoBaoApi->tmcMessagesConsumeRequest();
         // file_put_contents('order.txt', json_encode($resp, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), FILE_APPEND);

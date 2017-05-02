@@ -11,15 +11,23 @@ class Score extends GoodsModule {
 	//热卖分数线
 	protected	$is_sold_score = 80;
 		//移除出热卖分数线
-	protected	$is_not_sold_score = 70;
+	protected	$is_not_sold_score = 60;
 		//最高分数
 	protected	$limited_score = 120;
+		//最低分数
+	protected	$limited_low_score = 40;
+	//到达最低分数后，扣分开始打折
+	protected $reduce_score_rating = 0.3;
+	//修正算分倍率
+	protected $add_score_rating = 4;
 
 	public function __construct(){
 		   //定义了日期
         parent::__construct();
 
         $this->pdo = new ScorePdo();
+        //调试功能
+        $this->debug = 1;
 	}
 
 
@@ -38,17 +46,16 @@ class Score extends GoodsModule {
 	* 单次评分最多+10分 x>10?10:x
 	*/
 	public function addPurchaseRateScore(){
-		//商品转化率
-		$goods_conver_rate = $this->_getGoodsConverRate($this->pdo->fetchGoodsIdLastHour());
-			//print_r($goods_conver_rate);exit;
+	
 		$goods_info = $this->pdo->fetchGoodsPurchaseInfoLastHour();
+		if($this->debug)print_r($goods_info);//exit;
 		//统计结果的
 		$deal_goods = array();
 		//成功
 		$success_rec = 0;
 		//失败数量
 		$fail_rec = 0;
-		//var_dump($goods_info);exit;
+		//print_r($goods_info);//exit;
 		if(!count($goods_info))ssreturn(0,"上个小时数据查询失败.",2,2);
 		//echo count($goods_info);exit;
 		foreach ($goods_info as $key => $info) {
@@ -57,7 +64,9 @@ class Score extends GoodsModule {
 				
 				$clicks = $info["click"];
 				//每小时，每50个点击为中线，每小时最多扣加分上线的25% 
-				$score = abs($clicks-50)* (-0.01) < (GW_HOUR_ADD_SCORE_LIMIT * -0.25) ? GW_HOUR_ADD_SCORE_LIMIT * (-0.25) : abs($clicks-50)* (-0.01);
+				$score = abs($clicks-25)* (-0.01) < (GW_HOUR_ADD_SCORE_LIMIT * -0.25) ? GW_HOUR_ADD_SCORE_LIMIT * (-0.25) : abs($clicks-25)* (-0.01);
+
+
 
 			}//有分数，代表有价格，值得更新
 			else{
@@ -69,6 +78,9 @@ class Score extends GoodsModule {
 						$info["click"] = 100;
 						//echo $info["click"];echo $goods_info[$key]["click"] ;
 					}*/	
+						//商品转化率
+					$goods_conver_rate = $this->_getGoodsConverRate($this->pdo->fetchGoodsIdLastHour());
+					if($this->debug)print_r($goods_conver_rate);//exit;
 					//大于0
 					if(isset($goods_conver_rate[$info["num_iid"]])&&$goods_conver_rate[$info["num_iid"]])
 
@@ -76,9 +88,21 @@ class Score extends GoodsModule {
 
 					else $conver_rate = 0.5;
 
-					//分数 = 转化率 * 数量 * 单价 / 100					
-					$score = $conver_rate * $info["fee"] / 20 > GW_HOUR_ADD_SCORE_LIMIT ? GW_HOUR_ADD_SCORE_LIMIT : $conver_rate * $info["fee"] / 20;		
 					
+
+					//分数 = 转化率(平均就是1%) * 数量 * 单价 *	修正倍率（4倍）				
+					$score = $conver_rate * $info["fee"] * $this->add_score_rating;
+					if($this->debug)echo "fee:".$info["fee"]."尝试修正分数：".$score;
+					//购买最多增加单小时上限的分数
+					if($score > GW_HOUR_ADD_SCORE_LIMIT){
+
+						$score = GW_HOUR_ADD_SCORE_LIMIT ;
+						//到达峰值的时候，小额商品热销修正
+						if($info["fee"]<20)$score = $info["fee"]/20 * $score;
+					}
+					//购买至少加0.5分
+					//if($score < 1)$score = 1;
+					if($this->debug)echo "最终尝试修正分数：".$score."<br>";
 					if(!$score)continue;
 
 				}else continue;
@@ -90,13 +114,18 @@ class Score extends GoodsModule {
 			if(!count($goods_score_info))continue;
 			//得到当前分数
 			list($cur_score,$is_sold) = array_values($goods_score_info);
-			//是否超过分数上线
-			if($cur_score>=$this->limited_score)continue;
-			echo $this->is_sold_score.",c:".($cur_score+$score);echo ",issold:$is_sold,";echo $info["num_iid"];echo "<br>";
+			//是否超过分数上线&分数是加分
+			if($cur_score>=$this->limited_score&&$score>=0)continue;
+			if($this->debug){echo $this->is_sold_score.",c:".($cur_score+$score);echo ",issold:$is_sold,";echo $info["num_iid"];echo "<br>";}
+			//低于最低分 扣分衰弱
+			if($cur_score<=$this->limited_low_score&&$score<0){
+				if($this->debug){echo "扣分:".($score);echo "衰弱:";echo ($score * $this->reduce_score_rating);echo "<br>";}
+				$score = $score * $this->reduce_score_rating;
+			}
 			//商品分数获得后，非热卖&超过一定分值标示 商品为热卖
 			if(!$is_sold&&$cur_score+$score>=$this->is_sold_score){
-					echo "num_iid".$info["num_iid"];echo "<br>";
-					$r = $this->pdo->updateGoodsIsSold($info["num_iid"],1);
+				if($this->debug){echo "num_iid".$info["num_iid"];echo "<br>";}
+				$r = $this->pdo->updateGoodsIsSold($info["num_iid"],1);
 					
 			}
 			//商品分数获得后，热卖&低于一定分值标示 商品为非热卖
@@ -113,7 +142,7 @@ class Score extends GoodsModule {
 
 			else $fail_rec++;
 		}
-		print_r($deal_goods);
+		if($this->debug)print_r($deal_goods);
 		//if($this->isRecord)
 			echo "更新".$success_rec."件商品，失败".$fail_rec."件.";
 		
@@ -284,11 +313,11 @@ class Score extends GoodsModule {
 			//echo $last_hour_num;
 
 			$sql_list = array();
-
-			$sql_list[] = "replace into ".$this->table_pre."hour_report(click,num_iid,type,hour,report_date) select sum(click) click,num_iid,type,$last_hour_num,report_date from ".$this->table_pre."click_log where createdAt between '".$last_hour."' and '".date('Y-m-d H')."' group by num_iid,type";
-
-			$sql_list[] = "replace into ".$this->table_pre."hour_report(num_iid,type,purchase,hour,report_date,fee,benifit,amount) select num_iid,type,count(0) purchase,$last_hour_num,report_date,fee,benifit,IF(ISNULL(amount),1,amount) amount from ".$this->table_pre."shopping_log where createdAt between '".$last_hour."' and '".date('Y-m-d H')."' group by num_iid,type";
-			///print_r($sql_list);
+			//点击的存入
+			$sql_list[] = "replace into ".$this->table_pre."hour_report(click,num_iid,type,hour,report_date,createdAt) select sum(click) click,num_iid,type,$last_hour_num,report_date,createdAt from ".$this->table_pre."click_log where createdAt between '".$last_hour."' and '".date('Y-m-d H')."' group by num_iid,type";
+			//购买的存入
+			$sql_list[] = "replace into ".$this->table_pre."hour_report(num_iid,type,purchase,hour,report_date,fee,benifit,amount,createdAt) select num_iid,type,count(0) purchase,$last_hour_num,report_date,fee,benifit,IF(ISNULL(amount),1,amount) amount,createdAt from ".$this->table_pre."shopping_log where createdAt between '".$last_hour."' and '".date('Y-m-d H')."' group by num_iid,type";
+			//print_r($sql_list);
 
 			$r = db_transaction($this->pdo,$sql_list,array());
 
@@ -316,7 +345,7 @@ class Score extends GoodsModule {
 			if(is_array($num_iid))$num_iid_con = " and num_iid in (".implode(",",$num_iid).")";
 
 			$sql = "select IF(click > 0,purchase/click,0) convert_rate,num_iid from ".$this->table_pre."goods_info where status in (".implode(",",GW_SCORED_GOODS).")".$num_iid_con;
-			echo $sql;
+			//echo $sql;
 			return db_query($sql,$this->db,array(),$this->pdo);
 		}
 

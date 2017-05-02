@@ -27,16 +27,16 @@ class HtExcelToDbController extends Controller
                 $dataoke=new HtHotgoodController();
                 $dataoke->import();
                 echo("上架筛选开始...".date("Y-m-d H:i:s")."<br/>");
-                $interface=new InterfaceController();
-                $res=$interface->index();
-                //  var_dump($res);
-                $msg=$array = (array)$res;
-                if(isset($msg['status'])&&$msg['status']==1){
-                    echo ("商品表列出成功").date("Y-m-d H:i:s");
-                }
-                else{
-                    echo ("商品表列出失败").date("Y-m-d H:i:s");
-                }
+//                $interface=new InterfaceController();
+//                $res=$interface->index();
+//                //  var_dump($res);
+//                $msg=$array = (array)$res;
+//                if(isset($msg['status'])&&$msg['status']==1){
+//                    echo ("商品表列出成功").date("Y-m-d H:i:s");
+//                }
+//                else{
+//                    echo ("商品表列出失败").date("Y-m-d H:i:s");
+//                }
             }else{
                 info("导入优惠券失败",'-1');
             }
@@ -83,6 +83,7 @@ class HtExcelToDbController extends Controller
             unset($data[$i]['category']);
             unset($data[$i]['promotion_url']);
             unset($data[$i]['seller_id']);
+            unset($data[$i]['source']);
         }
         //D($data);
         return   $res = A('HtExcelToDb:addcouponbyexcle', [$data]);
@@ -141,6 +142,7 @@ class HtExcelToDbController extends Controller
 //            $data[$rowIndex]['seller_name'] =self::ReplaceSpecialChar($data[$rowIndex]['seller_name']);
 //            $data[$rowIndex]['store_name'] =self::ReplaceSpecialChar($data[$rowIndex]['store_name']);
             $data[$rowIndex]['created_date'] = $date;
+            $data[$rowIndex]['source'] = '1';
             $data[$rowIndex]['store_type'] = self::getStoreType($data[$rowIndex]['store_type']);
             $data[$rowIndex]['limited'] = self::getlimitStr($data[$rowIndex]['val']);
             $data[$rowIndex]['reduce'] = self::getreduceStr($data[$rowIndex]['val']);

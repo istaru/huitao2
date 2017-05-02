@@ -5,13 +5,9 @@
 return [
     /*-------------------数据库配置-------------------*/
     'database' => [
-
-        'DB_DSN'    => 'mysql:host=192.168.1.151;dbname=huitao',
-        'DB_USER'   => 'huitao',
-        'DB_PWD'    => 'huitao',
-        // 'DB_DSN'    => 'mysql:host=localhost;dbname=huitao',
-        // 'DB_USER'   => 'root',
-        // 'DB_PWD'    => '',
+        'DB_DSN'    => 'mysql:host=localhost;dbname=laitin',
+        'DB_USER'   => 'root',
+        'DB_PWD'    => '123456',
         'DB_PREFIX' => 'ngw_',
         'DB_CHARSET'=> 'utf8',
     ],

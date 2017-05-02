@@ -10,7 +10,9 @@ class  HtToCashController {
      function refusetocash() {
          if(!empty($_POST)) {
              $res = A('HtToCash:refuseToCash',[$_POST]);
-             $res ? info('拒绝提现成功',1) : info('拒绝提现失败',-1);
+             $info=M()->query("select price,uid from ngw_pnow where id='".$_POST['id']."'");
+             $res2=M()->exec("update ngw_uid set price=price+".$info['price'].",pnow=pnow-".$info['price']."where objectId='".$info['uid']."'");
+             $res&$res2? info('拒绝提现成功',1) : info('拒绝提现失败',-1);
          }
          info('暂时无法处理，请稍后重试','-1');
 

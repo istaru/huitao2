@@ -29,7 +29,8 @@ class UserController extends AppController
 	public function incomesLog()
 	{
 		empty($this->dparam['user_id']) && info('数据不完整',-1);
-		$sql = "SELECT l.createdAt as date_time,u.nickname as friend_name,l.price,l.status,l.score_info,l.score_type FROM ngw_income_log l LEFT JOIN ngw_uid u ON l.score_source = u.objectId WHERE uid = '{$this->dparam['user_id']}'";
+		$sql = "SELECT l.createdAt as date_time,u.nickname as friend_name,l.price,l.status,l.score_info,l.score_type FROM ngw_income_log l JOIN ngw_uid u ON l.uid = u.objectId WHERE uid = '{$this->dparam['user_id']}'";
+
 		$uidLog_list = M()->query($sql,'all');
 		foreach ($uidLog_list as $k => &$v) {
 			if($v['status'] == 3) $v['price'] = $v['price'] * -1;
@@ -78,6 +79,18 @@ class UserController extends AppController
 				'idfa' => $user['idfa'],
 				'imei' => $user['imei']
 			])) <= 1 OR E('您已经不是新用户啦');
+			$did_log = userBehaviorVerificationController::queryUserDeviceInformation([
+				'uuid' => $user['uuid'],
+				'bdid' => $user['bdid'],
+				'idfa' => $user['idfa'],
+				'imei' => $user['imei']
+			]);
+			foreach($did_log as $v) {
+				foreach($did_log as $value) {
+					if($value != $v)
+						E('您已经不是新用户啦');
+				}
+			}
 			//验证用户要绑定的好友是否已经淘宝授权 并且双方淘宝授权账号不一样
 			if(empty($sf['taobao_id'])) E('您的好友可能还未允许淘宝授权暂时无法绑定好友');
 			if($sf['taobao_id'] == $user['taobao_id']) E('淘宝授权账号重复暂时无法绑定好友');
@@ -89,7 +102,7 @@ class UserController extends AppController
 			return $e->getMessage();
 		}
 		return [
-			'sfNname' => $shiFu['nickname'],
+			'sfNname' => $sf['nickname'],
 			'name'	  => $user['nickname']
 		];
 	}
@@ -100,11 +113,12 @@ class UserController extends AppController
 	 * @param  string  $sfuid    [师傅uid]
 	 * @return [type]            [description]
 	 */
-	public function bindMasters($type = true, $objectId, $sfuid) {
+	public function bindMasters($type = true, $objectId = 'E0iIAA2z69', $sfuid = '0wG5FIQQMi') {
 		try {
 			M()->startTrans();
 			//好友绑定规则验证
-			in_array($value = $this->checkbindMasters($objectId, $sfuid)) ? : E($value);
+			$value = $this->checkbindMasters($objectId, $sfuid);
+			is_array($value) ? : E($value);
 			//如果是首次邀请徒弟则奖励2元 其余不奖励
 			list($price, $scoreInfo) = !M('uid_log')->where(['uid' => ['=', $sfuid], 'score_type' => ['=', 2]],['and'])->field('id')->count() ? [2, '首次绑定好友奖励2元'] : [0, '绑定好友'];
 			M('uid_log')->add([
@@ -204,20 +218,18 @@ class UserController extends AppController
 	/**
 	 * [addFrieldLog 邀请页建立好友关系以及分享app]
 	 */
-	public function addFrieldLog()
-	{
-		if(!$_REQUEST['phone'] || !$_REQUEST['user_id']) info('数据不完整',-1);
-	    if(!preg_match("/^1[34578]\d{9}$/",$_REQUEST['phone'])) info('非法手机号',-1);
-
-		(UserRecordController::getObj()) -> shareRecord($_REQUEST['user_id'],null,3,0); //1分享商品
-
-	    $exisit_tb = M()->query("select * from ngw_taobao_log where uid = '{$_REQUEST['user_id']}'",'single');
+	public function addFrieldLog() {
+		$params = $_REQUEST;
+		if(!$params['phone'] || !$params['user_id']) info('数据不完整',-1);
+	    if(!preg_match("/^1[34578]\d{9}$/",$params['phone'])) info('非法手机号',-1);
+		(UserRecordController::getObj()) -> shareRecord($params['user_id'],null,3,0); //1分享商品
+	    $exisit_tb = M()->query("select * from ngw_taobao_log where uid = '{$params['user_id']}'",'single');
 	    if(empty($exisit_tb)) info('您的邀请人还未进行淘宝授权!',-1);
-		$is_new_user = M()->query("select id from ngw_uid where phone ='{$_REQUEST['phone']}' ",'single',true);
+		$is_new_user = M()->query("select id from ngw_uid where phone ='{$params['phone']}' ",'single',true);
 		if(!empty($is_new_user)) info('亲,你已经是惠淘会员了!',-1);
-		$friend_exisit = M()->query("select sfuid from ngw_friend_log where phone = '{$_REQUEST['phone']}' ",'single',true);
+		$friend_exisit = M()->query("select sfuid from ngw_friend_log where phone = '{$params['phone']}' ",'single',true);
 		if(!empty($friend_exisit)) info('亲,您已经被邀请过!',-1);
-		$add_data = ['phone'=>$_REQUEST['phone'],'sfuid'=>$_REQUEST['user_id']];
+		$add_data = ['phone'=>$params['phone'],'sfuid'=>$params['user_id']];
 		if(M('friend_log')->add($add_data,true)) info('您已成功被邀请!',1);
 	}
 
@@ -249,27 +261,6 @@ class UserController extends AppController
 		}
 	}
 
-	/**
-	 * [login_log 记录登入]
-	 */
-	public function login_log()
-	{
-		if(empty($this->dparam['imei']) && empty($this->dparam['idfa']) && empty($this->dparam['uuid']) && empty($this->dparam['bdid'])) info('设备信息不完整',-1);
-
-		if(empty($this->dparam['user_id'])) info('用户信息不完整',-1);
-
-		$this->dparam['uid'] = $this->dparam['user_id'];
-		/**判断是否新用户**/
-		$uid_info =  A('Uid:getInfo',["objectId = '{$this->dparam['uid']}'",'*','single']);
-		/**判断在did表中是否存在**/
-		$did_info = $this->ckDidExisit();
-
-		$this->unionHandle($uid_info,$did_info);
-
-		/**返回用户信息**/
-		info(['msg'=>'操作成功','status'=>1]);
-	}
-
 
 	//{"user_id":"123","bid":["123","321","222"]}
 	/**
@@ -283,8 +274,9 @@ class UserController extends AppController
 		//取出用户拆红包对应的所有账单
 		$sql = "select * from ngw_uid_bill_log where type = 1 and uid = '{$this->dparam['user_id']}' and id in ($bill_ids)";
 		$data = M()->query($sql,'all');
-		foreach ($data as $v)
+		foreach ($data as $v){
 			(ShopincomeController::getObj())->getReward($v);
+		}
 		info('红包领取,请查收!',1);
 
 	}
