@@ -1,6 +1,6 @@
 <?php
 ini_set('memory_limit', '-1');
-class HtGoodsController
+class HtGoodsController extends HtController
 {
     /**
      * 解析post参数--仅限查询使用

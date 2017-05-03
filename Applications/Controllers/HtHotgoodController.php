@@ -11,10 +11,11 @@ class HtHotgoodController extends  Controller
             }else{
                 M("goods")->add($v);
                 //  M("goods_coupon")->add($v);  //该方法会过滤掉特殊字符&
+//                D($v);
                 try{
-//                    $pdo=new PDO('mysql:host=localhost;dbname=laitin','root','123456');
-                     $pdo=new PDO('mysql:host=taskofr.rdsm9ln50om7rva.rds.bj.baidubce.com;dbname=huitao','huitao','huitao909886');
-                    $sql='INSERT gw_goods_coupon(num_iid,coupon_id,sum,num,reduce,end_time,url,coupon_url,created_date) values(?,?,?,?,?,?,?,?,?)';
+                    $pdo=new PDO('mysql:host=localhost;dbname=laitin','root','123456');
+//                     $pdo=new PDO('mysql:host=taskofr.rdsm9ln50om7rva.rds.bj.baidubce.com;dbname=huitao','huitao','huitao909886');
+                    $sql='INSERT ngw_goods_coupon(num_iid,coupon_id,sum,num,reduce,end_time,url,coupon_url,created_date) values(?,?,?,?,?,?,?,?,?)';
                     $stmt=$pdo->prepare($sql);
                     $stmt->bindParam(1,$v['num_iid']);
                     $stmt->bindParam(2,$v['coupon_id']);
@@ -52,6 +53,7 @@ class HtHotgoodController extends  Controller
             $mydata[$i]['num']=$res_arr[$i]['Quan_surplus'];   /*优惠券剩余数量*/
             $mydata[$i]['created_date']=date("Y-m-d");   /*创建时间*/
             $mydata[$i]['top']="1";   /*是否热卖*/
+            $mydata[$i]['source']="0";   /*是否热卖*/
             $mydata[$i]['sum']=$res_arr[$i]['Quan_receive']+$res_arr[$i]['Quan_surplus'];   /*总量=已领数量+剩余数量*/
             $mydata[$i]['url']="https://taoquan.taobao.com/coupon/unify_apply.htm?sellerId=".$res_arr[$i]['SellerID']."&activityId=".$res_arr[$i]['Quan_id'];   /*优惠券链接*/
             $mydata[$i]['coupon_url']="https://h5.m.taobao.com/ump/coupon/detail/index.html?sellerId=".$res_arr[$i]['SellerID']."&activityId=".$res_arr[$i]['Quan_id']."&global_seller=false&currency=CNY";   /*手机券链接*/

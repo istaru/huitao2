@@ -59,7 +59,7 @@ class ShopincomeController extends getRewardController
 	*/
 	public function checkIncomesNum($uid,$score_source)
 	{
-		$sql = "select id from ngw_uid_log where uid = '{$uid}' and score_source = '{$score_source}' and score_type = 3 ";
+		$sql = "select id from ngw_uid_log where uid = '{$uid}' and score_source = '{$score_source}'";
 		// echo $sql;die;
 		$ids = M()->query($sql,'all');
 		return count($ids);

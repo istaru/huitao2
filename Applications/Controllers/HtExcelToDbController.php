@@ -19,24 +19,20 @@ class HtExcelToDbController extends Controller
         if($flag_goods){
             $flag_coupon=$this->addcoupon($data);
             if($flag_coupon){
-                //开始导入热卖,大淘客和淘客助手，
-//                 $pa= new HtPaController();
-//                 $pa->insertdb();
-//                $pa2= new HtPa2Controller();
-//                $pa2->insert2db();
+                //开始导入热卖,大淘客
                 $dataoke=new HtHotgoodController();
                 $dataoke->import();
                 echo("上架筛选开始...".date("Y-m-d H:i:s")."<br/>");
-//                $interface=new InterfaceController();
-//                $res=$interface->index();
-//                //  var_dump($res);
-//                $msg=$array = (array)$res;
-//                if(isset($msg['status'])&&$msg['status']==1){
-//                    echo ("商品表列出成功").date("Y-m-d H:i:s");
-//                }
-//                else{
-//                    echo ("商品表列出失败").date("Y-m-d H:i:s");
-//                }
+                $interface=new InterfaceController();
+                $res=$interface->index();
+                //  var_dump($res);
+                $msg=$array = (array)$res;
+                if(isset($msg['status'])&&$msg['status']==1){
+                    echo ("商品表列出成功").date("Y-m-d H:i:s");
+                }
+                else{
+                    echo ("商品表列出失败").date("Y-m-d H:i:s");
+                }
             }else{
                 info("导入优惠券失败",'-1');
             }
@@ -85,7 +81,7 @@ class HtExcelToDbController extends Controller
             unset($data[$i]['seller_id']);
             unset($data[$i]['source']);
         }
-        //D($data);
+//        D($data);
         return   $res = A('HtExcelToDb:addcouponbyexcle', [$data]);
 
     }
@@ -142,7 +138,7 @@ class HtExcelToDbController extends Controller
 //            $data[$rowIndex]['seller_name'] =self::ReplaceSpecialChar($data[$rowIndex]['seller_name']);
 //            $data[$rowIndex]['store_name'] =self::ReplaceSpecialChar($data[$rowIndex]['store_name']);
             $data[$rowIndex]['created_date'] = $date;
-            $data[$rowIndex]['source'] = '1';
+            $data[$rowIndex]['source'] = '0';
             $data[$rowIndex]['store_type'] = self::getStoreType($data[$rowIndex]['store_type']);
             $data[$rowIndex]['limited'] = self::getlimitStr($data[$rowIndex]['val']);
             $data[$rowIndex]['reduce'] = self::getreduceStr($data[$rowIndex]['val']);
@@ -152,7 +148,7 @@ class HtExcelToDbController extends Controller
             unset($data[$rowIndex]['coupon_url_pro']);
 
         }
-        //  D($data);
+//          D($data);
         return array_values($data);
     }
 

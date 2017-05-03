@@ -110,18 +110,16 @@ class NewbietaskController extends AppController {
 				$data['uid'] = $uid;
 				//添加该任务日志记录
 				M('task_log')->add($data);
-				//当任务奖励金额大于0的时候 给用户钱并存uid_bill_log 记录 然后info给前端 红包未领的状态
-				if($data['price'] > 0) {
-					M('uid_bill_log')->add([
-						'type'		   => 2,
-						'score_type'   => 10,
-						'task_id'	   => $data['task_id'],
-						'uid'		   => $uid,
-						'cost'		   => $data['price'],
-						'score_info'   => $data['name'],
-						'report_date'  => date('Y-m-d')
-					]);
-				}
+				//不论该任务有没有金额奖励 都存uid_bill_log 记录
+				M('uid_bill_log')->add([
+					'type'		   => 2,
+					'score_type'   => 10,
+					'task_id'	   => $data['task_id'],
+					'uid'		   => $uid,
+					'cost'		   => $data['price'],
+					'score_info'   => $data['name'],
+					'report_date'  => date('Y-m-d')
+				]);
 			}
 		} else {
 			$data['status'] = 1;	//任务进行中状态
@@ -132,8 +130,6 @@ class NewbietaskController extends AppController {
 	public function queryTask() {
 		$params = $this->dparam;
 		$uid    = !empty($params['user_id']) ? $params['user_id'] : info('请您赶快去注册登录吧!', -1);
-		//判断用户注册时间 是否可以做新手任务
-		!strtotime(($this->checkuid($uid))['createdAt']) < 1487944802 OR info('2017-02-24之后注册的用户才可以参加新手任务', -1);
 		do {
 			if($task = M()->query("SELECT id task_id,name,introduce,step,price,task_img FROM ngw_task WHERE id IN( SELECT task_id FROM ngw_uid_bill_log WHERE status = 1 AND type = 2 AND uid = '{$uid}')", 'single')) {
 				$task['status'] = 2;	//红包未领状态

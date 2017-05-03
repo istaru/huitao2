@@ -1,6 +1,6 @@
 <?php
 date_default_timezone_set('Asia/Shanghai');
-class  HtToCashController {
+class  HtToCashController extends HtController {
     //查询提现申请
      function querycashapply(){
          $data = A('HtToCash:getApplyCash',[$_POST]);
@@ -15,6 +15,5 @@ class  HtToCashController {
              $res&$res2? info('拒绝提现成功',1) : info('拒绝提现失败',-1);
          }
          info('暂时无法处理，请稍后重试','-1');
-
      }
 }

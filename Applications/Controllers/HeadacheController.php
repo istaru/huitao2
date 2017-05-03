@@ -73,7 +73,7 @@ class HeadacheController {
             2 => [1, 1]
         ];
         if(isset($file[$system]))
-            list($this->base, $this->percentage) = $file($system);
+            list($this->base, $this->percentage) = $file[$system];
     }
     //进行真实回调
     public function active($data) {

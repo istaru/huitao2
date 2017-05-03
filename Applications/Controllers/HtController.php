@@ -18,6 +18,7 @@ class HtController extends Controller
 //      preg_match('/^(\/\w*){2}/', substr($_SERVER['REQUEST_URI'],9), $matches);
 //        preg_match('/^(\/\w*){2}/', substr($_SERVER['SCRIPT_NAME'],9), $matches);
         $cf = !empty($matches) ? $matches[0] : '';
+//        $cf=substr($_SERVER['REQUEST_URI'],13);
 //        D($cf);
         /**
          * 验证用户是否拥有当前节点的操作权限

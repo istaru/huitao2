@@ -42,7 +42,7 @@ class FailShopIncomeController
 			$this->sql[] = rtrim($this->msg,',');;
 			$this->sql[] = rtrim($this->income,',');
 		}
-
+		D($this->sql);die;
 		$this->execSql();
 	}
 
@@ -69,7 +69,7 @@ class FailShopIncomeController
 	 */
 	public function cashHandle($data)
 	{
-		$order_list = '';
+		$order_list = [];
 		$uids = [];	//要处理的用户id列表
 		foreach ($data as $k => $v) {
 
@@ -81,7 +81,7 @@ class FailShopIncomeController
 
 
 			//余额订单列表
-			$order_list .= $v['order_id'];
+			$order_list[] = $v['order_id'];
 
 			//消息
 			$this->msg .= "('{$v['uid']}','{$v['score_source']}对订单{$v['order_id']}进行了退款操作,将扣除之前的{$v['price']}元奖励哦!',{$v['id']},'".(date('Y-m-d',time()))."'),";
@@ -97,7 +97,7 @@ class FailShopIncomeController
 		$this->sql[] = "UPDATE ngw_uid SET price = price - CASE objectId".$str."ELSE 0 END";
 
 		//修改用户日志的sql
-		$this->sql[] = "UPDATE ngw_uid_log SET status = 4 , score_info = '退单扣除之前的奖励' WHERE status = 2 AND order_id IN ({$order_list})";
+		$this->sql[] = "UPDATE ngw_uid_log SET status = 4 , score_info = '退单扣除之前的奖励' WHERE status = 2 AND order_id IN (".implode(',',$order_list).")";
 	}
 
 
@@ -106,10 +106,10 @@ class FailShopIncomeController
 	 */
 	public function estimateHandle($data)
 	{
-		$order_list = '';
+		$order_list = [];
 		foreach ($data as $k => $v) {
 			//余额订单列表
-			$order_list .= $v['order_id'];
+			$order_list[] = $v['order_id'];
 
 			//消息
 			$this->msg .= "('{$v['uid']}','{$v['score_source']}对订单{$v['order_id']}进行了退款操作,将扣除之前的{$v['price']}元奖励哦!',{$v['id']},'".(date('Y-m-d',time()))."'),";
@@ -119,7 +119,7 @@ class FailShopIncomeController
 		}
 
 		//修改用户日志的sql
-		$this->sql[] = 	 "UPDATE ngw_uid_log SET status = 3 , score_info = '退单扣除之前的奖励' WHERE status = 1 AND order_id IN ({$order_list})";
+		$this->sql[] = 	 "UPDATE ngw_uid_log SET status = 3 , score_info = '退单扣除之前的奖励' WHERE status = 1 AND order_id IN (".implode(',',$order_list).")";
 	}
 
 
@@ -131,7 +131,6 @@ class FailShopIncomeController
 		if(empty($order_list)) return;
 		$sql = "select id,uid,price,status,order_id,score_source,score_type,score_info from ngw_uid_log where status = 1 and order_id in ({$order_list})";
 		$info = M()->query($sql,'all');
-		// D($info);die;
 		return $info;
 	}
 

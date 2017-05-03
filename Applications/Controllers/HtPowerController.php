@@ -1,5 +1,5 @@
 <?php
-class HtPowerController
+class HtPowerController extends HtController
 {
     /**
      * [setPower 设置某个后台用户的权限]
@@ -27,9 +27,12 @@ class HtPowerController
                     $myarr[$i]['htUser_id']=$id;
                     $myarr[$i]['htNode_id']=$arr[$i];
                 }
+
                 /**
                  * 赋予已被清空的基础权限
                 */
+                M('htrole')->add(['htUser_id' => $id, 'htNode_id' => '201']);
+                M('htrole')->add(['htUser_id' => $id, 'htNode_id' => '202']);
                 $data=M('htrole')->batchAdd($myarr);
                 $data?info("权限修改成功",1):info("权限修改失败",-3);
             }else{
@@ -38,7 +41,7 @@ class HtPowerController
 
         }
         /**
-         * 如果设置了username，password那么创建用户，并赋予权限(基础权限：个人中心页)
+         * 如果设置了username，password那么创建用户，并赋予权限(基础权限：个人中心页,退出登录的权限)
         */
         else{
             if(!empty($_POST['username'])&&!empty($_POST['password'])){
@@ -46,7 +49,8 @@ class HtPowerController
                     info("用户名已存在，请重新设置",-1);
             }else{
                    $id= M('htuser')->add(['username' => $_POST['username'], 'password' => $_POST['password']]);
-                    M('htrole')->add(['htUser_id' => $id, 'htNode_id' => '40']);
+                    M('htrole')->add(['htUser_id' => $id, 'htNode_id' => '201']);
+                    M('htrole')->add(['htUser_id' => $id, 'htNode_id' => '202']);
                     $arr2 = explode(",",$_POST['htNode_id']);
                     $myarr2=[];
                     for ($i=0;$i<count($arr2);$i++){

@@ -42,7 +42,7 @@ class IndexController extends AppController
 				'data'=>$banners,
 				'countdown'=>10,	//倒计时的时间
 				'frequency'=>3,		//显示的次数
-				'openver'=>2,
+				'openver'=>1,
 			];
 		if(!empty($this->dparam['app_ver']) && $this->dparam['app_ver'] == '1.0.5')
 			$data['isuser'] = 0;

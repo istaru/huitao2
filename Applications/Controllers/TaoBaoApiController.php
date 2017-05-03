@@ -14,7 +14,7 @@ class TaoBaoApiController {
    */
     public function taeItemsListRequest($num_iids = [], $open_iids = []) {
         if(empty($num_iids) && empty($open_iids)) return;
-        $this->goodsId = $result = [];
+        $this->goodsId = $result = [ ];
         $data = $num_iids ? array_chunk($num_iids, 50) : $this->arrayLengthSegmentation($open_iids, 70);
         foreach($data as $v) {
             $resp = $this->taoBao->send([
@@ -23,7 +23,7 @@ class TaoBaoApiController {
                 'open_iids' => $open_iids ? $v : '',
                 'method'    => 'taobao.tae.items.list',
             ]);
-            $result = array_merge(!empty($resp['tae_items_list_response']['items']['x_item']) ? $resp['tae_items_list_response']['items']['x_item'] : [], $result);
+            $result = array_merge(!empty($resp['tae_items_list_response']['items']['x_item']) ? $resp['tae_items_list_response']['items']['x_item'] : [ ], $result);
         }
         return $result;
     }

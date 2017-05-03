@@ -29,7 +29,7 @@ class UserController extends AppController
 	public function incomesLog()
 	{
 		empty($this->dparam['user_id']) && info('数据不完整',-1);
-		$sql = "SELECT l.createdAt as date_time,u.nickname as friend_name,l.price,l.status,l.score_info,l.score_type FROM ngw_income_log l JOIN ngw_uid u ON l.uid = u.objectId WHERE uid = '{$this->dparam['user_id']}'";
+		$sql = "SELECT l.createdAt as date_time,u.nickname as friend_name,l.price,l.status,l.score_info,l.score_type FROM ngw_income_log l JOIN ngw_uid u ON l.uid = u.objectId WHERE uid = '{$this->dparam['user_id']}' order by date_time desc";
 
 		$uidLog_list = M()->query($sql,'all');
 		foreach ($uidLog_list as $k => &$v) {
@@ -50,7 +50,7 @@ class UserController extends AppController
 	{
 		empty($this->dparam['user_id']) && info('数据不完整',-1);
 
-		$sql = " SELECT price,status,updatedAt date_time,if(status<4,errmsg,( CASE status WHEN 4 THEN duiba_success ELSE duiba_end_errmsg END)) msg FROM ngw_pnow WHERE uid = '{$this->dparam['user_id']}'";
+		$sql = " SELECT price,status,updatedAt date_time,if(status<4,errmsg,( CASE status WHEN 4 THEN duiba_success ELSE duiba_end_errmsg END)) msg FROM ngw_pnow WHERE uid = '{$this->dparam['user_id']}'  order by date_time desc";
 
 		info('请求成功',1,M()->query($sql,'all'));
 	}
@@ -277,7 +277,7 @@ class UserController extends AppController
 		foreach ($data as $v){
 			(ShopincomeController::getObj())->getReward($v);
 		}
-		info('红包领取,请查收!',1);
+		info('亲,您的红包已领取,请查收!',1);
 
 	}
 

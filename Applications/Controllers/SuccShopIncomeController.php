@@ -49,7 +49,16 @@ class SuccShopIncomeController
 
 				##***********************
 				if(!empty($v['sfuid'])){
-					$sql = "INSERT IGNORE INTO ngw_uid_bill_log (type,uid,order_id,score_type,score_source,score_info,cost,rating,report_date) VALUES (1,'{$v['sfuid']}','{$v['order_id']}',1,'{$v['uid']}','好友购买奖励',".$v['cost']*$v['rating']/100*$this->percentsf.",{$v['rating']},'".(date('Y-m-d',time()))."')";
+					//检查笔数
+					$sql = "select id from ngw_uid_log where uid = '{$v['sfuid']}' and score_source = '{$v['uid']}'";
+					// echo $sql;die;
+					$ids = M()->query($sql,'all');
+					if($count($ids)<3){	//首两单给5元
+						$cost = 5;
+					}else{
+						$cost = $v['cost']*$v['rating']/100*$this->percentsf;
+					}
+					$sql = "INSERT IGNORE INTO ngw_uid_bill_log (type,uid,order_id,score_type,score_source,score_info,cost,rating,report_date) VALUES (1,'{$v['sfuid']}','{$v['order_id']}',1,'{$v['uid']}','好友购买奖励',".$cost.",{$v['rating']},'".(date('Y-m-d',time()))."')";
 					M()->query($sql);
 					$bid = M()->getLastInsertId();
 					if($bid){
@@ -82,7 +91,8 @@ class SuccShopIncomeController
 				WHERE a.order_id IN (".implode(',',$order_list).")
 				AND a.status = 1 AND b.status = 2 ";
 		$o_info = M()->query($sql,'all');
-		// D($o_info);die;
+		// echo $sql;
+		D($o_info);
 		return $o_info;
 	}
 }

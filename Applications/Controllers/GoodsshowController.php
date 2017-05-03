@@ -604,7 +604,8 @@ class GoodsShowController extends AppController
                 $v['num_iid'] = isset($numIid['id']) ? $numIid['id'] : '';
                 //生成商品分享链接
                 $v['share_url'] = null;
-
+                //优惠券地址
+                $v['url']       = null;
                 unset($v['user_type']);
             }
         }

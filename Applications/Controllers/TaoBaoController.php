@@ -1,6 +1,6 @@
 <?php
 class TaoBaoController {
-    public static $url          = 'http://gw.api.taobao.com/router/rest';
+    public static $url    = 'http://gw.api.taobao.com/router/rest';
     public  $appKey       = '';
     public  $secret       = '';
     protected static $parameter = [

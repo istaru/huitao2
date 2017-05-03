@@ -1,5 +1,5 @@
 <?php
-class GoodsExcelController {
+class GoodsExcelController extends HtController  {
    public function query() {
         $params = $_REQUEST;
         $goodsInfo = $this->goodsSold($params['type'], $_REQUEST);
