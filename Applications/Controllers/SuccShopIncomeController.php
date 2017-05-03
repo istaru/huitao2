@@ -53,7 +53,7 @@ class SuccShopIncomeController
 					$sql = "select id from ngw_uid_log where uid = '{$v['sfuid']}' and score_source = '{$v['uid']}'";
 					// echo $sql;die;
 					$ids = M()->query($sql,'all');
-					if($count($ids)<3){	//首两单给5元
+					if(count($ids)<3){	//首两单给5元
 						$cost = 5;
 					}else{
 						$cost = $v['cost']*$v['rating']/100*$this->percentsf;

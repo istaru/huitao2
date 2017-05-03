@@ -50,7 +50,7 @@ class UserController extends AppController
 	{
 		empty($this->dparam['user_id']) && info('数据不完整',-1);
 
-		$sql = " SELECT price,status,updatedAt date_time,if(status<4,errmsg,( CASE status WHEN 4 THEN duiba_success ELSE duiba_end_errmsg END)) msg FROM ngw_pnow WHERE uid = '{$this->dparam['user_id']}'  order by date_time desc";
+		$sql = " SELECT price,status,updatedAt date_time,( CASE status WHEN 4 THEN duiba_success ELSE duiba_end_errmsg END) msg FROM ngw_pnow WHERE uid = '{$this->dparam['user_id']}'  order by date_time desc";
 
 		info('请求成功',1,M()->query($sql,'all'));
 	}
