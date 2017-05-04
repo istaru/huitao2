@@ -1,18 +1,14 @@
 <?php
 class HeadacheController {
-    //扣量基数
-    public $base = 10000;
-    // 回调数百分比
-    public $percentage = 1;
     //排重接口 兼容 ios和安卓
     public function tracking() {
         $data = $_REQUEST;
-        if(!empty($data['source']) && !empty($data['imei']) || !empty($data['idfa'])) {
+        if(!empty($data['source']) && !empty($data['system']) && !empty($data['imei']) || !empty($data['idfa'])) {
             //查看did_log表中是否存在这条记录 如果存在则表示已经激活过
-            if(M('did_log')->where(!empty($data['imei']) ? "imei = '{$data['imei']}'" : empty($data['idfa']) ?  : "idfa = '{$data['idfa']}'")->select())
-                self::info('已经激活过了');
+            !empty($data['imei']) ? $did['imei'] = $data['imei'] : $did['idfa'] = $data['idfa'];
+            if(userBehaviorVerificationController::queryUserDeviceInformation($did)) self::info('已经激活过了');
             //删除这个来源下已经存在库里并且还没有激活过的这条数据 报存最新的这条防止回调地址请求混乱
-            M()->exec("DELETE FROM gw_tracking WHERE (idfa = '{$data['idfa']}' OR imei = '{$data['imei']}' AND status=1) AND source = '{$data['source']}'");
+            M()->exec("DELETE FROM ngw_tracking WHERE (idfa = '{$did}' OR imei = '{$did}' AND status=1) AND source = '{$data['source']}'");
             M('tracking')->add($data);
             self::info('ok', 1);
         }
@@ -34,7 +30,7 @@ class HeadacheController {
         self::info('产品已经下线');
     }
     // ios 安卓注册 回调
-    public function registerActivation($data) {
+    public function registerActivation($data = ['imei' => '123','uid' => '123', 'type' => 1]) {
         $where = !empty($data['imei']) ? "imei = '{$data['imei']}'" : "idfa = '{$data['idfa']}'";
         //检查库里是否有这条记录 并且获取到这条记录的来源 实现扣量~~
         if(!$self = M('tracking')->where($where)->select('single')) return;
@@ -46,17 +42,14 @@ class HeadacheController {
             'report_date' => date('Y-m-d')
         ]);
         //查询这个来源下还没回调的数据 并且这些数据其他来源也没有回调过
-        $callback = M()->query("SELECT idfa , imei , status , callback_url,source FROM gw_tracking WHERE( idfa NOT IN( SELECT idfa FROM gw_tracking WHERE status = 2 AND idfa IS NOT NULL) OR imei NOT IN( SELECT imei FROM gw_tracking WHERE status = 2 AND imei IS NOT NULL)) AND status = 3 AND source = '{$self['source']}'", 'all');
-        foreach($callback as $k => $v) {
-            $aggregate[$k]['callback'] = $v['callback_url'];
-            $aggregate[$k]['did']      = empty($v['idfa']) ? $v['imei'] : $v['idfa'];
-        }
+        $callback = M()->query("SELECT idfa , imei , status , callback_url,source FROM ngw_tracking WHERE( idfa NOT IN( SELECT idfa FROM ngw_tracking WHERE status = 2 AND idfa IS NOT NULL) OR imei NOT IN( SELECT imei FROM ngw_tracking WHERE status = 2 AND imei IS NOT NULL)) AND status = 3 AND source = '{$self['source']}'", 'all');
         //获取回调率以及回调基数
-        $this->setBase($self['system']);
-        if(count($callback) >= $this->base) {
-            foreach(array_rand($callback, $this->percentage) as $v) {
+        list($base, $percentage) = $this->setBase($self['system']);
+        if(count($callback) >= $base) {
+            $key = array_rand($callback, $percentage);
+            foreach(is_array($key) ? $key : [$key] as $v) {
                 //数据状态改为2 回调对方时把对方返回值也入库处理
-                M('tracking')->where("(imei = '{$callback[$v]['did']}' OR idfa= '{$callback[$v]['did']}') AND source = '{$callback[$v]['source']}'")->save([
+                M('tracking')->where("(imei = '{$callback[$v]['imei']}' OR idfa= '{$callback[$v]['idfa']}') AND source = '{$callback[$v]['source']}'")->save([
                     'status'    => 2,
                     'response'  => get_curl(str_replace('amp;','',urldecode($callback[$v]['callback_url'])))
                 ]);
@@ -69,11 +62,10 @@ class HeadacheController {
     //根据手机系统来设置回调率以及回调基数
     public function setBase($system) {
         static $file = [
-            1 => [10, 2],
+            1 => [1, 1],
             2 => [1, 1]
         ];
-        if(isset($file[$system]))
-            list($this->base, $this->percentage) = $file[$system];
+        return isset($file[$system]) ? $file[$system] : [10000, 1];
     }
     //进行真实回调
     public function active($data) {
@@ -89,7 +81,7 @@ class HeadacheController {
         if(isset($_REQUEST["edate"])&&!empty($_REQUEST["edate"])){
             $edate = $_REQUEST["edate"];
         }
-        $sql = "SELECT status , source , system , count(0) num FROM gw_tracking WHERE status != 3 and createdAt between '".$sdate."' and '".$edate."'"." GROUP BY status , source , system ";
+        $sql = "SELECT status , source , system , count(0) num FROM ngw_tracking WHERE status != 3 and createdAt between '".$sdate."' and '".$edate."'"." GROUP BY status , source , system ";
         $data = M()->query($sql,'all');
 //        D($data);
         if($data){

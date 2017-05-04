@@ -64,7 +64,7 @@ class TaoBaoApiController {
             'q'             => addslashes(htmlspecialchars(isset($paramster['title']) ? $paramster['title'] : '.')),
             'fields'        => 'num_iid,title,pict_url,reserve_price,zk_final_price,user_type,provcity,item_url,seller_id,volume,nick',
             'sort'          => 'total_sales_des',
-            'is_tmall'      => isset($paramster['type']) ? $paramster['type'] ? 'true' : 'false' : 'true',
+            'is_tmall'      => isset($paramster['type']) && $paramster['type'] == 0 ? 'true' : 'false',
             'method'        => 'taobao.tbk.item.get',
             'page_no'       => isset($paramster['page_no'])   ? $paramster['page_no']   : 1,
             'page_size'     => isset($paramster['page_size']) ? $paramster['page_size'] : 20,

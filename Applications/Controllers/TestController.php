@@ -1,7 +1,7 @@
 <?php
 class TestController extends AppController {
     public function test() {
-        file_put_contents('test.txt', date('H:i:s'), FILE_APPEND);
+        file_put_contents('runtime/logs/test.txt', '已成功回调');
     }
     public function a() {
         R()->delLike('lm');
@@ -18,11 +18,11 @@ class TestController extends AppController {
         (FailShopIncomeController::getObj())->incomeHandle(['12384660416113222']);
     }
     public function del(){
-        R()->delLike('ex_');
+        R()->delLike('ex');
         R()->delFeild('detailLists');
         R()->delFeild('soldLists');
-        R()->delLike('lm_');
-        R()->delLike('board_');
+        R()->delLike('lm');
+        R()->delLike('board');
         echo 'ok';
     }
     public function jiami()
