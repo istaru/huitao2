@@ -170,20 +170,22 @@ class UserController extends AppController
 	 */
 	public function redMessage()
 	{
-		$rath = 1;
 		empty($this->dparam['user_id']) && info('数据不完整',-1);
-		$sql = " select a.createdAt date_time , a.content msg , a.bid ,a.status , (b.cost * {$rath}) price from ngw_message a join ngw_uid_bill_log b on a.bid = b.id where  a.uid = '{$this->dparam['user_id']}' and a.type = 2 order by a.createdAt DESC limit 100 ";
+		$sql = " select a.createdAt date_time , a.content msg , a.bid ,b.status , b.cost price from ngw_message a join ngw_uid_bill_log b on a.bid = b.id where  a.uid = '{$this->dparam['user_id']}' and a.type = 2 order by a.createdAt DESC limit 100 ";
 		$info = M()->query($sql,'all');
 
-		$msg_info = ['untake'=>[],'token'=>[],'all'=>$info];
+		$msg_info = ['untake'=>[],'token'=>[],'all'=>$info,'fail'=>[]];
 
 		foreach ($info as $k => $v) {
 
-			if($v['status'] == 1){
+			if($v['status'] == 1){	//未领取红包
 				$msg_info['untake'][] = $v;
 			}
-			else if($v['status'] == 2){
+			else if($v['status'] == 2){	//已领取红包
 				$msg_info['token'][] = $v;
+			}
+			else if($v['status'] == 3){	//退单的失效红包
+				$msg_info['fail'] = $v;
 			}
 
 		}

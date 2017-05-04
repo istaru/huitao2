@@ -8,7 +8,8 @@ class TestController extends AppController {
         R()->delLike('ex');
     }
     public function b(){
-        (SuccShopIncomeController::getObj())->incomeHandle(['14227148149795698']);
+        // (new TimerTaskController())->orderInfo(['12401281776113222']);
+        (SuccShopIncomeController::getObj())->incomeHandle(['12384660416113222']);
     }
     public function c(){
         (new GoodsShowController())->delRedisCateGoods(1);
@@ -26,15 +27,16 @@ class TestController extends AppController {
     }
     public function jiami()
     {
-        $arr = ['user_id'=>'0wG5FIQQMi'];
-        $arr = json_encode($arr);
-        $a = aes_encode($arr);
-        D($a);
+        $source = json_encode($this->dparam);
+        $data['secret'] = randstr(10);
+        $key = substr(MD5($data['secret']-2),8,16);
+        echo $key;
+        $data['content'] = base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $key, $source, MCRYPT_MODE_CBC, $key));
+        D($data);
     }
     public function jiemi()
     {
-        $a = aes_decode($this->dparam);
-        D($a);
+        D($this->dparam);
     }
 
 }

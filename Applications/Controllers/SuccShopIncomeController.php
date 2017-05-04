@@ -50,10 +50,10 @@ class SuccShopIncomeController
 				##***********************
 				if(!empty($v['sfuid'])){
 					//检查笔数
-					$sql = "select id from ngw_uid_log where uid = '{$v['sfuid']}' and score_source = '{$v['uid']}'";
+					$sql = "select id from ngw_uid_bill_log where uid = '{$v['sfuid']}' and score_source = '{$v['uid']}'";
 					// echo $sql;die;
 					$ids = M()->query($sql,'all');
-					if(count($ids)<3){	//首两单给5元
+					if(count($ids)<2){	//首两单给5元
 						$cost = 5;
 					}else{
 						$cost = $v['cost']*$v['rating']/100*$this->percentsf;
@@ -91,8 +91,7 @@ class SuccShopIncomeController
 				WHERE a.order_id IN (".implode(',',$order_list).")
 				AND a.status = 1 AND b.status = 2 ";
 		$o_info = M()->query($sql,'all');
-		// echo $sql;
-		D($o_info);
+		// D($o_info);
 		return $o_info;
 	}
 }

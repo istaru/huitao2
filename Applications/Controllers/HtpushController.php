@@ -2,7 +2,7 @@
 include DIR_LIB.'umengpush/src/Demo.php';
 class HtpushController extends HtController
 {
-
+	const SHARE_URL = 'http://terui.net.cn/shopping_new/Applications/Views/bg_gw/share/share.html?num_iid=';
 	protected $type = null;
 	protected $appKey  = null;
 	protected $masterSecret = 'mddms8qjyrd6qnvqwvih0hzsmnw8lljj';
@@ -55,7 +55,13 @@ class HtpushController extends HtController
 			$this->param['device_tokens'] = $tokens;
 		}
 		$cla = new Demo($this->appKey,$this->masterSecret);
-		call_user_func_array([$cla,$this->method[$this->type][$this->push_type]],[$this->param]);
+		if(!empty($this->param['custom']['goods_id'])){
+			$sql = "SELECT store_type,num_iid goods_id,url vocher_url,title,pict_url share_img,concat('".self::SHARE_URL."',num_iid) share_url  FROM ngw_goods_online WHERE num_iid = 520382432915";
+			$info = M()->query($sql);
+			$this->param['custom'] = $info;
+		}
+		$model = !empty($this->param['model']) ? $this->param['model'] : 'false';
+		call_user_func_array([$cla,$this->method[$this->type][$this->push_type]],[$this->param,$model]);
 	}
 
 

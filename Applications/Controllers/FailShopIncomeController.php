@@ -42,7 +42,6 @@ class FailShopIncomeController
 			$this->sql[] = rtrim($this->msg,',');;
 			$this->sql[] = rtrim($this->income,',');
 		}
-		D($this->sql);die;
 		$this->execSql();
 	}
 

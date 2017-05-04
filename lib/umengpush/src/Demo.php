@@ -11,7 +11,6 @@ class Demo {
 	protected $appMasterSecret     = NULL;
 	protected $timestamp        = NULL;
 	protected $validation_token = NULL;
-	protected $model			= "false";
 
 	function __construct($key, $secret) {
 		$this->appkey = $key;
@@ -21,7 +20,7 @@ class Demo {
 	/**
 	 * [sendAndroidBroadcast 广播]
 	 */
-	function sendAndroidBroadcast($param=[]) {
+	function sendAndroidBroadcast($param=[],$model='false') {
 
 		try {
 			$brocast = new AndroidBroadcast();
@@ -35,7 +34,7 @@ class Demo {
 			$brocast->setPredefinedKeyValue("custom",       	$param['custom']);
 			// Set 'production_mode' to 'false' if it's a test device.
 			// For how to register a test device, please see the developer doc.
-			$brocast->setPredefinedKeyValue("production_mode", $this->model);
+			$brocast->setPredefinedKeyValue("production_mode", $model);
 			if(!empty($param['time'])){
 				$brocast->setPredefinedKeyValue("start_time", $param['time']);
 			}
@@ -49,7 +48,7 @@ class Demo {
 	/**
 	 * [sendAndroidListcast 列播]
 	 */
-	function sendAndroidListcast($param=[]) {
+	function sendAndroidListcast($param=[],$model='false') {
 		try {
 			$listcast = new AndroidListcast();
 			$listcast->setAppMasterSecret($this->appMasterSecret);
@@ -63,7 +62,7 @@ class Demo {
 			$listcast->setPredefinedKeyValue("after_open",       "go_custom");
 			$listcast->setPredefinedKeyValue("custom",       	$param['custom']);
 
-			$listcast->setPredefinedKeyValue("production_mode", $this->model);
+			$listcast->setPredefinedKeyValue("production_mode", $model);
 			if(!empty($param['time'])){
 				$listcast->setPredefinedKeyValue("start_time", $param['time']);
 			}
@@ -79,7 +78,7 @@ class Demo {
 	/**
 	 * [sendAndroidUnicast 单播]
 	 */
-	function sendAndroidUnicast($param=[]) {
+	function sendAndroidUnicast($param=[],$model='false') {
 		try {
 			$unicast = new AndroidUnicast();
 			$unicast->setAppMasterSecret($this->appMasterSecret);
@@ -97,7 +96,7 @@ class Demo {
 			if(!empty($param['time'])){
 				$unicast->setPredefinedKeyValue("start_time", $param['time']);
 			}
-			$unicast->setPredefinedKeyValue("production_mode", $this->model);
+			$unicast->setPredefinedKeyValue("production_mode", $model);
 			// print("Sending unicast notification, please wait...\r\n");
 			$unicast->send();
 			// print("Sent SUCCESS\r\n");
@@ -108,7 +107,7 @@ class Demo {
 
 
 
-	function sendIOSBroadcast($param=[]) {
+	function sendIOSBroadcast($param=[],$model='false') {
 		try {
 			$brocast = new IOSBroadcast();
 			$brocast->setAppMasterSecret($this->appMasterSecret);
@@ -119,9 +118,9 @@ class Demo {
 			$brocast->setPredefinedKeyValue("badge", 0);
 			$brocast->setPredefinedKeyValue("sound", "chime");
 			// Set 'production_mode' to 'true' if your app is under production mode
-			$brocast->setPredefinedKeyValue("production_mode", $this->model);
+			$brocast->setPredefinedKeyValue("production_mode", $model);
 			if(!empty($param['custom'])){
-				$custom = json_decode($param['custom']);
+				$custom = $param['custom'];
 				// D($custom);die;
 				foreach ($custom as $k => $v) {
 					$brocast->setPredefinedKeyValue($k, $v);
@@ -140,7 +139,7 @@ class Demo {
 		}
 	}
 
-	function sendIOSListcast($param) {
+	function sendIOSListcast($param=[],$model='false') {
 
 		try {
 			$listcast = new IOSListcast();
@@ -153,7 +152,7 @@ class Demo {
 			$listcast->setPredefinedKeyValue("badge", 0);
 			$listcast->setPredefinedKeyValue("sound", "chime");
 			// Set 'production_mode' to 'true' if your app is under production mode
-			$listcast->setPredefinedKeyValue("production_mode", $this->model);
+			$listcast->setPredefinedKeyValue("production_mode", $model);
 
 			if(!empty($param['custom'])){
 				$custom = json_decode($param['custom']);
@@ -172,7 +171,7 @@ class Demo {
 		}
 	}
 
-	function sendIOSUnicast($param) {
+	function sendIOSUnicast($param=[],$model='false') {
 		try {
 			$unicast = new IOSUnicast();
 			$unicast->setAppMasterSecret($this->appMasterSecret);
@@ -184,7 +183,7 @@ class Demo {
 			$unicast->setPredefinedKeyValue("badge", 0);
 			$unicast->setPredefinedKeyValue("sound", "chime");
 			// Set 'production_mode' to 'true' if your app is under production mode
-			$unicast->setPredefinedKeyValue("production_mode", $this->model);
+			$unicast->setPredefinedKeyValue("production_mode", $model);
 
 			if(!empty($param['custom'])){
 				$custom = json_decode($param['custom']);

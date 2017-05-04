@@ -73,6 +73,7 @@ abstract class UmengNotification {
 
         $url = $this->host . $this->postPath;
         $postBody = json_encode($this->data);
+        // D($postBody);die;
         $sign = md5("POST" . $url . $postBody . $this->appMasterSecret);
         $url = $url . "?sign=" . $sign;
   		$ch = curl_init($url);

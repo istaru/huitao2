@@ -16,7 +16,7 @@ abstract class IOSNotification extends UmengNotification {
 
 	// Keys can be set in the aps level
 	protected $APS_KEYS    = array("alert", "badge", "sound", "content-available");
-	protected $CUSTOM_KEYS    = array("goods_id", "coupon_url");
+	protected $CUSTOM_KEYS    = array("goods_id", "coupon_url","store_type","vocher_url","title","share_img","share_url");
 
 	function __construct() {
 		parent::__construct();
