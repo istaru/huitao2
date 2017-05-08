@@ -1,9 +1,10 @@
 <?php
-class SuccShopIncomeController
-{
+class SuccShopIncomeController {
 	public static $obj;
 	public $sql = [];
+	//用户的返利比
 	private $percent = 0.7;
+	//用户师傅的返利比
 	private $percentsf = 0.2;
 	private function __construct(){}
 
@@ -20,8 +21,7 @@ class SuccShopIncomeController
 	/**
 	 * [buySuccess 订单返利生成预估收入]
 	 */
-	public function incomeHandle($order_list)
-	{
+	public function incomeHandle($order_list) {
 		if(empty($order_list)) return;
 
 		$o_info = $this->orderInfo($order_list);
@@ -31,47 +31,40 @@ class SuccShopIncomeController
 
 			foreach ($o_info as $k => $v) {
 				//数据不全则跳过
-				if(empty($v['cost']) || (empty($v['uid']) &&  empty($v['sfuid'])) || empty($v['rating'])) continue;
+				if(empty($v['cost']) || empty($v['rating'])) continue;
 
 				##!********* source=0 给师傅返利 不给本人返利
-				if($v['source'] != 0){
-					//购买的用户
-					$sql = "INSERT IGNORE INTO ngw_uid_bill_log (type,uid,order_id,score_type,score_source,score_info,cost,rating,report_date) VALUES (1,'{$v['uid']}','{$v['order_id']}',8,'','购买奖励',".$v['cost']*$v['rating']/100*$this->percent.",{$v['rating']},'".(date('Y-m-d',time()))."')";
+				if($v['source'] != 0) {
+					//给购买用户生成红包
+					$sql = "INSERT IGNORE INTO ngw_uid_bill_log (type,uid,order_id,score_type,score_source,score_info,cost,rating,report_date) VALUES (1,'{$v['uid']}','{$v['order_id']}',8,'','购买奖励',".$v['cost'] * $v['rating'] / 100 * $this->percent.",{$v['rating']},'".(date('Y-m-d'))."')";
 					M()->query($sql);
-
-					//取出账单id
+					//得到账单 id 并新增一条红包消息用户拆红包
 					$bid = M()->getLastInsertId();
-					if($bid){	//得到账单 id 并新增一条红包消息用户拆红包
+					if($bid) {
 						$sql = "INSERT IGNORE INTO ngw_message (uid,bid,content,type) VALUES ('{$v['uid']}',$bid,'购物红包',2)";
 						M()->query($sql);
 					}
 				}
-
 				##***********************
-				if(!empty($v['sfuid'])){
-					//检查笔数
-					$sql = "select id from ngw_uid_bill_log where uid = '{$v['sfuid']}' and score_source = '{$v['uid']}'";
-					// echo $sql;die;
-					$ids = M()->query($sql,'all');
-					if(count($ids)<2){	//首两单给5元
-						$cost = 5;
-					}else{
-						$cost = $v['cost']*$v['rating']/100*$this->percentsf;
-					}
+				if(!empty($v['sfuid'])) {
+					//该用户的首两单 给师傅奖励5元 以后按照比例给师傅奖励
+					$ids = M()->query("select id from ngw_uid_bill_log where uid = '{$v['sfuid']}' and score_source = '{$v['uid']}'",'all');
+					$cost = count($ids) < 2 ? 5 : $v['cost'] * $v['rating'] / 100 * $this->percentsf;
+					//给该用户师傅生成红包
 					$sql = "INSERT IGNORE INTO ngw_uid_bill_log (type,uid,order_id,score_type,score_source,score_info,cost,rating,report_date) VALUES (1,'{$v['sfuid']}','{$v['order_id']}',1,'{$v['uid']}','好友购买奖励',".$cost.",{$v['rating']},'".(date('Y-m-d',time()))."')";
 					M()->query($sql);
+					//得到账单 id 并新增一条红包消息用户拆红包
 					$bid = M()->getLastInsertId();
 					if($bid){
 						$sql = "INSERT IGNORE INTO ngw_message (uid,bid,content,type) VALUES ('{$v['sfuid']}',$bid,'好友购物红包',2)";
 						M()->query($sql);
 					}
 				}
-				echo "order_id :  {$v['order_id']} is ok..      ";
+				echo "order_id :  {$v['order_id']} is ok.. ";
 			}
-
-
 		} catch (Exception $e) {
 			M()->rollback();
+			exit($e->getMessage());
 		}
 		M()->commit();
 	}

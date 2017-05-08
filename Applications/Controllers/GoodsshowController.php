@@ -696,15 +696,14 @@ class GoodsShowController extends AppController
      * [delRedisCateGoods description]
      * @param  [type] $type [1.lm联盟商品 2.ex商品]
      */
-    public function delRedisCateGoods($type)
+    public function delRedisCateGoods()
     {
-
         R()->delFeild('detailLists');
         R()->delFeild('soldLists');
         R()->delLike('board');
         R()->delLike('ex');
         R()->delLike('lm');
-
+        echo 'ok';
     }
 
 }

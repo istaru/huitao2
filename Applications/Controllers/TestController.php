@@ -18,12 +18,13 @@ class TestController extends AppController {
         (FailShopIncomeController::getObj())->incomeHandle(['12384660416113222']);
     }
     public function del(){
-        R()->delLike('ex');
-        R()->delFeild('detailLists');
-        R()->delFeild('soldLists');
-        R()->delLike('lm');
-        R()->delLike('board');
-        echo 'ok';
+        // R()->delLike('ex');
+        // R()->delFeild('detailLists');
+        // R()->delFeild('soldLists');
+        // R()->delLike('lm');
+        // R()->delLike('board');
+        // echo 'ok';
+        (new GoodsShowController())->delRedisCateGoods();
     }
     public function jiami()
     {

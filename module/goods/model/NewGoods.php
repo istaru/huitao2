@@ -127,7 +127,7 @@ class ExcelGoods extends NewGoods{
         //②优惠券过期的下架||优惠券找不到的下架
         $this->pdo->updateOnlineOffGoods($this->pdo->fetchGoodsSortByScore(10000));
 
-       (new GoodsShowController())->delRedisCateGoods(2); 
+       (new GoodsShowController())->delRedisCateGoods(); 
 
        //删除excel 商品
 
@@ -181,10 +181,10 @@ class ExcelGoods extends NewGoods{
 
 
     }
-   // /0-天猫 1-淘宝
+   // /1-天猫 0-淘宝
     protected function _dealStoreType($store_type){
 
-        return $store_type == "天猫" ? 0 : 1;
+        return $store_type == "天猫" ? 1 : 0;
 
     }
     //处理分析优惠券
@@ -332,7 +332,7 @@ class FavoriteGoods extends NewGoods{
                 if(trim($rollback_sign[0])=="success."){
                     if(!isset($_REQUEST["isRefresh"]))
                         return ssreturn(1,'当天已经导入过一次数据，如果想重新导入请强制刷新。',1,1) ;
-                    else $this->file_log_tools->clearSuccessFavLog("");
+                    else $this->file_log_tools->clearSuccessFavLog("","success.");
                  }
                 //干掉已经成功操作的分类
                 foreach ($favorites as $k => $v) {
@@ -343,7 +343,7 @@ class FavoriteGoods extends NewGoods{
                 }
             }
         //}
-        "当前分类：".print_r($favorites);//exit;
+        //"当前分类：".print_r($favorites);//exit;
         //获取API重试次数
         $retry = 5;
 
@@ -510,6 +510,8 @@ class FavoriteGoods extends NewGoods{
         }
 
         $this->file_log_tools->clearSuccessFavLog("success.");
+
+        (new GoodsShowController())->delRedisCateGoods(); 
         
         return ssreturn(1,'操作成功',1,1) ;
        

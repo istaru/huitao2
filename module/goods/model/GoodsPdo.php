@@ -528,8 +528,22 @@ class FavoriteGoodsPdo extends GoodsPdo{
        
         if($r)return true;
         
-        $sql = "replace into ".$this->table_pre."category_favorite_ref(favorite_id,favorite_name)values($favorite_id,'$favorite_name')";
+        $sql = "select count(0) from ".$this->table_pre."category_favorite_ref where favorite_name = '$favorite_name'";
+        //echo $sql;echo "<br>";
+        $r = db_query_singal($sql,$this->db,array(),$this->pdo);
        
+        if($r){
+             $sql = "replace into ".$this->table_pre."category_favorite_ref(favorite_id,favorite_name,category_id,category_name,type)
+            select $favorite_id,favorite_name,category_id,category_name,type from ".$this->table_pre."category_favorite_ref where  
+            favorite_name = '$favorite_name'";
+        }else{
+            $sql = "replace into ".$this->table_pre."category_favorite_ref(favorite_id,favorite_name)values($favorite_id,'$favorite_name')";
+        }
+
+        //$sql = "replace into ".$this->table_pre."category_favorite_ref(favorite_id,favorite_name)values($favorite_id,'$favorite_name')";
+       
+        //echo $sql;
+
         $r = db_execute($sql,$this->db,array(),$this->pdo);
 
         return $r;

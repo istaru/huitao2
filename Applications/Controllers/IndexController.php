@@ -6,6 +6,7 @@ class IndexController extends AppController
 	 */
 	public function banners()
 	{
+		//提取banner文件夹下所有的图片
 		$files = scandir(DIR_RES.'img/banner');
 		$banners = [];
 

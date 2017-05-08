@@ -1,27 +1,17 @@
 <?php
 class ScriptController extends Controller
 {
-	//SELECT * FROM ngw_uid_log WHERE createdAt < date_sub(curdate(),interval 7 day)
-	public function Income()
-	{
-		//查出uid_log中所有 当前天数-7天内的 状态是预估的收入记录
+	public function Income() {
+		//查出uid_log中所有 当前天数-10天内的 状态是预估的收入记录
 		$list = M()->query("SELECT id,uid,price,order_id,score_source,score_type,score_info FROM ngw_uid_log WHERE createdAt < date_sub(curdate(),interval 10 day) AND status = 1",'all');
-		// D($list);die;
 		if(empty($list)) die;
-		//遍历结果
-		//1.将查到的所有id放入一个变量中用于更新uid_log的状态,
-		//2.拼接所有用户objectId 和对应的预收入金额,update到uid中对应的记录
 		$str = '';
 		$str2 = '';
 		$str3 = '';
 		$temp = [];
 		foreach ($list as $kk => $vv) {
 			$id_lists[] = $vv['id'];
-			if(array_key_exists($vv['uid'],$temp)){
-				$temp[$vv['uid']] = $temp[$vv['uid']] + $vv['price'];
-			}else{
-				$temp[$vv['uid']] = $vv['price'];
-			}
+			$temp[$vv['uid']] = array_key_exists($vv['uid'], $temp) ? $temp[$vv['uid']] + $vv['price'] : $vv['price'];
 			$str2 .= "('{$vv['uid']}','亲您有一笔预估收入已转到余额'),";
 			$str3 .= "('{$vv['order_id']}','{$vv['uid']}',2,'{$vv['score_source']}','{$vv['score_type']}','亲您有一笔预估收入已转到余额',{$vv['price']}),";
 		}
@@ -33,29 +23,21 @@ class ScriptController extends Controller
 		$str3 = rtrim($str3,',');
 		M()->startTrans();
 		try {
-			$sql = "UPDATE ngw_uid_log SET status = 2 WHERE id IN ($id_lists)";
-			//根据id,update 每个用户的price
-			$sql2 = "UPDATE ngw_uid
-						SET price = price + CASE objectId".
-							$str
-					."ELSE 0 END";
-			$sql3 = "INSERT INTO ngw_message (uid,content)
-						VALUES $str2";
-			$sql4 = "INSERT INTO ngw_income_log (order_id,uid,status,score_source,score_type,score_info,price)
-						VALUES $str3";
-			M()->query($sql);
-			M()->query($sql2);
-			M()->query($sql3);
-			M()->query($sql4);
+					#把uid_log表中该条记录状态改为2
+			$sql = "UPDATE ngw_uid_log SET status = 2 WHERE id IN ($id_lists);
+					#更新uid表中用户余额
+					UPDATE ngw_uid SET price = price + CASE objectId $str ELSE 0 END;
+					# 添加一条消息通知用户
+					INSERT INTO ngw_message (uid,content) VALUES $str2 ;
+					#添加一条预估转收入记录 income_log表
+					INSERT INTO ngw_income_log (order_id,uid,status,score_source,score_type,score_info,price) VALUES $str3 ";
+			M()->exec($sql);
 		} catch (Exception $e) {
 			M()->rollback();
-			echo $e->getMessage();
-			die;
+			die($e->getMessage());
 		}
 		M()->commit();
-
-		$date = date('y-m-d h:i:s',time());
-		echo 'ok'.$date.'\n';
+		echo 'ok'.date('y-m-d h:i:s',time()).'\n';
 	}
 
 	//用户行为redis->mysql
