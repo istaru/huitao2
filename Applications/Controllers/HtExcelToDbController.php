@@ -20,19 +20,19 @@ class HtExcelToDbController extends Controller
             $flag_coupon=$this->addcoupon($data);
             if($flag_coupon){
                 //开始导入热卖,大淘客
-                $dataoke=new HtHotgoodController();
-                $dataoke->import();
-                echo("上架筛选开始...".date("Y-m-d H:i:s")."<br/>");
-                $interface=new InterfaceController();
-                $res=$interface->index();
-                //  var_dump($res);
-                $msg=$array = (array)$res;
-                if(isset($msg['status'])&&$msg['status']==1){
-                    echo ("商品表列出成功").date("Y-m-d H:i:s");
-                }
-                else{
-                    echo ("商品表列出失败").date("Y-m-d H:i:s");
-                }
+//                $dataoke=new HtHotgoodController();
+//                $dataoke->import();
+//                echo("上架筛选开始...".date("Y-m-d H:i:s")."<br/>");
+//                $interface=new InterfaceController();
+//                $res=$interface->index();
+//                //  var_dump($res);
+//                $msg=$array = (array)$res;
+//                if(isset($msg['status'])&&$msg['status']==1){
+//                    echo ("商品表列出成功").date("Y-m-d H:i:s");
+//                }
+//                else{
+//                    echo ("商品表列出失败").date("Y-m-d H:i:s");
+//                }
             }else{
                 info("导入优惠券失败",'-1');
             }
@@ -171,7 +171,7 @@ class HtExcelToDbController extends Controller
     //获取store_type，天猫为0，淘宝为1
     public function getStoreType($str)
     {
-        return $str === "天猫" ? 0 : 1;
+        return $str === "天猫" ? 1 : 0;
     }
     //获取优惠券的更新的url
     public function getCouponUrl($seller_id,$coupon_id){

@@ -1,36 +1,52 @@
 <?php
-class DeviceverController extends AppController{
+class DeviceverController extends AppController {
+    public $deviceVer = null;
+    public $type      = 0;
+    public $stat      = 0;
+    public $url       = null;
     public function __construct() {
         $this->status = 2;
         parent::__construct();
+        $this->dparam = $this->dparam ? $this->dparam : $_REQUEST;
+        //旧版本
+        if(!empty($this->dparam['device'])) {
+            $this->stat = 0;
+            $this->deviceVer = $this->dparam['device'];
+            if($this->dparam['type'])
+                $this->type      = $this->dparam['type'];
+        //新版本
+        } else if(!empty($this->dparam['app_ver'])) {
+            $this->stat      = 1;
+            $this->deviceVer = $this->dparam['app_ver'];
+            if(isset($this->dparam['isUser']))
+                $this->type = $this->dparam['isUser'];
+            if(isset($this->dparam['webUrl']))
+                $this->url = $this->dparam['webUrl'];
+        } else info('缺少参数', -1);
     }
-    public function deviceVer() {
-        $params = $this->dparam;
-        $type = !empty($params['type']) ? : 0;
-        if(empty($params['device']) || empty($params['status']))
-            info('缺少参数', -1);
-        switch ($params['status']) {
+    public function query() {$this->deviceVer(1);}
+    public function up() {$this->deviceVer(2);}
+    public function add() {$this->deviceVer(3);}
+    public function deviceVer($status = 0) {
+        $status = $status == 0 ? $this->dparam['status'] : $status;
+        switch ($status) {
             //查库
             case 1:
-                $data = $this->queryDevice($params['device']);
-                $data = isset($data['type']) ? $data['type'] : info('库里可能还没存在',-1);
+                $data = DeviceverModel::query($this->stat, $this->deviceVer);
+                if($this->stat == 0)
+                    isset($data['type']) ? info('ok', $data['type']) : info('库里可能还没存在',-1);
+                else
+                    !empty($data) ? info('ok', 1, $data) : info('库里可能还没存在', -1);
                 break;
             //修改
             case 2:
-                $data = M('device')->where(['deviceVer' => ['=',$params['device']]])->save(['type' => $type]);
+                DeviceverModel::up($this->deviceVer, $this->stat, $this->type, $this->url) ? info('修改成功', 1) : info('修改失败', -1);
                 break;
             //添加
             case 3:
-                if(!$this->queryDevice($params['device'])) {
-                    $data = M('device')->add(['deviceVer' => $params['device'], 'type' => $type]);
-                } else {
-                    info('库里已经存在', false);
-                }
+                DeviceverModel::query($this->stat, $this->deviceVer) ? info('库里已经存在', -1) : DeviceverModel::add($this->deviceVer, $this->type, $this->url, $this->stat);
+                info('添加成功', 1);
                 break;
         }
-        info('ok',(int)$data);
-    }
-    public function queryDevice($device = '') {
-        return $device ? M('device')->where(['deviceVer' => ['=', $device]])->field('type')->select('single') : M('device')->select();
     }
 }
