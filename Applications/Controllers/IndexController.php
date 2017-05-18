@@ -45,9 +45,10 @@ class IndexController extends AppController
 				'frequency'=>3,		//显示的次数
 				'openver'=>2,
 			];
-		if(!empty($this->dparam['app_ver']) && $this->dparam['app_ver'] == '1.0.5')
-			$data['isuser'] = 0;
-		else $data['isuser'] = 1;
+		// if(!empty($this->dparam['app_ver']) && $this->dparam['app_ver'] == '1.0.6')
+		// 	$data['isuser'] = 0;
+		// else $data['isuser'] = 1;
+		$data['isuser'] = 1;
 		if(!empty($this->dparam['user_id'])){
 			$sql = "SELECT phone FROM ngw_uid WHERE `objectId` = '{$this->dparam['user_id']}'";
 			$phone = M()->query($sql);

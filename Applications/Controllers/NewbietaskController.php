@@ -110,16 +110,18 @@ class NewbietaskController extends AppController {
 				$data['uid'] = $uid;
 				//添加该任务日志记录
 				M('task_log')->add($data);
-				//不论该任务有没有金额奖励 都存uid_bill_log 记录
-				M('uid_bill_log')->add([
-					'type'		   => 2,
-					'score_type'   => 10,
-					'task_id'	   => $data['task_id'],
-					'uid'		   => $uid,
-					'cost'		   => $data['price'],
-					'score_info'   => $data['name'],
-					'report_date'  => date('Y-m-d')
-				]);
+				//当任务奖励金额大于0的时候 存uid_bill_log 记录
+				if($data['price'] > 0) {
+					M('uid_bill_log')->add([
+						'type'		   => 2,
+						'score_type'   => 10,
+						'task_id'	   => $data['task_id'],
+						'uid'		   => $uid,
+						'cost'		   => $data['price'],
+						'score_info'   => $data['name'],
+						'report_date'  => date('Y-m-d')
+					]);
+				}
 			}
 		} else {
 			$data['status'] = 1;	//任务进行中状态

@@ -53,7 +53,6 @@ abstract class keepReport extends htReport{
     生成时间段条件
      */
     public function createTime($date){
-
         switch ($this->type) {
             case 'week':
                 $len = 7;

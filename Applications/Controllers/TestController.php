@@ -1,7 +1,7 @@
 <?php
 class TestController extends AppController {
     public function test() {
-        file_put_contents('runtime/logs/test.txt', '已成功回调');
+        phpinfo();
     }
     public function a() {
         R()->delLike('lm');

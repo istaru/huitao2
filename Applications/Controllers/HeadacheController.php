@@ -49,15 +49,19 @@ class HeadacheController {
             $key = array_rand($callback, $percentage);
             foreach(is_array($key) ? $key : [$key] as $v) {
                 //数据状态改为2 回调对方时把对方返回值也入库处理
-                M('tracking')->where("(imei = '{$callback[$v]['imei']}' OR idfa= '{$callback[$v]['idfa']}') AND source = '{$callback[$v]['source']}'")->save([
-                    'status'    => 2,
-                    'response'  => get_curl(str_replace('amp;','',urldecode($callback[$v]['callback_url'])))
-                ]);
+                $this->callback($callback[$v]['idfa'], $callback[$v]['imei'], $callback[$v]['callback_url'], 1);
                 unset($callback[$v]);
             }
             $did = connectionArray($callback, 'did');
             M('tracking')->where("imei IN({$did}) OR idfa IN({$did})")->save(['status' => 4]);
         }
+    }
+    public function callback($idfa, $imei, $callbackUrl, $type) {
+        M('tracking')->where("(imei = '{$imei}' OR idfa= '{$idfa}')")->save([
+            'status'    => 2,
+            'response'  => get_curl(str_replace('amp;','',urldecode($callbackUrl))),
+            'type'      => $type
+        ]);
     }
     //根据手机系统来设置回调率以及回调基数
     public function setBase($system) {
@@ -67,9 +71,17 @@ class HeadacheController {
         ];
         return isset($file[$system]) ? $file[$system] : [10000, 1];
     }
-    //进行真实回调
+    //下单用户进行真实回调
     public function active($data) {
-
+        if(!empty($data)) {
+            $uid = connectionArray($data);
+            $sql = "SELECT a.uid , a.idfa , a.imei , a.callback_url , a.type FROM( SELECT * FROM ngw_tracking WHERE status != 2) a JOIN( SELECT uid , idfa , imei FROM ngw_did_log WHERE uid IN({$uid}) GROUP BY imei , idfa) b ON a.idfa = b.idfa OR a.imei = b.imei";
+            $data = M()->query($sql, 'all');
+            //发起回调
+            foreach($data as $v) {
+                $this->callback($v['idfa'], $v['imei'],$v['callback_url'], 2);
+            }
+        }
     }
 
     public function query() {

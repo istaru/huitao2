@@ -31,7 +31,12 @@ class Route {
         ];
         $data = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
         if(!APP_DEBUG) {
-            is_writable(DIR) ? file_put_contents(DIR_RUNTIME_LOG.date('Ym').DS.date('d').'error.json', $data, FILE_APPEND) : E('没有可写权限', 999);
+            if(is_writable(DIR_RUNTIME_LOG)) {
+                Log::checkDir();
+                file_put_contents(DIR_RUNTIME_LOG.date('Ym').DS.date('d').'error.json', $data, FILE_APPEND);
+            } else {
+                info('发生个错误但是没有可写权限', 999);
+            }
         } else exit($data);
     }
     /**
