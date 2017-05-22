@@ -51,9 +51,6 @@ class TaoBaoKeController extends AppController {
         }
         //批量进行请求api拿到明文id 以及邮费
         $this->taobaoList = $this->taoBaoApi->taeItemsListRequest([], array_unique($auctionId));
-        //批量补全商品表中没有的商品
-        if($this->taobaoList)
-            $this->complementGoodsOnline(array_column($this->taobaoList, 'open_id'));
         //订单批量入库
         $this->addOrder($data);
         //批量确认消息
@@ -72,7 +69,7 @@ class TaoBaoKeController extends AppController {
         }
     }
     //通过传入商品明文id 查询相关api数据入库
-    public function complementGoodsOnline($numIid = []) {
+    public function complementGoodsOnline($numIid = [], $price = '') {
         //支持前端 post批量入库
         $numIid  = $numIid ? : explode(',', $_POST['num_iid']);
         //如果库里存在则就不在需要查询api入库了
@@ -89,13 +86,14 @@ class TaoBaoKeController extends AppController {
         foreach($this->taoBaoApi->tbkItemInfoGetRequest($pendingTreatment) as $v) {
             foreach($this->taobaoList as $val) {
                 if($v['num_iid'] == $val['open_id']) {
+                    $v['deal_price'] = $price;
                     $res[] = $this->replaceField(array_merge($val, $v), [
                         'pic_url'       => 'pict_url',      //主图链接
                         'shop_name'     => 'store_name',    //店铺名称
                         'reserve_price' => 'price',         //商品一口价
                         'nick'          => 'seller_name',   //卖家旺旺
                         'tk_rate'       => 'rating',        //佣金比
-                        'mall'          => 'store_type'     //商品类型
+                        'mall'          => 'store_type',    //商品类型
                     ]);
                 }
             }
@@ -121,6 +119,8 @@ class TaoBaoKeController extends AppController {
                             $v['paid_fee'] = abs($v['paid_fee']) - abs($taobaoList['post_fee']) < 0 ? 0 : abs($v['paid_fee']) - abs($taobaoList['post_fee']);
                             //获取明文id
                             $v['num_iid']  = $taobaoList['open_id'];
+                            //补全online表
+                            $this->complementGoodsOnline([$v['num_iid']], $v['paid_fee']);
                             //补全order表中明文id
                             M('order')->where(['order_id' => ['=', $v['order_id']]])->save(['num_iid' => $v['num_iid']]);
                         }

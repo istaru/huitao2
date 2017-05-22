@@ -16,7 +16,7 @@ class DeviceverController extends AppController {
                 $this->type = $this->dparam['isUser'];
             if(isset($this->dparam['webUrl']))
                 $this->url = $this->dparam['webUrl'];
-        }else info('ok', 1);
+        }else info('ok', -1);
         //旧版本
         // else if(!empty($_REQUEST['device'])) {
             // info('ok', 1);

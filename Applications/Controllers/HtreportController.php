@@ -1,11 +1,8 @@
-
 <?php
+class HtreportController {
+	public function channelReport() {
 
-// class HtreportController extends  HtController
-class HtreportController
-
-{
-
+	}
 	/**
 	 * [trackUserInfoReport 渠道效果报表]
 	 */
@@ -247,7 +244,6 @@ join
 ) b
 on a.report_date = b.report_date
 ";
-echo $keep_sql;die;
 
 
 //推广新增
